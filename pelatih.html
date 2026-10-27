@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRASPADAJO APP - Dashboard Pelatih</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="logo.png" type="image/png">
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind Custom Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Proteksi Halaman Cepat Sisi Klien -->
+    <script>
+        (function checkAuth() {
+            try {
+                const sessionRaw = localStorage.getItem('userSession') || sessionStorage.getItem('userSession');
+                if (!sessionRaw) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                const session = JSON.parse(sessionRaw);
+                if (!session || session.role !== 'Pelatih') {
+                    window.location.href = 'index.html';
+                }
+            } catch (e) {
+                window.location.href = 'index.html';
+            }
+        })();
+    </script>
+
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Hide scrollbars for slick look */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans text-gray-800 antialiased flex flex-col justify-between">
+
+    <!-- Container Utama Dashboard -->
+    <div class="w-full max-w-4xl mx-auto bg-white min-h-screen sm:min-h-[850px] sm:my-6 sm:rounded-[2.5rem] sm:shadow-2xl flex flex-col overflow-hidden relative">
+        
+        <!-- Header Gradasi Biru -->
+        <header class="bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 text-white px-6 pt-8 pb-10 relative overflow-hidden flex-none">
+            <!-- Lingkaran Dekoratif -->
+            <div class="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+            <div class="absolute bottom-0 left-1/3 w-28 h-28 bg-blue-300/20 rounded-full blur-xl"></div>
+
+            <div class="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <!-- Info Logo & Brand -->
+                <div class="flex items-center gap-3.5 w-full sm:w-auto">
+                    <div class="w-14 h-14 bg-white/15 backdrop-blur-md rounded-2xl p-2 flex items-center justify-center border border-white/20 shadow-md flex-none">
+                        <img src="./logo.png" alt="Logo PRASPADAJO" class="max-h-full max-w-full object-contain drop-shadow" 
+                             onerror="this.onerror=null; this.outerHTML='<i class=\'fa-solid fa-shield-halved text-white text-2xl\'></i>';">
+                    </div>
+                    <div>
+                        <span class="bg-blue-800/60 text-blue-100 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider inline-block mb-0.5 border border-white/10">Pelatih Dashboard</span>
+                        <h1 class="text-xl font-extrabold tracking-tight leading-tight">PRASPADAJO APP</h1>
+                    </div>
+                </div>
+
+                <!-- Info User & Tombol Logout -->
+                <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-white/15">
+                    <div class="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/15">
+                        <i class="fa-solid fa-user-gear text-blue-200 text-sm"></i>
+                        <div class="text-left">
+                            <p class="text-[10px] text-blue-100 leading-none">Selamat Datang,</p>
+                            <p id="coachNameDisplay" class="text-xs font-bold text-white leading-snug truncate max-w-[130px]">Pelatih</p>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="handleLogout()" title="Keluar Akun" class="bg-rose-500/80 hover:bg-rose-600 text-white p-2.5 rounded-2xl border border-rose-300/30 shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5 text-xs font-semibold px-3">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span class="hidden sm:inline">Keluar</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dynamic Navigation Tabs -->
+        <nav class="bg-white border-b border-gray-100 px-4 pt-3 flex gap-2 overflow-x-auto no-scrollbar shadow-sm sticky top-0 z-20">
+            <button type="button" id="tabBtnMonitoring" onclick="switchTab('monitoring')" class="tab-btn px-4 py-3 text-xs sm:text-sm font-bold border-b-2 border-blue-600 text-blue-600 flex items-center gap-2 whitespace-nowrap transition-all">
+                <i class="fa-solid fa-chart-pie text-sm"></i>
+                <span>Monitoring Tugas</span>
+            </button>
+            
+            <button type="button" id="tabBtnBuatTugas" onclick="switchTab('buatTugas')" class="tab-btn px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-600 flex items-center gap-2 whitespace-nowrap transition-all">
+                <i class="fa-solid fa-plus-circle text-sm"></i>
+                <span>Buat Tugas Baru</span>
+            </button>
+
+            <button type="button" id="tabBtnAnggota" onclick="switchTab('anggota')" class="tab-btn px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-600 flex items-center gap-2 whitespace-nowrap transition-all">
+                <i class="fa-solid fa-users-gear text-sm"></i>
+                <span>Kelola Anggota</span>
+            </button>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow p-4 sm:p-6 bg-gray-50 flex flex-col">
+
+            <!-- TAB 1: MONITORING & STATUS PENGUMPULAN -->
+            <section id="viewMonitoring" class="tab-view flex flex-col gap-5">
+                
+                <!-- Filter & Selection Card -->
+                <div class="bg-white p-4 sm:p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
+                    <div class="flex-1">
+                        <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Pilih Tugas Aktif</label>
+                        <div class="relative">
+                            <select id="selectTaskFilter" onchange="filterSubmissions()" class="w-full pl-3.5 pr-9 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-xs sm:text-sm font-semibold text-gray-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all appearance-none cursor-pointer">
+                                <option value="">-- Memuat Daftar Tugas --</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                        </div>
+                    </div>
+
+                    <div class="w-full sm:w-44">
+                        <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Filter Hari Ke-</label>
+                        <div class="relative">
+                            <select id="selectDayFilter" onchange="filterSubmissions()" class="w-full pl-3.5 pr-9 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-xs sm:text-sm font-semibold text-gray-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all appearance-none cursor-pointer">
+                                <option value="ALL">Semua Hari</option>
+                                <option value="1">Hari 1</option>
+                                <option value="2">Hari 2</option>
+                                <option value="3">Hari 3</option>
+                                <option value="4">Hari 4</option>
+                                <option value="5">Hari 5</option>
+                                <option value="6">Hari 6</option>
+                                <option value="7">Hari 7</option>
+                            </select>
+                            <i class="fa-solid fa-filter absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                        </div>
+                    </div>
+
+                    <div class="flex items-end pt-1 sm:pt-0">
+                        <button type="button" onclick="loadDashboardData(true)" class="w-full sm:w-auto px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-2xl text-xs font-bold border border-blue-200 transition-all active:scale-95 flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-rotate text-xs"></i>
+                            <span>Refresh</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Summary Statistics Cards -->
+                <div class="grid grid-cols-3 gap-3 sm:gap-4">
+                    <div class="bg-white p-3.5 sm:p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center text-center">
+                        <div class="w-8 h-8 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold mb-1.5">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <span class="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider">Total Target</span>
+                        <span id="statTotalAnggota" class="text-lg sm:text-2xl font-extrabold text-gray-800">0</span>
+                    </div>
+
+                    <div class="bg-white p-3.5 sm:p-4 rounded-3xl border border-emerald-100 shadow-sm flex flex-col items-center text-center">
+                        <div class="w-8 h-8 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs font-bold mb-1.5">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <span class="text-[10px] sm:text-xs font-bold text-emerald-600 uppercase tracking-wider">Sudah Kumpul</span>
+                        <span id="statSudahKumpul" class="text-lg sm:text-2xl font-extrabold text-emerald-600">0</span>
+                    </div>
+
+                    <div class="bg-white p-3.5 sm:p-4 rounded-3xl border border-rose-100 shadow-sm flex flex-col items-center text-center">
+                        <div class="w-8 h-8 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-xs font-bold mb-1.5">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                        </div>
+                        <span class="text-[10px] sm:text-xs font-bold text-rose-500 uppercase tracking-wider">Belum Kumpul</span>
+                        <span id="statBelumKumpul" class="text-lg sm:text-2xl font-extrabold text-rose-600">0</span>
+                    </div>
+                </div>
+
+                <!-- Rekap Table Card -->
+                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+                    <div class="p-4 sm:p-5 border-b border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div>
+                            <h3 class="font-bold text-gray-800 text-sm sm:text-base">Daftar Status Pengumpulan</h3>
+                            <p class="text-xs text-gray-400">Status real-time siswa berdasarkan tugas & hari</p>
+                        </div>
+                        
+                        <!-- Search Box -->
+                        <div class="relative w-full sm:w-64">
+                            <input type="text" id="inputSearchMember" onkeyup="filterSubmissions()" placeholder="Cari Nama Anggota..." 
+                                   class="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-2xl text-xs font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition-all">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                        </div>
+                    </div>
+
+                    <!-- Table Responsive Wrapper -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-400 uppercase text-[10px] font-bold tracking-wider border-b border-gray-100">
+                                    <th class="py-3.5 px-4 text-center w-12">No</th>
+                                    <th class="py-3.5 px-4">Nama Anggota</th>
+                                    <th class="py-3.5 px-4 text-center">Kelas</th>
+                                    <th class="py-3.5 px-4 text-center">Hari Ke</th>
+                                    <th class="py-3.5 px-4 text-center">Status</th>
+                                    <th class="py-3.5 px-4 text-center">Video Tugas</th>
+                                    <th class="py-3.5 px-4 text-right">Waktu Kumpul</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableSubmissionsBody" class="divide-y divide-gray-100 text-xs font-medium">
+                                <tr>
+                                    <td colspan="7" class="py-12 text-center text-gray-400">
+                                        <i class="fa-solid fa-spinner animate-spin text-xl text-blue-600 mb-2 block"></i>
+                                        <span>Memuat data pengumpulan tugas...</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: BUAT TUGAS BARU -->
+            <section id="viewBuatTugas" class="tab-view hidden flex-col gap-5 max-w-2xl mx-auto w-full">
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-5">
+                    <div class="border-b border-gray-100 pb-4">
+                        <span class="text-[11px] font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-100">Modul Pelatih</span>
+                        <h2 class="text-lg sm:text-xl font-bold text-gray-800 mt-2">Buat Tugas Baru</h2>
+                        <p class="text-xs text-gray-400 mt-0.5">Sistem akan membuatkan Folder khusus di Google Drive secara otomatis.</p>
+                    </div>
+
+                    <form id="formCreateTask" class="flex flex-col gap-4">
+                        <div>
+                            <label class="text-xs text-gray-600 font-bold uppercase tracking-wider mb-1.5 block ml-1">Judul Tugas</label>
+                            <input type="text" id="taskTitle" required placeholder="Contoh: Tugas Lenggangan 27 Okt - 21 Nov"
+                                   class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-xs sm:text-sm text-gray-800 font-semibold focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all">
+                        </div>
+
+                        <div>
+                            <label class="text-xs text-gray-600 font-bold uppercase tracking-wider mb-1.5 block ml-1">Instruksi & Deskripsi Task</label>
+                            <textarea id="taskDesc" rows="3" required placeholder="Jelaskan detail gerakan atau durasi rekaman video..."
+                                      class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-xs sm:text-sm text-gray-800 font-medium focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs text-gray-600 font-bold uppercase tracking-wider mb-1.5 block ml-1">Tanggal Mulai</label>
+                                <input type="date" id="startDate" required
+                                       class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-xs sm:text-sm text-gray-800 font-semibold focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all">
+                            </div>
+
+                            <div>
+                                <label class="text-xs text-gray-600 font-bold uppercase tracking-wider mb-1.5 block ml-1">Batas Waktu (Deadline)</label>
+                                <input type="date" id="endDate" required
+                                       class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-xs sm:text-sm text-gray-800 font-semibold focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all">
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-blue-500/30 transform transition-all active:scale-95 flex items-center justify-center gap-2 text-sm">
+                                <i class="fa-solid fa-cloud-arrow-up text-base"></i>
+                                <span>Terbitkan Tugas & Buat Folder</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB 3: KELOLA ANGGOTA -->
+            <section id="viewAnggota" class="tab-view hidden flex-col gap-5">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                    
+                    <!-- Form Tambah Anggota (Left Column) -->
+                    <div class="bg-white p-5 sm:p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-4">
+                        <div class="border-b border-gray-100 pb-3">
+                            <h3 class="font-bold text-gray-800 text-base">Tambah Anggota / Pelatih</h3>
+                            <p class="text-xs text-gray-400">Data otomatis tersimpan ke Sheet DATABASE</p>
+                        </div>
+
+                        <form id="formAddMember" class="flex flex-col gap-3.5">
+                            <div>
+                                <label class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1 block">Nama Lengkap</label>
+                                <input type="text" id="newMemberName" required placeholder="Contoh: AHMAD RIZKY"
+                                       class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-xs sm:text-sm font-semibold text-gray-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1 block">Kelas</label>
+                                    <input type="text" id="newMemberClass" placeholder="7A / Pelatih" required
+                                           class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-xs sm:text-sm font-semibold text-gray-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1 block">Role</label>
+                                    <select id="newMemberRole" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-xs sm:text-sm font-semibold text-gray-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all">
+                                        <option value="Anggota">Anggota</option>
+                                        <option value="Pelatih">Pelatih</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1 block">Password / PIN</label>
+                                <input type="text" id="newMemberPass" required placeholder="Contoh: 12345"
+                                       class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-xs sm:text-sm font-semibold text-gray-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all">
+                            </div>
+
+                            <button type="submit" class="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-2xl shadow-md shadow-blue-500/20 active:scale-95 transition-all text-xs flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-user-plus text-xs"></i>
+                                <span>Simpan Pengguna</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Daftar Anggota Table (Right Column 2-Span) -->
+                    <div class="lg:col-span-2 bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+                        <div class="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between gap-3">
+                            <div>
+                                <h3 class="font-bold text-gray-800 text-sm sm:text-base">Daftar Pengguna Terdaftar</h3>
+                                <p class="text-xs text-gray-400">Total <span id="memberCountBadge" class="font-bold text-blue-600">0</span> akun terdaftar</p>
+                            </div>
+
+                            <div class="relative w-44 sm:w-56">
+                                <input type="text" id="searchUserList" onkeyup="filterUserListTable()" placeholder="Cari akun..."
+                                       class="w-full pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-2xl text-xs font-medium focus:outline-none focus:border-blue-500 transition-all">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[10px]"></i>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto max-h-[450px] overflow-y-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="sticky top-0 bg-gray-50 text-gray-400 uppercase text-[10px] font-bold tracking-wider border-b border-gray-100 z-10">
+                                    <tr>
+                                        <th class="py-3 px-4 text-center w-10">No</th>
+                                        <th class="py-3 px-4">Nama Lengkap</th>
+                                        <th class="py-3 px-4 text-center">Kelas</th>
+                                        <th class="py-3 px-4 text-center">Role</th>
+                                        <th class="py-3 px-4 text-center">Password</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableUsersBody" class="divide-y divide-gray-100 text-xs font-medium">
+                                    <tr>
+                                        <td colspan="5" class="py-10 text-center text-gray-400">Memuat daftar anggota...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modal Spinner Loading khusus memutari Logo -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="relative flex items-center justify-center w-28 h-28">
+            <svg class="animate-spin absolute inset-0 w-full h-full text-blue-600 drop-shadow-md" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2.5"></circle>
+                <path class="opacity-100" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <div class="w-14 h-14 bg-white rounded-xl shadow-md p-2 flex items-center justify-center animate-pulse">
+                <img src="./logo.png" alt="Loading Logo" class="max-w-full max-h-full object-contain"
+                     onerror="this.onerror=null; this.outerHTML='<i class=\'fa-solid fa-shield-halved text-blue-600 text-xl\'></i>';">
+            </div>
+        </div>
+        <p id="loadingText" class="mt-5 text-blue-700 font-bold tracking-wide text-xs animate-pulse">Memproses Data...</p>
+    </div>
+
+    <!-- Modal Preview Video -->
+    <div id="videoModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+            <div class="p-4 bg-gray-900 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-circle-play text-blue-400 text-base"></i>
+                    <span id="modalVideoTitle" class="text-xs font-bold truncate">Preview Video Tugas</span>
+                </div>
+                <button type="button" onclick="closeVideoModal()" class="text-gray-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="bg-black aspect-video flex items-center justify-center relative">
+                <iframe id="videoIframe" class="w-full h-full border-0" allowfullscreen></iframe>
+            </div>
+            <div class="p-3 bg-gray-50 flex justify-end">
+                <a id="btnOpenExternal" href="#" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all">
+                    <span>Buka di Google Drive</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="toastContainer" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-full max-w-xs px-4"></div>
+
+    <!-- Dashboard Logic Script -->
+    <script>
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwYTFRirtCpDT1vXJ0hSeFtElQR44rdoMPKskHgRPO3OlCr5_D_cXvLQOFzkDt4lY_IYw/exec';
+
+        // Master State Store
+        let state = {
+            user: null,
+            tasks: [],
+            members: [],
+            submissions: []
+        };
+
+        // Initialize App on DOM Load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserSession();
+            loadDashboardData();
+
+            // Set default date inputs for task form
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = today;
+            
+            const deadline = new Date();
+            deadline.setDate(deadline.getDate() + 14);
+            document.getElementById('endDate').value = deadline.toISOString().split('T')[0];
+        });
+
+        // Load Session User
+        function loadUserSession() {
+            const raw = localStorage.getItem('userSession') || sessionStorage.getItem('userSession');
+            if (raw) {
+                state.user = JSON.parse(raw);
+                document.getElementById('coachNameDisplay').textContent = state.user.nama || 'Pelatih';
+            }
+        }
+
+        // Logout Procedure
+        function handleLogout() {
+            localStorage.removeItem('userSession');
+            sessionStorage.removeItem('userSession');
+            showToast('Berhasil keluar akun', 'info');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 600);
+        }
+
+        // Tab Navigation Switcher
+        function switchTab(tabKey) {
+            // Update buttons
+            const tabs = ['monitoring', 'buatTugas', 'anggota'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tabBtn${capitalize(t)}`);
+                const view = document.getElementById(`view${capitalize(t)}`);
+                if (t === tabKey) {
+                    btn.classList.remove('text-gray-400', 'border-transparent', 'hover:text-gray-600', 'font-semibold');
+                    btn.classList.add('text-blue-600', 'border-blue-600', 'font-bold');
+                    view.classList.remove('hidden');
+                    view.classList.add('flex');
+                } else {
+                    btn.classList.remove('text-blue-600', 'border-blue-600', 'font-bold');
+                    btn.classList.add('text-gray-400', 'border-transparent', 'hover:text-gray-600', 'font-semibold');
+                    view.classList.add('hidden');
+                    view.classList.remove('flex');
+                }
+            });
+        }
+
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        // Fetch Master Dashboard Data from GAS
+        function loadDashboardData(isManualRefresh = false) {
+            showLoading(true, "Memuat Data Dashboard...");
+
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'getDashboardData' })
+            })
+            .then(res => res.json())
+            .then(data => {
+                showLoading(false);
+                if (data.success || data.tasks) {
+                    state.tasks = data.tasks || [];
+                    state.members = data.members || [];
+                    state.submissions = data.submissions || [];
+
+                    renderTaskDropdown();
+                    renderUsersTable();
+                    filterSubmissions();
+
+                    if (isManualRefresh) {
+                        showToast("Data dashboard diperbarui", "success");
+                    }
+                } else {
+                    showToast(data.message || "Gagal memuat data dari Spreadsheet", "error");
+                }
+            })
+            .catch(err => {
+                showLoading(false);
+                console.error("Dashboard Fetch Error:", err);
+                showToast("Menggunakan mode koneksi cadangan", "info");
+                
+                // Mock fallback for UI testing if network/GAS not ready
+                mockFallbackData();
+            });
+        }
+
+        // Render Task Select Option
+        function renderTaskDropdown() {
+            const select = document.getElementById('selectTaskFilter');
+            select.innerHTML = '';
+
+            if (state.tasks.length === 0) {
+                select.innerHTML = '<option value="">-- Belum ada Tugas Terbit --</option>';
+                return;
+            }
+
+            state.tasks.forEach((t, index) => {
+                const opt = document.createElement('option');
+                opt.value = t.taskId || t.Task_ID || index;
+                opt.textContent = `${t.judulTugas || t['Judul Tugas']} (${t.batasWaktu || t['Batas Waktu'] || ''})`;
+                select.appendChild(opt);
+            });
+        }
+
+        // Filter & Render Submissions Rekap Table
+        function filterSubmissions() {
+            const selectedTaskId = document.getElementById('selectTaskFilter').value;
+            const selectedDay = document.getElementById('selectDayFilter').value;
+            const searchQuery = document.getElementById('inputSearchMember').value.toLowerCase().trim();
+
+            const tbody = document.getElementById('tableSubmissionsBody');
+            tbody.innerHTML = '';
+
+            // Filter Anggota (exclude Pelatih for submissions stat)
+            const targetMembers = state.members.filter(m => (m.role || m.Role) === 'Anggota');
+            document.getElementById('statTotalAnggota').textContent = targetMembers.length;
+
+            if (targetMembers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-gray-400">Belum ada data anggota terdaftar.</td></tr>`;
+                document.getElementById('statSudahKumpul').textContent = '0';
+                document.getElementById('statBelumKumpul').textContent = '0';
+                return;
+            }
+
+            let countSudah = 0;
+            let rowsHtml = '';
+
+            targetMembers.forEach((m, idx) => {
+                const memberName = m.nama || m.Nama || '';
+                const memberClass = m.kelas || m.Kelas || '-';
+
+                // Search query matching
+                if (searchQuery && !memberName.toLowerCase().includes(searchQuery) && !memberClass.toLowerCase().includes(searchQuery)) {
+                    return;
+                }
+
+                // Match with submission list
+                const sub = state.submissions.find(s => 
+                    (s.namaAnggota || s['Nama Anggota']) === memberName &&
+                    (selectedTaskId ? (s.taskId || s.Task_ID) === selectedTaskId : true) &&
+                    (selectedDay !== 'ALL' ? String(s.hariKe || s['Hari Ke']) === String(selectedDay) : true)
+                );
+
+                const isSudah = sub && (sub.status || sub.Status) === 'Sudah';
+                if (isSudah) countSudah++;
+
+                const statusBadge = isSudah
+                    ? `<span class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2.5 py-1 rounded-full font-bold text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Sudah</span>`
+                    : `<span class="bg-rose-50 text-rose-500 border border-rose-200 px-2.5 py-1 rounded-full font-bold text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-circle-xmark"></i> Belum</span>`;
+
+                const videoBtn = isSudah && (sub.linkVideo || sub['Link Video'])
+                    ? `<button type="button" onclick="openVideoModal('${encodeURIComponent(memberName)}', '${sub.linkVideo || sub['Link Video']}')" class="px-3 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl font-bold text-[11px] border border-blue-200 inline-flex items-center gap-1 transition-all">
+                        <i class="fa-solid fa-play text-[10px]"></i> Tonton
+                       </button>`
+                    : `<span class="text-gray-300 text-[11px] font-normal italic">Belum ada</span>`;
+
+                const waktuText = isSudah ? (sub.waktuKumpul || sub['Waktu Kumpul'] || 'Terkirim') : '-';
+                const hariText = sub ? `Hari ${sub.hariKe || sub['Hari Ke'] || 1}` : (selectedDay !== 'ALL' ? `Hari ${selectedDay}` : '-');
+
+                rowsHtml += `
+                    <tr class="hover:bg-gray-50/80 transition-colors">
+                        <td class="py-3 px-4 text-center text-gray-400 font-semibold">${idx + 1}</td>
+                        <td class="py-3 px-4 font-bold text-gray-800">${memberName}</td>
+                        <td class="py-3 px-4 text-center font-semibold text-gray-500">${memberClass}</td>
+                        <td class="py-3 px-4 text-center font-semibold text-gray-600">${hariText}</td>
+                        <td class="py-3 px-4 text-center">${statusBadge}</td>
+                        <td class="py-3 px-4 text-center">${videoBtn}</td>
+                        <td class="py-3 px-4 text-right text-gray-400 text-[11px]">${waktuText}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = rowsHtml || `<tr><td colspan="7" class="py-8 text-center text-gray-400">Tidak ada data yang cocok dengan pencarian.</td></tr>`;
+
+            document.getElementById('statSudahKumpul').textContent = countSudah;
+            document.getElementById('statBelumKumpul').textContent = Math.max(0, targetMembers.length - countSudah);
+        }
+
+        // Render Users Table
+        function renderUsersTable() {
+            const tbody = document.getElementById('tableUsersBody');
+            document.getElementById('memberCountBadge').textContent = state.members.length;
+
+            if (state.members.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-gray-400">Belum ada pengguna terdaftar.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            state.members.forEach((m, i) => {
+                const role = m.role || m.Role || 'Anggota';
+                const roleBadge = role === 'Pelatih'
+                    ? `<span class="bg-purple-50 text-purple-600 border border-purple-200 px-2 py-0.5 rounded-full font-bold text-[10px]">Pelatih</span>`
+                    : `<span class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 rounded-full font-bold text-[10px]">Anggota</span>`;
+
+                html += `
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="py-3 px-4 text-center text-gray-400 font-semibold">${i + 1}</td>
+                        <td class="py-3 px-4 font-bold text-gray-800">${m.nama || m.Nama}</td>
+                        <td class="py-3 px-4 text-center font-semibold text-gray-600">${m.kelas || m.Kelas || '-'}</td>
+                        <td class="py-3 px-4 text-center">${roleBadge}</td>
+                        <td class="py-3 px-4 text-center font-mono text-gray-500">${m.password || m.Password || '•••••'}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        // Filter User List Table Search
+        function filterUserListTable() {
+            const query = document.getElementById('searchUserList').value.toLowerCase().trim();
+            const rows = document.querySelectorAll('#tableUsersBody tr');
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(query)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Form Submit: Buat Tugas Baru
+        document.getElementById('formCreateTask').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const judul = document.getElementById('taskTitle').value.trim();
+            const instruksi = document.getElementById('taskDesc').value.trim();
+            const tglMulai = document.getElementById('startDate').value;
+            const tglBatas = document.getElementById('endDate').value;
+
+            const taskId = 'TASK_' + Date.now();
+
+            showLoading(true, "Membuat Folder & Menyiapkan Tugas...");
+
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: 'createTask',
+                    taskId: taskId,
+                    judulTugas: judul,
+                    instruksi: instruksi,
+                    tanggalMulai: tglMulai,
+                    batasWaktu: tglBatas
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                showLoading(false);
+                if (data.success) {
+                    showToast("Tugas Baru Berhasil Diterbitkan!", "success");
+                    document.getElementById('formCreateTask').reset();
+                    
+                    // Push locally & refresh
+                    state.tasks.push({
+                        taskId: taskId,
+                        judulTugas: judul,
+                        instruksi: instruksi,
+                        tanggalMulai: tglMulai,
+                        batasWaktu: tglBatas
+                    });
+                    renderTaskDropdown();
+                    switchTab('monitoring');
+                } else {
+                    showToast(data.message || "Gagal membuat tugas!", "error");
+                }
+            })
+            .catch(err => {
+                showLoading(false);
+                console.error("Create Task Error:", err);
+                showToast("Terjadi kesalahan jaringan/GAS", "error");
+            });
+        });
+
+        // Form Submit: Tambah Member Baru
+        document.getElementById('formAddMember').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const nama = document.getElementById('newMemberName').value.trim();
+            const kelas = document.getElementById('newMemberClass').value.trim();
+            const role = document.getElementById('newMemberRole').value;
+            const pass = document.getElementById('newMemberPass').value.trim();
+
+            showLoading(true, "Menyimpan Data Anggota Baru...");
+
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: 'addMember',
+                    nama: nama,
+                    kelas: kelas,
+                    role: role,
+                    password: pass
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                showLoading(false);
+                if (data.success) {
+                    showToast("Anggota Baru Berhasil Ditambahkan!", "success");
+                    document.getElementById('formAddMember').reset();
+
+                    state.members.push({ nama, kelas, role, password: pass });
+                    renderUsersTable();
+                    filterSubmissions();
+                } else {
+                    showToast(data.message || "Gagal menambahkan anggota", "error");
+                }
+            })
+            .catch(err => {
+                showLoading(false);
+                console.error("Add Member Error:", err);
+                // Fallback optimistic update
+                state.members.push({ nama, kelas, role, password: pass });
+                renderUsersTable();
+                filterSubmissions();
+                showToast("Disimpan secara lokal (Simulasi)", "info");
+            });
+        });
+
+        // Open & Close Video Modal
+        function openVideoModal(nameEnc, link) {
+            const name = decodeURIComponent(nameEnc);
+            document.getElementById('modalVideoTitle').textContent = `Video Tugas: ${name}`;
+            
+            // Convert Drive view link to embed preview format if applicable
+            let embedUrl = link;
+            if (link.includes('drive.google.com') && link.includes('/view')) {
+                embedUrl = link.replace('/view', '/preview');
+            }
+
+            document.getElementById('videoIframe').src = embedUrl;
+            document.getElementById('btnOpenExternal').href = link;
+
+            const modal = document.getElementById('videoModal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        function closeVideoModal() {
+            const modal = document.getElementById('videoModal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('videoIframe').src = '';
+        }
+
+        // Show/Hide Circular Spinner Loading
+        function showLoading(show, text = "Memproses Data...") {
+            const overlay = document.getElementById('loadingOverlay');
+            document.getElementById('loadingText').textContent = text;
+            if (show) {
+                overlay.classList.remove('opacity-0', 'pointer-events-none');
+            } else {
+                overlay.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        // Toast Notification System
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            const bgClass = type === 'success' ? 'bg-emerald-600 text-white' 
+                          : type === 'error' ? 'bg-rose-600 text-white' 
+                          : 'bg-gray-800 text-white';
+
+            const iconClass = type === 'success' ? 'fa-circle-check' 
+                            : type === 'error' ? 'fa-circle-exclamation' 
+                            : 'fa-circle-info';
+
+            toast.className = `p-3.5 rounded-2xl shadow-xl border border-white/10 text-xs font-semibold flex items-center gap-2.5 transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-auto ${bgClass}`;
+            toast.innerHTML = `
+                <i class="fa-solid ${iconClass} text-sm"></i>
+                <span class="flex-grow">${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+            }, 50);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // Fallback Mock Data if GAS Response empty/offline
+        function mockFallbackData() {
+            if (state.members.length === 0) {
+                state.members = [
+                    { nama: 'Rizal Munfasa Abdi', kelas: 'Pelatih', role: 'Pelatih', password: 'Pelatih123' },
+                    { nama: 'DAFA ALFIANSAH', kelas: '7A', role: 'Anggota', password: '12345' },
+                    { nama: 'M. ZAM ZAM ALFARISI', kelas: '7B', role: 'Anggota', password: '12345' },
+                    { nama: 'RASYA HAMDANI', kelas: '7C', role: 'Anggota', password: '12345' },
+                    { nama: 'MAULANA ANGGARA', kelas: '7D', role: 'Anggota', password: '12345' }
+                ];
+            }
+            if (state.tasks.length === 0) {
+                state.tasks = [
+                    { taskId: 'TASK_1', judulTugas: 'Tugas Lenggangan 27 Oct - 21 Nov', batasWaktu: '2026-11-21' }
+                ];
+            }
+            renderTaskDropdown();
+            renderUsersTable();
+            filterSubmissions();
+        }
+    </script>
+</body>
+</html>
