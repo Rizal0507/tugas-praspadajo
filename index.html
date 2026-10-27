@@ -91,8 +91,8 @@
             <!-- Form Login -->
             <form id="loginForm" class="flex flex-col gap-4">
                 <div>
-                    <label class="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5 block ml-1">Nama Lengkap / ID</label>
-                    <input type="text" id="inputNama" required placeholder="Masukkan Nama Lengkap"
+                    <label class="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5 block ml-1">Username</label>
+                    <input type="text" id="username" required placeholder="Masukkan Username"
                         class="w-full px-4 py-3.5 bg-gray-50 text-gray-800 text-sm rounded-2xl border border-gray-200 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all placeholder:text-gray-400">
                 </div>
 
@@ -184,7 +184,7 @@
             e.preventDefault();
             hideAlert();
 
-            const nama = document.getElementById('inputNama').value.trim();
+            const username = document.getElementById('username').value.trim();
             const password = document.getElementById('inputPassword').value.trim();
 
             showLoading(true, "Memverifikasi Akun...");
@@ -194,7 +194,7 @@
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({
                     action: 'login',
-                    nama: nama,
+                    username: username,
                     password: password,
                     role: currentRole
                 })
@@ -213,13 +213,13 @@
                         window.location.href = 'anggota.html';
                     }
                 } else {
-                    showAlert(data.message || "Nama, Password, atau Role tidak sesuai!");
+                    showAlert(data.message || "Username, Password, atau Role tidak sesuai!");
                 }
             })
             .catch(err => {
                 showLoading(false);
                 console.error("GAS Connection Error:", err);
-                showAlert("Terjadi kesalahan koneksi atau nama sheet tidak cocok!");
+                showAlert("Terjadi kesalahan koneksi atau konfigurasi GAS belum benar!");
             });
         });
 
