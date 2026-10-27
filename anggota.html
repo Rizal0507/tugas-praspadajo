@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRASPADAJO APP - Ruang Anggota</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="logo.png" type="image/png">
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind Custom Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Proteksi Keamanan Sesi -->
+    <script>
+        (function checkAuth() {
+            try {
+                const sessionRaw = localStorage.getItem('userSession');
+                if (!sessionRaw) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                const session = JSON.parse(sessionRaw);
+                if (!session || session.role !== 'Anggota') {
+                    window.location.href = 'index.html';
+                }
+            } catch (e) {
+                window.location.href = 'index.html';
+            }
+        })();
+    </script>
+
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Animasi Pulsing untuk Mode Perekaman */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+        .recording-pulse::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; right: 0; bottom: 0;
+            border-radius: 50%;
+            border: 3px solid #ef4444; /* rose-500 */
+            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans text-gray-800 antialiased flex flex-col items-center">
+
+    <!-- Container Utama Aplikasi (Mobile First Layout) -->
+    <div class="w-full max-w-md bg-white min-h-screen sm:min-h-[850px] sm:my-6 sm:rounded-[2.5rem] sm:shadow-2xl flex flex-col relative overflow-hidden">
+        
+        <!-- HEADER -->
+        <header id="appHeader" class="bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 text-white px-5 pt-8 pb-10 relative overflow-hidden flex-none transition-all duration-300">
+            <div class="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+            <div class="absolute bottom-0 left-1/3 w-28 h-28 bg-blue-300/20 rounded-full blur-xl"></div>
+
+            <div class="relative z-10 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-white/15 backdrop-blur-md rounded-2xl p-2 flex items-center justify-center border border-white/20 shadow-md">
+                        <img src="./logo.png" alt="Logo" class="max-h-full max-w-full object-contain" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-white text-xl\'></i>';">
+                    </div>
+                    <div>
+                        <span class="bg-blue-800/60 text-blue-100 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider block mb-0.5 border border-white/10 w-max">Anggota Aktif</span>
+                        <h1 class="text-base font-extrabold tracking-tight leading-tight">PRASPADAJO</h1>
+                    </div>
+                </div>
+
+                <button type="button" onclick="handleLogout()" class="bg-rose-500 hover:bg-rose-600 text-white p-2.5 rounded-xl shadow-md transition-all active:scale-95">
+                    <i class="fa-solid fa-right-from-bracket text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Profile Info Card -->
+            <div class="mt-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 relative z-10 shadow-inner">
+                <p class="text-[11px] text-blue-100 font-medium uppercase tracking-wider mb-0.5">Selamat Datang,</p>
+                <h2 id="userNameDisplay" class="text-lg font-bold text-white leading-tight truncate">Nama Siswa</h2>
+                <div class="mt-2 flex items-center gap-1.5 text-xs text-blue-50">
+                    <i class="fa-solid fa-users-rectangle text-[10px]"></i>
+                    <span id="userClassDisplay">Kelas</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- VIEW 1: DASHBOARD TUGAS -->
+        <main id="viewDashboard" class="flex-grow bg-gray-50 flex flex-col relative rounded-t-3xl -mt-6 z-20">
+            <div class="px-5 pt-6 pb-4 border-b border-gray-100 bg-white rounded-t-3xl flex items-center justify-between sticky top-0 z-10 shadow-sm">
+                <h3 class="font-bold text-gray-800 text-base">Tugas Tersedia</h3>
+                <button type="button" onclick="fetchTasks()" class="text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-all">
+                    <i class="fa-solid fa-rotate"></i> Refresh
+                </button>
+            </div>
+            
+            <div id="taskListContainer" class="p-5 flex flex-col gap-4 overflow-y-auto">
+                <!-- Loading State -->
+                <div id="taskLoading" class="py-10 flex flex-col items-center justify-center text-center">
+                    <i class="fa-solid fa-spinner animate-spin text-3xl text-blue-600 mb-3"></i>
+                    <p class="text-xs font-semibold text-gray-500">Mencari tugas baru...</p>
+                </div>
+                <!-- Task Cards will be injected here -->
+            </div>
+        </main>
+
+        <!-- VIEW 2: SETUP PEREKAMAN (Modal) -->
+        <div id="viewSetup" class="fixed inset-0 sm:absolute bg-black/80 backdrop-blur-sm z-40 hidden flex-col justify-end pointer-events-auto">
+            <div class="bg-white w-full rounded-t-[2.5rem] p-6 pt-8 pb-10 flex flex-col animate-[slideUp_0.3s_ease-out]">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100 uppercase tracking-wider">Persiapan Merekam</span>
+                        <h3 id="setupTaskTitle" class="text-lg font-bold text-gray-800 mt-2 leading-snug">Judul Tugas</h3>
+                    </div>
+                    <button type="button" onclick="closeSetup()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 active:scale-95">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                
+                <p id="setupTaskDesc" class="text-xs text-gray-500 mb-6 bg-gray-50 p-3 rounded-xl border border-gray-100 max-h-24 overflow-y-auto leading-relaxed"></p>
+
+                <label class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 ml-1">Ini Pengumpulan Hari Ke- Berapa?</label>
+                <select id="selectHariKe" class="w-full px-4 py-3.5 bg-gray-50 text-gray-800 text-sm font-semibold rounded-2xl border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 mb-6 appearance-none shadow-inner">
+                    <option value="1">Hari 1</option>
+                    <option value="2">Hari 2</option>
+                    <option value="3">Hari 3</option>
+                    <option value="4">Hari 4</option>
+                    <option value="5">Hari 5</option>
+                    <option value="6">Hari 6</option>
+                    <option value="7">Hari 7</option>
+                </select>
+
+                <button type="button" onclick="startCamera()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 text-sm active:scale-95 transition-all">
+                    <i class="fa-solid fa-video text-base"></i>
+                    Buka Kamera & Bersiap
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW 3: KAMERA AKTIF -->
+        <div id="viewCamera" class="fixed inset-0 sm:absolute bg-black z-50 hidden flex-col pointer-events-auto">
+            <!-- Overlay UI Atas -->
+            <div class="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-20 bg-gradient-to-b from-black/60 to-transparent pt-6">
+                <button type="button" id="btnCancelCamera" onclick="abortRecording()" class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white active:scale-95 transition-all">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+                <div class="bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 flex items-center gap-2">
+                    <div id="recIndicator" class="w-2.5 h-2.5 rounded-full bg-rose-500 hidden"></div>
+                    <span id="timerDisplay" class="text-white font-mono font-bold text-sm tracking-wider">00:00</span>
+                </div>
+            </div>
+
+            <!-- Area Video (480p diatur oleh JS) -->
+            <video id="videoPreview" autoplay playsinline muted class="w-full h-full object-cover bg-gray-900"></video>
+
+            <!-- Peringatan Anti Curang -->
+            <div class="absolute top-20 left-4 right-4 bg-yellow-500/90 backdrop-blur text-black text-[10px] font-bold px-3 py-2 rounded-xl text-center shadow-lg border border-yellow-300">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Jangan keluar aplikasi saat merekam, atau video akan dibatalkan!
+            </div>
+
+            <!-- Kontrol Bawah -->
+            <div class="absolute bottom-0 left-0 w-full pb-10 pt-16 flex items-center justify-center gap-8 bg-gradient-to-t from-black/80 to-transparent z-20">
+                <button type="button" id="btnRecord" onclick="toggleRecording()" class="relative w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-[0_0_0_4px_rgba(255,255,255,0.3)] transition-all">
+                    <!-- Icon didalamnya akan diubah lewat JS -->
+                    <div id="btnRecordInner" class="w-14 h-14 bg-rose-500 rounded-full transition-all duration-300"></div>
+                </button>
+            </div>
+        </div>
+
+        <!-- UPLOAD PROGRESS SCREEN -->
+        <div id="viewUploading" class="fixed inset-0 sm:absolute bg-white z-50 hidden flex-col items-center justify-center pointer-events-auto">
+            <div class="relative w-32 h-32 mb-6">
+                <svg class="animate-spin w-full h-full text-blue-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-100" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
+                    <path class="opacity-100 text-blue-600" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <i class="fa-solid fa-cloud-arrow-up text-4xl text-blue-600"></i>
+                </div>
+            </div>
+            <h2 class="text-xl font-bold text-gray-800 mb-2">Mengirim Tugas...</h2>
+            <p class="text-xs text-gray-500 font-medium text-center px-8">Video sedang ditransfer ke Google Drive. Jangan tutup halaman ini.</p>
+        </div>
+
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="toastContainer" class="fixed top-5 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 pointer-events-none w-full max-w-xs px-4"></div>
+
+    <script>
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwYTFRirtCpDT1vXJ0hSeFtElQR44rdoMPKskHgRPO3OlCr5_D_cXvLQOFzkDt4lY_IYw/exec';
+        
+        let user = JSON.parse(localStorage.getItem('userSession'));
+        let activeTasks = [];
+        
+        // State Perekaman
+        let selectedTask = null;
+        let selectedDay = 1;
+        let mediaStream = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let isRecording = false;
+        let wakeLock = null;
+        let timerInterval;
+        let secondsRecorded = 0;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('userNameDisplay').textContent = user.nama;
+            document.getElementById('userClassDisplay').textContent = `Kelas ${user.kelas}`;
+            fetchTasks();
+        });
+
+        function handleLogout() {
+            localStorage.removeItem('userSession');
+            showToast('Berhasil keluar akun', 'info');
+            setTimeout(() => window.location.href = 'index.html', 600);
+        }
+
+        // --- FETCH TASKS ---
+        function fetchTasks() {
+            const container = document.getElementById('taskListContainer');
+            const loading = document.getElementById('taskLoading');
+            
+            // Reset UI
+            container.innerHTML = '';
+            container.appendChild(loading);
+            loading.classList.remove('hidden');
+
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'getTasks' })
+            })
+            .then(res => res.json())
+            .then(data => {
+                loading.classList.add('hidden');
+                if (data.success && data.tasks.length > 0) {
+                    activeTasks = data.tasks;
+                    renderTasks(data.tasks);
+                } else {
+                    container.innerHTML = `
+                        <div class="bg-gray-50 border border-gray-200 rounded-3xl p-6 text-center">
+                            <i class="fa-solid fa-mug-hot text-gray-300 text-4xl mb-3"></i>
+                            <h4 class="text-sm font-bold text-gray-600">Belum Ada Tugas</h4>
+                            <p class="text-xs text-gray-400 mt-1">Silakan bersantai, pelatih belum menerbitkan tugas baru.</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(err => {
+                loading.classList.add('hidden');
+                showToast("Gagal mengambil data tugas", "error");
+            });
+        }
+
+        function renderTasks(tasks) {
+            const container = document.getElementById('taskListContainer');
+            tasks.forEach(t => {
+                // Tampilan Tanggal
+                const dlDate = new Date(t.batasWaktu).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden flex flex-col gap-3 group";
+                card.innerHTML = `
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500"></div>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Tugas Aktif</span>
+                            <h4 class="text-sm font-bold text-gray-800 leading-tight mt-0.5">${t.judulTugas}</h4>
+                        </div>
+                        <div class="bg-rose-50 px-2 py-1 rounded-lg flex flex-col items-center border border-rose-100">
+                            <span class="text-[8px] font-bold text-rose-500 uppercase">Deadline</span>
+                            <span class="text-[10px] font-bold text-rose-700">${dlDate}</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 line-clamp-2">${t.instruksi}</p>
+                    <button type="button" onclick="openSetup('${t.taskId}')" class="mt-1 w-full bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white border border-blue-100 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-colors">
+                        <span>Pilih & Kerjakan</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- PREP SETUP ---
+        function openSetup(taskId) {
+            selectedTask = activeTasks.find(t => t.taskId === taskId);
+            document.getElementById('setupTaskTitle').textContent = selectedTask.judulTugas;
+            document.getElementById('setupTaskDesc').textContent = selectedTask.instruksi;
+            
+            document.getElementById('viewSetup').classList.remove('hidden');
+            document.getElementById('viewSetup').classList.add('flex');
+        }
+
+        function closeSetup() {
+            document.getElementById('viewSetup').classList.add('hidden');
+            document.getElementById('viewSetup').classList.remove('flex');
+        }
+
+        // --- CAMERA & RECORDING LOGIC ---
+        async function startCamera() {
+            selectedDay = document.getElementById('selectHariKe').value;
+            closeSetup();
+            
+            // Show Camera View
+            const viewCam = document.getElementById('viewCamera');
+            viewCam.classList.remove('hidden');
+            viewCam.classList.add('flex');
+            
+            try {
+                // Request Wake Lock
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+
+                // Pengaturan Resolusi Rendah (480p) untuk hemat RAM & Kuota
+                const constraints = {
+                    audio: true,
+                    video: {
+                        width: { ideal: 640, max: 854 },
+                        height: { ideal: 480, max: 480 },
+                        facingMode: "environment" // Kamera belakang
+                    }
+                };
+                
+                mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+                const videoEl = document.getElementById('videoPreview');
+                videoEl.srcObject = mediaStream;
+                videoEl.muted = true; // Jangan bergema di hp
+                
+            } catch (err) {
+                console.error("Camera access error:", err);
+                abortRecording();
+                showToast("Gagal mengakses kamera! Pastikan izin diberikan.", "error");
+            }
+        }
+
+        function toggleRecording() {
+            if (!isRecording) {
+                startRecording();
+            } else {
+                stopRecording(false); // Selesai normal (tidak digagalkan)
+            }
+        }
+
+        function startRecording() {
+            if (!mediaStream) return;
+
+            recordedChunks = [];
+            try {
+                // Gunakan codec standar web (mp4/webm) dengan bitrate rendah
+                let options = { mimeType: 'video/webm;codecs=vp8,opus', videoBitsPerSecond: 600000 };
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                    options = { mimeType: 'video/mp4' }; // Fallback Safari/iOS
+                }
+                
+                mediaRecorder = new MediaRecorder(mediaStream, options);
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = processUpload; // Otomatis trigger upload saat stop
+                
+                mediaRecorder.start();
+                isRecording = true;
+                
+                // UI Changes
+                const btnInner = document.getElementById('btnRecordInner');
+                btnInner.classList.remove('rounded-full', 'w-14', 'h-14');
+                btnInner.classList.add('rounded-xl', 'w-8', 'h-8'); // Bentuk kotak stop
+                
+                document.getElementById('btnRecord').classList.add('recording-pulse');
+                document.getElementById('recIndicator').classList.remove('hidden');
+                document.getElementById('btnCancelCamera').classList.add('hidden'); // Sembunyikan tombol close saat merekam
+                
+                startTimer();
+                
+            } catch (e) {
+                showToast("Gagal memulai perekaman perangkat", "error");
+                abortRecording();
+            }
+        }
+
+        function stopRecording(isAborted = false) {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                // Jika digagalkan (karena pindah app), hapus callback onstop agar tidak diupload
+                if (isAborted) {
+                    mediaRecorder.onstop = null; 
+                    recordedChunks = [];
+                }
+                mediaRecorder.stop();
+            }
+            
+            isRecording = false;
+            stopTimer();
+            releaseCamera();
+            
+            document.getElementById('viewCamera').classList.add('hidden');
+            document.getElementById('viewCamera').classList.remove('flex');
+            
+            // Reset UI Tombol
+            const btnInner = document.getElementById('btnRecordInner');
+            btnInner.classList.add('rounded-full', 'w-14', 'h-14');
+            btnInner.classList.remove('rounded-xl', 'w-8', 'h-8');
+            document.getElementById('btnRecord').classList.remove('recording-pulse');
+            document.getElementById('recIndicator').classList.add('hidden');
+            document.getElementById('btnCancelCamera').classList.remove('hidden');
+            
+            if (wakeLock) {
+                wakeLock.release().then(() => wakeLock = null);
+            }
+        }
+
+        function abortRecording() {
+            stopRecording(true);
+            showToast("Perekaman dibatalkan.", "info");
+        }
+
+        function releaseCamera() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+            document.getElementById('videoPreview').srcObject = null;
+        }
+
+        // --- SISTEM ANTI Pindah Aplikasi (VISIBILITY API) ---
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden && isRecording) {
+                stopRecording(true); // Abort true!
+                showToast("TUGAS DIBATALKAN! Anda dilarang keluar dari web saat merekam.", "error");
+            }
+        });
+
+        // --- TIMER UTILITIES ---
+        function startTimer() {
+            secondsRecorded = 0;
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                secondsRecorded++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            document.getElementById('timerDisplay').textContent = "00:00";
+        }
+
+        function updateTimerDisplay() {
+            const m = String(Math.floor(secondsRecorded / 60)).padStart(2, '0');
+            const s = String(secondsRecorded % 60).padStart(2, '0');
+            document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+        }
+
+        // --- DIRECT RESUMABLE UPLOAD ---
+        function processUpload() {
+            if (recordedChunks.length === 0) return;
+            
+            // Buat File Video Murni
+            const blob = new Blob(recordedChunks, { type: recordedChunks[0].type });
+            const ext = blob.type.includes('mp4') ? '.mp4' : '.webm';
+            const filename = `Hari${selectedDay}_${user.nama.replace(/\s+/g, '')}_${Date.now()}${ext}`;
+
+            // Tampilkan Layar Upload
+            const viewUp = document.getElementById('viewUploading');
+            viewUp.classList.remove('hidden');
+            viewUp.classList.add('flex');
+
+            // Tahap 1: Minta link Resumable ke GAS
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: 'initUpload',
+                    taskFolderId: selectedTask.folderId,
+                    hariKe: selectedDay,
+                    filename: filename
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.uploadUrl) {
+                    // Tahap 2: Tembak file langsung ke Google Drive API
+                    return fetch(data.uploadUrl, {
+                        method: 'PUT',
+                        headers: { 'Content-Length': blob.size.toString() },
+                        body: blob
+                    })
+                    .then(resDrive => resDrive.json())
+                    .then(driveData => {
+                        // Tahap 3: Lapor ke GAS bahwa file sudah masuk
+                        const subId = 'SUB_' + Date.now();
+                        const fileLink = `https://drive.google.com/open?id=${driveData.id}`;
+                        
+                        return fetch(GAS_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify({
+                                action: 'saveSubmission',
+                                subId: subId,
+                                taskId: selectedTask.taskId,
+                                namaAnggota: user.nama,
+                                hariKe: selectedDay,
+                                linkVideo: fileLink
+                            })
+                        });
+                    });
+                } else {
+                    throw new Error("Gagal membuat jalur Google Drive");
+                }
+            })
+            .then(res => res.json())
+            .then(finalData => {
+                viewUp.classList.add('hidden');
+                viewUp.classList.remove('flex');
+                if (finalData.success) {
+                    showToast("Luar Biasa! Tugas berhasil dikumpulkan.", "success");
+                } else {
+                    showToast("Tugas dikirim, tapi gagal dicatat ke database.", "error");
+                }
+            })
+            .catch(err => {
+                viewUp.classList.add('hidden');
+                viewUp.classList.remove('flex');
+                console.error("Upload Chain Error:", err);
+                showToast("Gagal mengirim video. Sinyal mungkin tidak stabil.", "error");
+            });
+        }
+
+        // --- TOAST NOTIFICATION ---
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            const bgClass = type === 'success' ? 'bg-emerald-600 text-white' 
+                          : type === 'error' ? 'bg-rose-600 text-white' 
+                          : 'bg-gray-800 text-white';
+            const iconClass = type === 'success' ? 'fa-circle-check' 
+                            : type === 'error' ? 'fa-circle-exclamation' 
+                            : 'fa-circle-info';
+
+            toast.className = `p-3.5 rounded-2xl shadow-xl border border-white/10 text-xs font-semibold flex items-center gap-2.5 transition-all duration-300 transform -translate-y-4 opacity-0 pointer-events-auto mt-2 ${bgClass}`;
+            toast.innerHTML = `
+                <i class="fa-solid ${iconClass} text-base"></i>
+                <span class="flex-grow leading-tight">${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => toast.classList.remove('-translate-y-4', 'opacity-0'), 50);
+            setTimeout(() => {
+                toast.classList.add('-translate-y-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
