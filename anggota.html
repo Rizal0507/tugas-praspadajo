@@ -23,22 +23,24 @@
         * { -webkit-tap-highlight-color: transparent; }
         @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.3); opacity: 0; } }
         .recording-pulse::before { content: ''; position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-radius: 50%; border: 3px solid #ef4444; animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
-        .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; } .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        
+        /* Custom Scrollbar untuk Navbar agar tidak berantakan */
+        .custom-scroll::-webkit-scrollbar { width: 0px; height: 0px; } 
+        .custom-scroll { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans text-gray-800 antialiased flex flex-col items-center">
 
     <div class="w-full max-w-md bg-white min-h-screen sm:min-h-[850px] sm:my-6 sm:rounded-[2.5rem] sm:shadow-2xl flex flex-col relative overflow-hidden">
         
-        <!-- HEADER -->
-        <header id="appHeader" class="bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 text-white px-5 pt-8 pb-10 relative overflow-hidden flex-none">
+        <!-- HEADER (Dikecilkan agar tidak makan layar) -->
+        <header id="appHeader" class="bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 text-white px-5 pt-5 pb-6 relative overflow-hidden flex-none">
             <div class="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
             <div class="absolute bottom-0 left-1/3 w-28 h-28 bg-blue-300/20 rounded-full blur-xl"></div>
             <div class="relative z-10 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <!-- REVISI 5: LOGO BESAR TANPA BORDER -->
                     <div class="flex items-center justify-center flex-none">
-                        <img src="./logo.png" alt="Logo" class="h-12 w-auto object-contain drop-shadow-md" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-white text-3xl\'></i>';">
+                        <img src="./logo.png" alt="Logo" class="h-10 w-auto object-contain drop-shadow-md" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-white text-3xl\'></i>';">
                     </div>
                     <div>
                         <span id="roleBadge" class="bg-blue-800/60 text-blue-100 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider block mb-0.5 border border-white/10 w-max">Anggota Aktif</span>
@@ -46,33 +48,32 @@
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="openPasswordModal()" class="bg-blue-500 hover:bg-blue-600 text-white p-2.5 rounded-xl shadow-md active:scale-95"><i class="fa-solid fa-key text-sm"></i></button>
-                    <button onclick="handleLogout()" class="bg-rose-500 hover:bg-rose-600 text-white p-2.5 rounded-xl shadow-md active:scale-95"><i class="fa-solid fa-right-from-bracket text-sm"></i></button>
+                    <button onclick="openPasswordModal()" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-xl shadow-md active:scale-95"><i class="fa-solid fa-key text-sm"></i></button>
+                    <button onclick="handleLogout()" class="bg-rose-500 hover:bg-rose-600 text-white p-2 rounded-xl shadow-md active:scale-95"><i class="fa-solid fa-right-from-bracket text-sm"></i></button>
                 </div>
             </div>
-            <div class="mt-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 relative z-10 shadow-inner">
-                <!-- REVISI 6: SAPAAN DINAMIS & KATA MOTIVASI -->
-                <p id="greetingText" class="text-[11px] text-blue-100 font-medium uppercase tracking-wider mb-0.5">Selamat Datang,</p>
-                <h2 id="userNameDisplay" class="text-lg font-bold text-white leading-tight truncate">Nama Siswa</h2>
-                <div class="mt-2 flex flex-col gap-1 text-xs text-blue-50">
+            <div class="mt-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 relative z-10 shadow-inner">
+                <p id="greetingText" class="text-[10px] text-blue-100 font-medium uppercase tracking-wider mb-0.5">Selamat Datang,</p>
+                <h2 id="userNameDisplay" class="text-base font-bold text-white leading-tight truncate">Nama Siswa</h2>
+                <div class="mt-1 flex flex-col gap-0.5 text-xs text-blue-50">
                     <div class="flex items-center gap-1.5"><i class="fa-solid fa-users-rectangle text-[10px]"></i><span id="userClassDisplay">Kelas</span></div>
-                    <p id="motivationText" class="text-[10px] italic text-blue-200 mt-1 border-t border-white/10 pt-1">"Semangat latihan hari ini!"</p>
+                    <p id="motivationText" class="text-[9px] italic text-blue-200 mt-1 border-t border-white/10 pt-1">"Semangat latihan hari ini!"</p>
                 </div>
             </div>
         </header>
 
-        <!-- DYNAMIC NAVIGATION WITH NOTIFICATION BADGES -->
-        <nav class="bg-white border-b border-gray-100 flex shadow-sm z-20 sticky top-0 overflow-x-auto custom-scroll">
-            <button onclick="switchTab('dashboard')" id="tabBtnDashboard" class="flex-1 min-w-[90px] py-3 text-xs font-bold text-blue-600 border-b-2 border-blue-600 flex justify-center items-center gap-1.5 relative">
+        <!-- DYNAMIC NAVIGATION (Diperbaiki agar muat / bisa discroll) -->
+        <nav class="bg-white border-b border-gray-100 flex shadow-sm z-20 sticky top-0 overflow-x-auto custom-scroll whitespace-nowrap">
+            <button onclick="switchTab('dashboard')" id="tabBtnDashboard" class="flex-1 min-w-[85px] py-3 text-[11px] font-bold text-blue-600 border-b-2 border-blue-600 flex justify-center items-center gap-1.5 relative">
                 <i class="fa-solid fa-list-check"></i> Tugas
                 <span id="badgeTugasCount" class="hidden bg-rose-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">0</span>
             </button>
-            <button onclick="switchTab('riwayatTugas')" id="tabBtnRiwayatTugas" class="flex-1 min-w-[100px] py-3 text-xs font-bold text-gray-400 border-b-2 border-transparent flex justify-center items-center gap-1.5 relative">
+            <button onclick="switchTab('riwayatTugas')" id="tabBtnRiwayatTugas" class="flex-1 min-w-[95px] py-3 text-[11px] font-bold text-gray-400 border-b-2 border-transparent flex justify-center items-center gap-1.5 relative">
                 <i class="fa-solid fa-medal"></i> Riwayat Tugas
-                <span id="badgeRiwayatDot" class="hidden w-2.5 h-2.5 bg-rose-500 rounded-full animate-pulse"></span>
+                <span id="badgeRiwayatDot" class="hidden w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
             </button>
-            <button onclick="switchTab('riwayatLatihan')" id="tabBtnRiwayatLatihan" class="flex-1 min-w-[110px] py-3 text-xs font-bold text-gray-400 border-b-2 border-transparent flex justify-center items-center gap-1.5"><i class="fa-solid fa-chart-line"></i> Riwayat Latihan</button>
-            <button onclick="switchTab('absensi')" id="tabBtnAbsensi" class="hidden flex-1 min-w-[100px] py-3 text-xs font-bold text-gray-400 border-b-2 border-transparent flex justify-center items-center gap-1.5"><i class="fa-solid fa-clipboard-user"></i> Absen</button>
+            <button onclick="switchTab('riwayatLatihan')" id="tabBtnRiwayatLatihan" class="flex-1 min-w-[100px] py-3 text-[11px] font-bold text-gray-400 border-b-2 border-transparent flex justify-center items-center gap-1.5"><i class="fa-solid fa-chart-line"></i> Riwayat Latihan</button>
+            <button onclick="switchTab('absensi')" id="tabBtnAbsensi" class="hidden flex-1 min-w-[85px] py-3 text-[11px] font-bold text-gray-400 border-b-2 border-transparent flex justify-center items-center gap-1.5"><i class="fa-solid fa-clipboard-user"></i> Absen</button>
         </nav>
 
         <!-- VIEW 1: DASHBOARD TUGAS -->
@@ -83,7 +84,7 @@
             <!-- TUGAS TERSEDIA HARI INI HEADER -->
             <div class="px-5 pt-4 pb-3 bg-gray-50 flex justify-between items-center sticky top-0 z-10 border-b border-gray-100">
                 <h3 class="font-bold text-gray-800 text-sm">Tugas Tersedia Hari Ini</h3>
-                <button onclick="fetchTasks()" class="text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg text-xs font-bold flex gap-1.5 active:scale-95 hover:bg-blue-100 transition-colors"><i class="fa-solid fa-rotate"></i> Refresh</button>
+                <button onclick="fetchTasks()" class="text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg text-[11px] font-bold flex gap-1.5 active:scale-95 hover:bg-blue-100 transition-colors"><i class="fa-solid fa-rotate"></i> Refresh</button>
             </div>
 
             <!-- LIST TUGAS HARI INI -->
@@ -107,7 +108,7 @@
         <main id="viewRiwayatLatihan" class="hidden flex-grow bg-gray-50 flex-col relative z-10 overflow-y-auto custom-scroll p-5 gap-4">
             <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
                 <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2"><i class="fa-solid fa-chart-pie text-blue-500"></i> Statistik Kehadiran</h3>
-                <button onclick="fetchRiwayatSemua()" class="text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 active:scale-95"><i class="fa-solid fa-rotate text-[10px]"></i> Refresh</button>
+                <button onclick="fetchRiwayatSemua()" class="text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 active:scale-95"><i class="fa-solid fa-rotate text-[10px]"></i> Refresh</button>
             </div>
 
             <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3">
@@ -133,7 +134,7 @@
             </div>
         </main>
 
-        <!-- VIEW 4: ABSENSI (HANYA BAGI YANG PUNYA HAK) -->
+        <!-- VIEW 4: ABSENSI (DENGAN LOGIKA CHECK-IN / CHECK-OUT) -->
         <main id="viewAbsensi" class="hidden flex-grow bg-gray-50 flex-col relative z-10 overflow-y-auto custom-scroll p-5">
             <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-4">
                 <div class="flex justify-between items-center border-b pb-3">
@@ -159,31 +160,39 @@
                     </div>
                     <button type="button" onclick="loadAbsensiData()" class="text-[11px] text-blue-600 font-bold bg-blue-50 py-2 rounded-lg border border-blue-100"><i class="fa-solid fa-cloud-arrow-down mr-1"></i> Load Data Anggota</button>
 
+                    <!-- KOTAK FOTO DATANG & PULANG -->
                     <div class="grid grid-cols-2 gap-2">
-                        <div class="bg-gray-50 border border-dashed border-gray-300 p-2 rounded-xl text-center relative group">
+                        <!-- Foto Datang -->
+                        <div id="boxDatang" class="bg-gray-50 border border-dashed border-gray-300 p-2 rounded-xl text-center relative group transition-all">
                             <div id="fotoDatangPreviewContainer" class="hidden mb-2 relative aspect-video w-full bg-black rounded-lg overflow-hidden">
                                 <img id="fotoDatangPreview" src="" class="w-full h-full object-cover">
-                                <button type="button" onclick="removePhoto('Datang')" class="absolute top-1 right-1 w-6 h-6 bg-rose-500 text-white rounded-full text-[10px]"><i class="fa-solid fa-trash"></i></button>
                             </div>
-                            <label class="cursor-pointer flex flex-col items-center gap-1 text-blue-600 font-bold text-[10px]">
+                            <!-- Tampilan awal (belum absen) -->
+                            <button type="button" id="btnTakeDatang" onclick="openAbsenCamera('Datang')" class="w-full cursor-pointer flex flex-col items-center gap-1 text-blue-600 font-bold text-[10px]">
                                 <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm"><i class="fa-solid fa-camera"></i></div>
                                 <span>Foto Datang</span>
-                                <input type="file" id="fotoDatangInput" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(event, 'Datang')">
-                            </label>
+                            </button>
+                            <!-- Tampilan jika sudah absen (centang hijau) -->
+                            <div id="statusDatangDone" class="hidden flex-col items-center gap-1 text-emerald-600 font-bold text-[10px] py-2">
+                                <i class="fa-solid fa-circle-check text-3xl"></i>
+                                <span>Datang Selesai</span>
+                            </div>
                         </div>
-                        <div class="bg-gray-50 border border-dashed border-gray-300 p-2 rounded-xl text-center relative group">
+
+                        <!-- Foto Pulang -->
+                        <div id="boxPulang" class="bg-gray-50 border border-dashed border-gray-300 p-2 rounded-xl text-center relative group opacity-50 cursor-not-allowed transition-all">
                             <div id="fotoPulangPreviewContainer" class="hidden mb-2 relative aspect-video w-full bg-black rounded-lg overflow-hidden">
                                 <img id="fotoPulangPreview" src="" class="w-full h-full object-cover">
-                                <button type="button" onclick="removePhoto('Pulang')" class="absolute top-1 right-1 w-6 h-6 bg-rose-500 text-white rounded-full text-[10px]"><i class="fa-solid fa-trash"></i></button>
                             </div>
-                            <label class="cursor-pointer flex flex-col items-center gap-1 text-emerald-600 font-bold text-[10px]">
+                            <button type="button" id="btnTakePulang" onclick="openAbsenCamera('Pulang')" disabled class="w-full flex flex-col items-center gap-1 text-emerald-600 font-bold text-[10px]">
                                 <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-sm"><i class="fa-solid fa-camera"></i></div>
                                 <span>Foto Pulang</span>
-                                <input type="file" id="fotoPulangInput" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(event, 'Pulang')">
-                            </label>
+                            </button>
                         </div>
                     </div>
-                    <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 text-sm mt-2"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Absensi</button>
+                    
+                    <!-- Tombol Simpan Muncul Jika Ada Foto Baru -->
+                    <button type="submit" id="btnSimpanAbsen" class="hidden w-full bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 text-sm mt-2"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Absensi</button>
                 </form>
             </div>
         </main>
@@ -194,7 +203,6 @@
                 <div class="flex justify-between items-start mb-4">
                     <div>
                         <span id="setupTipeBadge" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100 uppercase">Panel Tugas</span>
-                        <!-- REVISI 2: TAMBAHKAN TANGGAL DI MODAL -->
                         <p id="setupTaskDate" class="text-[11px] font-bold text-amber-600 mt-1"></p>
                         <h3 id="setupTaskTitle" class="text-lg font-bold text-gray-800 mt-1 leading-snug">Judul Tugas</h3>
                     </div>
@@ -209,7 +217,7 @@
             </div>
         </div>
 
-        <!-- VIEW KAMERA DENGAN TOMBOL PAUSE & SWITCH KAMERA -->
+        <!-- VIEW KAMERA TUGAS (VIDEO) -->
         <div id="viewCamera" class="fixed inset-0 sm:absolute bg-black z-50 hidden flex-col pointer-events-auto">
             <div class="absolute top-0 left-0 w-full h-1.5 bg-gray-800 z-30">
                 <div id="videoProgressBar" class="h-full bg-rose-500 transition-all duration-1000" style="width: 0%;"></div>
@@ -243,6 +251,20 @@
             </div>
         </div>
 
+        <!-- VIEW KAMERA ABSEN (FOTO) -->
+        <div id="viewAbsenCamera" class="fixed inset-0 sm:absolute bg-black z-50 hidden flex-col pointer-events-auto">
+            <div class="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-20 bg-gradient-to-b from-black/60 to-transparent pt-6">
+                <button onclick="closeAbsenCamera()" class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white active:scale-95"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <div class="bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-xl text-white text-xs font-bold" id="absenCamTitle">Foto Datang</div>
+            </div>
+            <video id="absenVideoPreview" autoplay playsinline muted class="w-full h-full object-cover bg-gray-900"></video>
+            <div class="absolute bottom-0 left-0 w-full pb-10 pt-16 flex items-center justify-center bg-gradient-to-t from-black/80 to-transparent z-20">
+                <button onclick="captureAbsenPhoto()" class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-[0_0_0_4px_rgba(255,255,255,0.3)] transition-all">
+                    <div class="w-14 h-14 bg-blue-600 rounded-full border-4 border-white"></div>
+                </button>
+            </div>
+        </div>
+
         <!-- UPLOAD SCREEN -->
         <div id="viewUploading" class="fixed inset-0 sm:absolute bg-white z-50 hidden flex-col items-center justify-center pointer-events-auto">
             <div class="relative w-32 h-32 mb-6">
@@ -253,24 +275,27 @@
             <p id="uploadStatusText" class="text-[11px] text-gray-500 font-medium text-center px-8">Sedang memproses dan membersihkan format agar aman di server...</p>
         </div>
 
-        <!-- TAMBAHAN 2: POPUP SUKSES UPLOAD -->
+        <!-- POPUP SUKSES UPLOAD -->
         <div id="successUploadModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden flex-col items-center justify-center p-4">
             <div class="bg-white rounded-3xl p-6 shadow-2xl w-full max-w-xs text-center flex flex-col items-center transform scale-100 transition-transform">
                 <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
                     <i class="fa-solid fa-check text-4xl text-emerald-500"></i>
                 </div>
                 <h3 class="font-bold text-gray-800 text-lg mb-1">Berhasil!</h3>
-                <p class="text-xs text-gray-500 mb-5">Video tugas kamu berhasil terkirim dan tersimpan ke server.</p>
+                <p class="text-xs text-gray-500 mb-5">Data berhasil terkirim dan tersimpan ke server.</p>
                 <button onclick="closeSuccessModal()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl active:scale-95 text-sm">Kembali ke Dashboard</button>
             </div>
         </div>
 
-        <!-- MODAL PREVIEW FOTO ABSEN -->
+        <!-- MODAL PREVIEW FOTO ABSEN (DENGAN DOWNLOAD) -->
         <div id="photoModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[120] hidden flex items-center justify-center p-4">
             <div class="relative max-w-lg w-full bg-black rounded-3xl overflow-hidden shadow-2xl flex flex-col items-center">
                 <button onclick="closePhotoModal()" class="absolute top-3 right-3 w-8 h-8 bg-white/20 backdrop-blur rounded-full flex items-center justify-center text-white z-10"><i class="fa-solid fa-xmark text-lg"></i></button>
-                <img id="modalPhotoImg" src="" class="w-full max-h-[80vh] object-contain">
-                <div class="p-3 bg-black/90 w-full text-center text-white text-xs font-bold" id="modalPhotoTitle">Foto Absen</div>
+                <img id="modalPhotoImg" src="" class="w-full max-h-[70vh] object-contain">
+                <div class="p-3 bg-black/90 w-full flex justify-between items-center text-white">
+                    <span class="text-xs font-bold" id="modalPhotoTitle">Foto Absen</span>
+                    <a id="modalPhotoDownload" href="" download="Foto_Absen.jpg" target="_blank" class="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><i class="fa-solid fa-download"></i> Download</a>
+                </div>
             </div>
         </div>
 
@@ -288,9 +313,8 @@
 
     </div>
     
-    <!-- LOADING OVERLAY (FIX BUG ABSENSI & STYLE RIWAYAT) -->
+    <!-- LOADING OVERLAY -->
     <div id="loadingOverlay" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-[100] flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity">
-        <!-- Logo di tengah -->
         <div class="w-24 h-24 mb-4 flex items-center justify-center">
             <img src="./logo.png" alt="Loading" class="max-h-full max-w-full object-contain animate-pulse drop-shadow-xl" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-blue-600 text-5xl animate-pulse\'></i>';">
         </div>
@@ -311,19 +335,20 @@
         let isRecording = false, isPaused = false, timerInterval, secondsRecorded = 0;
         let currentFacingMode = "environment";
         
+        // State Absensi
+        let absenStream = null, currentPhotoType = "Datang";
         let fotoDatangBase64 = null, fotoPulangBase64 = null;
+        let todayAbsenData = { hasDatang: false, hasPulang: false };
 
-        // --- Helper Detik ke Teks (Format Detail Menit & Detik) ---
+        // --- HELPER ---
         function formatSecToText(secVal) {
             const sec = parseInt(secVal) || 0;
-            const m = Math.floor(sec / 60);
-            const s = sec % 60;
+            const m = Math.floor(sec / 60); const s = sec % 60;
             if (m > 0 && s > 0) return `${m} mnt ${s} dtk`;
             if (m > 0) return `${m} mnt`;
             return `${s} dtk`;
         }
-
-        // --- Helper Waktu ISO ke dd/mm/yyyy & jj.mm.dd ---
+        
         function formatDateTime(iso) {
             if(!iso) return { date: "", time: "" };
             try {
@@ -334,14 +359,10 @@
                 const d = new Date(iso);
                 if(isNaN(d.getTime())) return { date: iso, time: "" };
                 const pad = (n) => String(n).padStart(2, '0');
-                return {
-                    date: `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`,
-                    time: `${pad(d.getHours())}.${pad(d.getMinutes())}.${pad(d.getSeconds())}`
-                };
+                return { date: `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`, time: `${pad(d.getHours())}.${pad(d.getMinutes())}.${pad(d.getSeconds())}` };
             } catch(e) { return { date: iso, time: "" }; }
         }
 
-        // Helper format tanggal dari YYYY-MM-DD ke DD/MM/YYYY
         function formatDateIndo(dateStr) {
             if (!dateStr) return "";
             const parts = dateStr.split('-');
@@ -349,7 +370,6 @@
             return dateStr;
         }
 
-        // FUNGSI PENGAMAN TANGGAL (Sinkronisasi WIB)
         function extractLocalDate(dateStr) {
             if (!dateStr) return '';
             let str = dateStr.toString().trim();
@@ -370,11 +390,22 @@
             return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
         }
 
+        function getDirectImageLink(url) {
+            if(!url) return "";
+            // Ambil ID Google Drive jika ada
+            const match = url.match(/[-\w]{25,}/); 
+            return match ? `https://lh3.googleusercontent.com/d/${match[0]}` : url;
+        }
+
+        // Normalisasi Key untuk pencocokan tugas
+        function normalizeKey(str) {
+            return String(str || "").trim().toLowerCase().replace(/\s+/g, ' ');
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('userNameDisplay').textContent = user.nama;
             document.getElementById('userClassDisplay').textContent = `Kelas ${user.kelas}`;
             
-            // REVISI 6: SAPAAN & MOTIVASI DINAMIS
             const hour = new Date().getHours();
             let greeting = "Selamat Pagi";
             if (hour >= 11 && hour < 15) greeting = "Selamat Siang";
@@ -393,7 +424,7 @@
             document.getElementById('motivationText').textContent = `"${quotes[Math.floor(Math.random() * quotes.length)]}"`;
 
             if(user.hakAbsen) {
-                document.getElementById('roleBadge').textContent = "ANGGOTA (HAK ABSEN AKTIF)";
+                document.getElementById('roleBadge').textContent = "ANGGOTA (HAK ABSEN)";
                 document.getElementById('roleBadge').className = "bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200 w-max";
                 document.getElementById('tabBtnAbsensi').classList.remove('hidden');
                 document.getElementById('absensiDate').value = getLocalToday();
@@ -415,10 +446,12 @@
                 if (t === tabKey) {
                     btn.classList.add('text-blue-600', 'border-blue-600'); btn.classList.remove('text-gray-400', 'border-transparent');
                     view.classList.remove('hidden'); view.classList.add('flex');
-                    if (t === 'absensi' && document.getElementById('tableAbsensiBody').children.length <= 1) loadAbsensiData();
-                    if (t === 'riwayatTugas') {
-                        document.getElementById('badgeRiwayatDot').classList.add('hidden');
+                    
+                    if (t === 'absensi') {
+                        if (document.getElementById('tableAbsensiBody').children.length <= 1) loadAbsensiData();
+                        checkTodayAbsensiStatus(); // Cek status datang/pulang
                     }
+                    if (t === 'riwayatTugas') document.getElementById('badgeRiwayatDot').classList.add('hidden');
                 } else {
                     btn.classList.remove('text-blue-600', 'border-blue-600'); btn.classList.add('text-gray-400', 'border-transparent');
                     view.classList.add('hidden'); view.classList.remove('flex');
@@ -433,13 +466,13 @@
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getTasks', username: user.username }) })
             .then(r => r.json()).then(d => {
                 if (d.success) {
-                    activeTasks = d.tasks; userSubs = d.userSubs || {};
+                    activeTasks = d.tasks; 
+                    userSubs = d.userSubs || {};
                     renderTasks(activeTasks);
                 }
             }).catch(e => container.innerHTML = `<p class="text-center text-xs text-rose-500">Gagal memuat koneksi</p>`);
         }
 
-        // --- DASHBOARD RENDERER (HARI INI & MENDATANG) ---
         function renderTasks(tasks) {
             const todayStr = getLocalToday();
             const todayTasks = [];
@@ -447,48 +480,35 @@
             let totalUnfinishedToday = 0;
 
             tasks.forEach(t => {
-                if (t.isLama) {
-                    todayTasks.push(t);
-                    return;
-                }
+                if (t.isLama) { todayTasks.push(t); return; }
 
-                // FIX BUG: Bersihkan format tanggal dari GAS
                 const rawDates = t.tanggalPengerjaan ? t.tanggalPengerjaan.toString() : "";
-                let dateList = [];
-                if (rawDates.includes(' to ')) {
-                    dateList = rawDates.split(' to ').map(d => extractLocalDate(d));
-                } else {
-                    dateList = rawDates.split(',').map(d => extractLocalDate(d));
-                }
+                let dateList = rawDates.includes(' to ') 
+                    ? rawDates.split(' to ').map(d => extractLocalDate(d))
+                    : rawDates.split(',').map(d => extractLocalDate(d));
 
                 if (t.tipePengumpulan === 'Harian') {
                     if (dateList.includes(todayStr)) {
                         todayTasks.push(t);
                     } else {
                         const futureDates = dateList.filter(d => d > todayStr).sort();
-                        if (futureDates.length > 0) {
-                            upcomingTasks.push({ ...t, nextDate: futureDates[0] });
-                        }
+                        if (futureDates.length > 0) upcomingTasks.push({ ...t, nextDate: futureDates[0] });
                     }
                 } else if (t.tipePengumpulan === 'Satu Kali') {
                     const dl = dateList[dateList.length - 1];
-                    if (dl >= todayStr) {
-                        todayTasks.push(t);
-                    }
+                    if (dl >= todayStr) todayTasks.push(t);
                 } else {
                     todayTasks.push(t);
                 }
             });
 
-            // 1. RENDER KARTU RINGKASAN TUGAS MENDATANG (Gaya Gambar 4)
+            // 1. Render Upcoming
             const upcomingSection = document.getElementById('upcomingTasksSection');
             if (upcomingTasks.length > 0) {
                 upcomingSection.classList.remove('hidden');
                 upcomingSection.innerHTML = `
                     <div class="flex flex-col gap-2 mb-2">
-                        <span class="text-[10px] font-extrabold text-blue-600 uppercase tracking-wider flex items-center gap-1 px-1">
-                            <i class="fa-solid fa-calendar-day"></i> Tugas Selanjutnya
-                        </span>
+                        <span class="text-[10px] font-extrabold text-blue-600 uppercase tracking-wider flex items-center gap-1 px-1"><i class="fa-solid fa-calendar-day"></i> Tugas Selanjutnya</span>
                         ${upcomingTasks.map(u => `
                             <div class="bg-indigo-50/80 border border-indigo-100 p-3.5 rounded-2xl shadow-sm relative overflow-hidden flex flex-col gap-1.5">
                                 <div class="flex justify-between items-start">
@@ -499,22 +519,21 @@
                                 <p class="text-[10px] text-gray-500 line-clamp-1">${u.instruksi}</p>
                             </div>
                         `).join('')}
-                    </div>
-                `;
-            } else {
-                upcomingSection.classList.add('hidden');
-                upcomingSection.innerHTML = '';
-            }
+                    </div>`;
+            } else { upcomingSection.classList.add('hidden'); upcomingSection.innerHTML = ''; }
 
-            // 2. RENDER TUGAS TERSEDIA HARI INI
+            // 2. Render Tugas Hari Ini
             const container = document.getElementById('taskListContainer');
             
-            // Filter tugas yang sudah selesai sepenuhnya (REVISI 3: HILANGKAN KARTU JIKA SELESAI)
+            // Cek keterselesaian tugas (Gunakan Normalisasi!)
             const todayTasksFiltered = todayTasks.filter(t => {
                 if(t.isLama) return true;
-                const pendingSubs = (t.subTugas || []).filter(sub => !userSubs[`${t.taskId}_${todayStr}_${sub.nama}`]);
-                if (pendingSubs.length === 0) return false; // Jangan tampilkan
-                return true;
+                const pendingSubs = (t.subTugas || []).filter(sub => {
+                    const keyNormal = normalizeKey(`${t.taskId}_${todayStr}_${sub.nama}`);
+                    // Cari apakah ada key yang cocok di userSubs
+                    return !Object.keys(userSubs).some(k => normalizeKey(k) === keyNormal);
+                });
+                return pendingSubs.length > 0; // Hanya tampilkan yang belum selesai
             });
 
             if (todayTasksFiltered.length === 0) {
@@ -527,7 +546,10 @@
                 const isLama = t.isLama;
                 const isBertumpuk = t.subTugas && t.subTugas.length > 1;
                 
-                const pendingSubs = (t.subTugas || []).filter(sub => !userSubs[`${t.taskId}_${todayStr}_${sub.nama}`]);
+                const pendingSubs = (t.subTugas || []).filter(sub => {
+                    const keyNormal = normalizeKey(`${t.taskId}_${todayStr}_${sub.nama}`);
+                    return !Object.keys(userSubs).some(k => normalizeKey(k) === keyNormal);
+                });
                 totalUnfinishedToday += pendingSubs.length;
 
                 let statusTeks = '';
@@ -569,7 +591,6 @@
             }
         }
 
-        // --- OPEN SETUP AUTO TERAKSES HARI INI ---
         function openSetup(taskId) {
             selectedTask = activeTasks.find(t => t.taskId === taskId);
             document.getElementById('setupTipeBadge').textContent = selectedTask.tipePengumpulan;
@@ -578,12 +599,9 @@
             
             const sel = document.getElementById('selectHariKe');
             const todayStr = getLocalToday();
-            
-            // Set otomatis hari ini
             selectedDay = todayStr;
             sel.innerHTML = `<option value="${todayStr}">${formatDateIndo(todayStr)} (Hari Ini)</option>`;
             
-            // REVISI 2: TAMPILKAN TANGGAL DI MODAL
             document.getElementById('setupTaskDate').innerHTML = `<i class="fa-regular fa-calendar-check mr-1"></i> Tugas untuk: ${formatDateIndo(todayStr)}`;
 
             renderSubTasks(); 
@@ -592,7 +610,6 @@
         
         function closeSetup() { document.getElementById('viewSetup').classList.add('hidden'); }
 
-        // --- RENDER SUB-TUGAS ---
         function renderSubTasks() {
             selectedDay = document.getElementById('selectHariKe').value || getLocalToday();
             const container = document.getElementById('subTasksContainer');
@@ -600,8 +617,8 @@
 
             let pendingCount = 0;
             selectedTask.subTugas.forEach(sub => {
-                const key = `${selectedTask.taskId}_${selectedDay}_${sub.nama}`;
-                const isDone = userSubs[key]; 
+                const keyTarget = normalizeKey(`${selectedTask.taskId}_${selectedDay}_${sub.nama}`);
+                const isDone = Object.keys(userSubs).some(k => normalizeKey(k) === keyTarget);
                 
                 if(!isDone) {
                     pendingCount++;
@@ -625,20 +642,16 @@
             }
         }
 
-        // --- SISTEM KAMERA & WAKTU DETIK ---
+        // --- SISTEM KAMERA TUGAS (VIDEO) ---
         async function prepareCamera(subName, minSec, maxSec) {
             currentSubTugas = subName;
             currentMinSec = parseInt(minSec);
             currentMaxSec = parseInt(maxSec);
-            
             document.getElementById('kameraSubName').textContent = subName;
             document.getElementById('kameraTarget').textContent = `${formatSecToText(currentMinSec)} - ${formatSecToText(currentMaxSec)}`;
-            
             closeSetup();
             document.getElementById('viewCamera').classList.remove('hidden'); document.getElementById('viewCamera').classList.add('flex');
-            
             await startMediaStream();
-            
             isPaused = false;
             const btnP = document.getElementById('btnPause');
             btnP.disabled = true;
@@ -649,30 +662,19 @@
 
         async function startMediaStream() {
             try {
-                if (mediaStream) {
-                    mediaStream.getTracks().forEach(t => t.stop());
-                }
-                const constraints = { 
-                    audio: true, 
-                    video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: currentFacingMode } 
-                };
-                mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+                if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
+                mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: currentFacingMode } });
                 const videoEl = document.getElementById('videoPreview'); 
                 videoEl.srcObject = mediaStream; 
                 videoEl.muted = true;
-            } catch (err) { 
-                showToast("Gagal akses kamera", "error"); 
-            }
+            } catch (err) { showToast("Gagal akses kamera", "error"); }
         }
 
         function switchCamera() {
-            if (isRecording) {
-                showToast("Tidak dapat mengganti kamera saat merekam!", "error");
-                return;
-            }
+            if (isRecording) { showToast("Tidak dapat mengganti kamera saat merekam!", "error"); return; }
             currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
             startMediaStream();
-            showToast(currentFacingMode === "environment" ? "Kamera Belakang Aktif" : "Kamera Depan Aktif", "info");
+            showToast(currentFacingMode === "environment" ? "Kamera Belakang" : "Kamera Depan", "info");
         }
 
         function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(false); }
@@ -682,49 +684,33 @@
             try {
                 let options = { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 500000 };
                 if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/mp4' };
-                
                 mediaRecorder = new MediaRecorder(mediaStream, options);
                 mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
                 mediaRecorder.onstop = processUploadBase64;
-                
                 mediaRecorder.start(); isRecording = true; isPaused = false;
-                
                 document.getElementById('btnRecordInner').className = "w-8 h-8 bg-rose-500 rounded-xl transition-all duration-300";
                 document.getElementById('btnRecord').classList.add('recording-pulse');
                 document.getElementById('recIndicator').classList.remove('hidden');
                 document.getElementById('btnCancelCamera').classList.add('hidden');
                 document.getElementById('btnSwitchCamera').classList.add('opacity-40', 'pointer-events-none');
-                
                 const btnP = document.getElementById('btnPause');
                 btnP.disabled = false;
                 btnP.className = "w-12 h-12 bg-white text-gray-800 rounded-full flex items-center justify-center text-sm shadow-lg active:scale-95 transition-all";
-
                 startTimer();
             } catch (e) { abortRecording(); showToast("Error Perekaman", "error"); }
         }
 
         function togglePauseRecording() {
             if (!mediaRecorder || !isRecording) return;
-            const btnP = document.getElementById('btnPause');
-            const pIcon = document.getElementById('pauseIcon');
-            const pBadge = document.getElementById('pauseStatusBadge');
-
+            const btnP = document.getElementById('btnPause'); const pIcon = document.getElementById('pauseIcon'); const pBadge = document.getElementById('pauseStatusBadge');
             if (!isPaused) {
-                mediaRecorder.pause();
-                isPaused = true;
-                clearInterval(timerInterval);
-                pIcon.className = "fa-solid fa-play";
-                btnP.className = "w-12 h-12 bg-yellow-500 text-black rounded-full flex items-center justify-center text-sm shadow-lg active:scale-95 transition-all animate-pulse";
-                pBadge.classList.remove('hidden');
-                showToast("Perekaman dijeda", "info");
+                mediaRecorder.pause(); isPaused = true; clearInterval(timerInterval);
+                pIcon.className = "fa-solid fa-play"; btnP.className = "w-12 h-12 bg-yellow-500 text-black rounded-full flex items-center justify-center text-sm shadow-lg active:scale-95 transition-all animate-pulse";
+                pBadge.classList.remove('hidden'); showToast("Perekaman dijeda", "info");
             } else {
-                mediaRecorder.resume();
-                isPaused = false;
-                startTimer();
-                pIcon.className = "fa-solid fa-pause";
-                btnP.className = "w-12 h-12 bg-white text-gray-800 rounded-full flex items-center justify-center text-sm shadow-lg active:scale-95 transition-all";
-                pBadge.classList.add('hidden');
-                showToast("Perekaman dilanjutkan", "info");
+                mediaRecorder.resume(); isPaused = false; startTimer();
+                pIcon.className = "fa-solid fa-pause"; btnP.className = "w-12 h-12 bg-white text-gray-800 rounded-full flex items-center justify-center text-sm shadow-lg active:scale-95 transition-all";
+                pBadge.classList.add('hidden'); showToast("Perekaman dilanjutkan", "info");
             }
         }
 
@@ -732,7 +718,6 @@
             if (mediaRecorder && mediaRecorder.state !== 'inactive') { if (isAborted) { mediaRecorder.onstop = null; recordedChunks = []; } mediaRecorder.stop(); }
             isRecording = false; isPaused = false; stopTimer(); 
             if(mediaStream) { mediaStream.getTracks().forEach(t=>t.stop()); mediaStream = null; document.getElementById('videoPreview').srcObject = null; }
-            
             document.getElementById('viewCamera').classList.add('hidden'); document.getElementById('viewCamera').classList.remove('flex');
             document.getElementById('btnRecordInner').className = "w-14 h-14 bg-rose-500 rounded-full transition-all duration-300";
             document.getElementById('btnRecord').classList.remove('recording-pulse');
@@ -745,42 +730,24 @@
         function abortRecording() { stopRecording(true); showToast("Dibatalkan", "info"); }
 
         function startTimer() {
-            secondsRecorded = secondsRecorded || 0; 
-            updateTimerDisplay();
-            timerInterval = setInterval(() => { 
-                if(!isPaused) {
-                    secondsRecorded++; 
-                    updateTimerDisplay(); 
-                }
-            }, 1000);
+            secondsRecorded = secondsRecorded || 0; updateTimerDisplay();
+            timerInterval = setInterval(() => { if(!isPaused) { secondsRecorded++; updateTimerDisplay(); } }, 1000);
         }
         function stopTimer() { clearInterval(timerInterval); document.getElementById('timerDisplay').textContent = "00:00"; }
         
         function updateTimerDisplay() {
             const m = String(Math.floor(secondsRecorded / 60)).padStart(2, '0'); const s = String(secondsRecorded % 60).padStart(2, '0');
             document.getElementById('timerDisplay').textContent = `${m}:${s}`;
-            
-            let percent = (secondsRecorded / currentMaxSec) * 100; 
-            if (percent > 100) percent = 100;
-            
-            const pb = document.getElementById('videoProgressBar'); 
-            pb.style.width = `${percent}%`;
-            
+            let percent = (secondsRecorded / currentMaxSec) * 100; if (percent > 100) percent = 100;
+            const pb = document.getElementById('videoProgressBar'); pb.style.width = `${percent}%`;
             if(secondsRecorded < currentMinSec) { pb.classList.remove('bg-emerald-500'); pb.classList.add('bg-rose-500'); } 
             else { pb.classList.remove('bg-rose-500'); pb.classList.add('bg-emerald-500'); }
-            
-            if(secondsRecorded >= currentMaxSec && isRecording) { 
-                stopRecording(false); 
-                showToast("Batas maksimal tercapai.", "info"); 
-            }
+            if(secondsRecorded >= currentMaxSec && isRecording) { stopRecording(false); showToast("Batas maksimal tercapai.", "info"); }
         }
 
         function processUploadBase64() {
             if (recordedChunks.length === 0) return;
-            if (secondsRecorded < currentMinSec) {
-                showToast(`Dibatalkan! Waktu minimum adalah ${formatSecToText(currentMinSec)}.`, "error");
-                return;
-            }
+            if (secondsRecorded < currentMinSec) { showToast(`Dibatalkan! Waktu minimum adalah ${formatSecToText(currentMinSec)}.`, "error"); return; }
 
             const blob = new Blob(recordedChunks, { type: recordedChunks[0].type });
             const ext = blob.type.includes('mp4') ? '.mp4' : '.webm';
@@ -797,75 +764,150 @@
             reader.onloadend = function() {
                 const base64data = reader.result;
                 fetch(GAS_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({
-                        action: 'submitVideoBase64',
-                        taskFolderId: selectedTask.folderId,
-                        taskId: selectedTask.taskId,
-                        subId: 'SUB_' + Date.now(),
-                        namaAnggota: user.nama,
-                        tanggal: selectedDay,
-                        hariKe: selectedDay,
-                        subTugasName: currentSubTugas,
-                        filename: filename,
-                        mimeType: blob.type,
-                        base64Data: base64data
+                        action: 'submitVideoBase64', taskFolderId: selectedTask.folderId, taskId: selectedTask.taskId,
+                        subId: 'SUB_' + Date.now(), namaAnggota: user.nama, tanggal: selectedDay, hariKe: selectedDay,
+                        subTugasName: currentSubTugas, filename: filename, mimeType: blob.type, base64Data: base64data
                     })
                 }).then(r => r.json()).then(d => {
                     viewUp.classList.add('hidden'); viewUp.classList.remove('flex');
                     if (d.success) { 
-                        // TAMBAHAN 2: POPUP SUKSES
-                        document.getElementById('successUploadModal').classList.remove('hidden');
-                        document.getElementById('successUploadModal').classList.add('flex');
-                        
+                        document.getElementById('successUploadModal').classList.remove('hidden'); document.getElementById('successUploadModal').classList.add('flex');
+                        // Tambahkan langsung ke state lokal agar UI langsung update
                         userSubs[`${selectedTask.taskId}_${selectedDay}_${currentSubTugas}`] = true;
-                        fetchTasks(); 
-                        fetchRiwayatSemua();
-                    } else {
-                        showToast("Gagal: " + d.message, "error");
-                    }
+                        fetchTasks(); fetchRiwayatSemua();
+                    } else { showToast("Gagal: " + d.message, "error"); }
                 }).catch(err => {
                     viewUp.classList.add('hidden'); viewUp.classList.remove('flex');
-                    showToast("Gagal mengirim data (Koneksi Terputus/File Terlalu Besar).", "error");
+                    showToast("Gagal mengirim data.", "error");
                 });
             }
         }
 
         function closeSuccessModal() {
-            document.getElementById('successUploadModal').classList.add('hidden');
-            document.getElementById('successUploadModal').classList.remove('flex');
+            document.getElementById('successUploadModal').classList.add('hidden'); document.getElementById('successUploadModal').classList.remove('flex');
         }
 
-        // --- FETCH RIWAYAT & UPDATE NOTIFIKASI ---
-        function fetchRiwayatSemua() {
-            // REVISI 1: LOADING MENGGUNAKAN OVERLAY LOGO
-            showLoading(true, "Memperbarui riwayat...");
+        // --- SISTEM KAMERA ABSEN (FOTO) & CHECK-IN/OUT ---
+        async function openAbsenCamera(type) {
+            currentPhotoType = type;
+            document.getElementById('absenCamTitle').textContent = type === 'Datang' ? 'Foto Datang' : 'Foto Pulang';
+            document.getElementById('viewAbsenCamera').classList.remove('hidden'); document.getElementById('viewAbsenCamera').classList.add('flex');
             
+            try {
+                if (absenStream) absenStream.getTracks().forEach(t => t.stop());
+                absenStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }); // Kamera depan untuk selfie
+                const videoEl = document.getElementById('absenVideoPreview'); 
+                videoEl.srcObject = absenStream; 
+                videoEl.muted = true;
+            } catch (err) { showToast("Gagal akses kamera", "error"); }
+        }
+
+        function closeAbsenCamera() {
+            if (absenStream) { absenStream.getTracks().forEach(t => t.stop()); absenStream = null; }
+            document.getElementById('viewAbsenCamera').classList.add('hidden'); document.getElementById('viewAbsenCamera').classList.remove('flex');
+        }
+
+        function captureAbsenPhoto() {
+            const video = document.getElementById('absenVideoPreview');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8); // Compress gambar agar ringan
+            
+            if (currentPhotoType === 'Datang') {
+                fotoDatangBase64 = dataUrl;
+                document.getElementById('fotoDatangPreview').src = dataUrl;
+                document.getElementById('fotoDatangPreviewContainer').classList.remove('hidden');
+                document.getElementById('btnTakeDatang').classList.add('hidden');
+            } else {
+                fotoPulangBase64 = dataUrl;
+                document.getElementById('fotoPulangPreview').src = dataUrl;
+                document.getElementById('fotoPulangPreviewContainer').classList.remove('hidden');
+                document.getElementById('btnTakePulang').classList.add('hidden');
+            }
+            
+            document.getElementById('btnSimpanAbsen').classList.remove('hidden');
+            closeAbsenCamera();
+        }
+
+        function checkTodayAbsensiStatus() {
+            const today = document.getElementById('absensiDate').value;
+            const myRow = user.nama.trim().toLowerCase();
+            
+            let hasDatang = false, hasPulang = false;
+            
+            // Cari data absen hari ini di state history
+            if(stateAbsensiHistory && stateAbsensiHistory.length > 0) {
+                const headers = stateAbsensiHistory[0];
+                const colIdx = headers.indexOf(today);
+                
+                if(colIdx !== -1) {
+                    let fdRow = -1, fpRow = -1;
+                    for(let i=1; i<stateAbsensiHistory.length; i++) {
+                        if(stateAbsensiHistory[i][1] === "FOTO DATANG:") fdRow = i;
+                        if(stateAbsensiHistory[i][1] === "FOTO PULANG:") fpRow = i;
+                    }
+                    if(fdRow !== -1 && stateAbsensiHistory[fdRow][colIdx]) hasDatang = true;
+                    if(fpRow !== -1 && stateAbsensiHistory[fpRow][colIdx]) hasPulang = true;
+                }
+            }
+
+            // Update UI
+            const btnDatang = document.getElementById('btnTakeDatang');
+            const statusDatang = document.getElementById('statusDatangDone');
+            const boxPulang = document.getElementById('boxPulang');
+            const btnPulang = document.getElementById('btnTakePulang');
+
+            if (hasDatang) {
+                btnDatang.classList.add('hidden');
+                statusDatang.classList.remove('hidden'); statusDatang.classList.add('flex');
+                
+                // Aktifkan kotak pulang
+                boxPulang.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnPulang.disabled = false;
+                
+                if(hasPulang) {
+                    btnPulang.classList.add('hidden');
+                    document.getElementById('fotoPulangPreview').src = "https://lh3.googleusercontent.com/d/" + "DONE"; // Placeholder
+                    document.getElementById('btnSimpanAbsen').classList.add('hidden'); // Selesai semua
+                    boxPulang.innerHTML = `<div class="flex flex-col items-center gap-1 text-emerald-600 font-bold text-[10px] py-2"><i class="fa-solid fa-circle-check text-3xl"></i><span>Pulang Selesai</span></div>`;
+                }
+            } else {
+                btnDatang.classList.remove('hidden');
+                statusDatang.classList.add('hidden'); statusDatang.classList.remove('flex');
+                boxPulang.classList.add('opacity-50', 'cursor-not-allowed');
+                btnPulang.disabled = true;
+            }
+        }
+
+        // --- RIWAYAT & UPDATE NOTIFIKASI ---
+        let stateAbsensiHistory = [];
+        function fetchRiwayatSemua() {
+            showLoading(true, "Memperbarui riwayat...");
             let req1 = fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAbsensiHistory' }) }).then(r=>r.json());
             let req2 = fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getDashboardData' }) }).then(r=>r.json());
 
             Promise.all([req1, req2]).then(([dAbsen, dDash]) => {
                 showLoading(false);
-                if(dAbsen.success && dAbsen.data.length > 0) renderRiwayatAbsen(dAbsen.data);
+                if(dAbsen.success && dAbsen.data.length > 0) {
+                    stateAbsensiHistory = dAbsen.data;
+                    renderRiwayatAbsen(dAbsen.data);
+                }
                 if(dDash.success) {
                     const mySubs = dDash.submissions.filter(s => s.namaAnggota.trim().toLowerCase() === user.nama.trim().toLowerCase());
                     renderRiwayatNilai(mySubs, dDash.tasks);
                 }
-            }).catch(e => {
-                showLoading(false);
-                console.error("Gagal load riwayat");
-            });
+                // Refresh status absen jika tab absensi sedang terbuka
+                if (!document.getElementById('viewAbsensi').classList.contains('hidden')) checkTodayAbsensiStatus();
+            }).catch(e => { showLoading(false); console.error("Gagal load riwayat"); });
         }
 
-        // --- RIWAYAT TUGAS DENGAN PENGELOMPOKAN TANGGAL & FORMAT TEPAT ---
         function renderRiwayatNilai(mySubs, allTasks) {
             const container = document.getElementById('riwayatNilaiContainer');
-            if(mySubs.length === 0) { 
-                container.innerHTML = `<div class="p-8 text-center text-xs text-gray-400 bg-white rounded-3xl border">Belum ada tugas yang dikumpulkan.</div>`; 
-                return; 
-            }
-
+            if(mySubs.length === 0) { container.innerHTML = `<div class="p-8 text-center text-xs text-gray-400 bg-white rounded-3xl border">Belum ada tugas yang dikumpulkan.</div>`; return; }
             document.getElementById('badgeRiwayatDot').classList.remove('hidden');
 
             const grouped = {};
@@ -875,17 +917,10 @@
                 grouped[dt.date].push({ ...s, formattedTime: dt.time });
             });
 
-            const sortedDates = Object.keys(grouped).sort((a,b) => {
-                const pA = a.split('/');
-                const pB = b.split('/');
-                const dateA = new Date(pA[2], pA[1]-1, pA[0]);
-                const dateB = new Date(pB[2], pB[1]-1, pB[0]);
-                return dateB - dateA;
-            });
+            const sortedDates = Object.keys(grouped).sort((a,b) => new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-')));
 
             container.innerHTML = sortedDates.map(dateStr => {
                 const itemsForDate = grouped[dateStr].reverse(); 
-                
                 const itemsHtml = itemsForDate.map(s => {
                     const n = s.nilai;
                     const badgeColor = (n==='A')?'bg-emerald-500':(n==='B')?'bg-blue-500':(n==='C')?'bg-amber-500':(n==='D')?'bg-orange-500':(n==='E')?'bg-rose-500':'bg-gray-300';
@@ -929,24 +964,31 @@
                         <span class="text-[10px] font-extrabold text-gray-400 bg-gray-100 px-3 py-1.5 rounded-full uppercase tracking-wider"><i class="fa-regular fa-calendar-days mr-1"></i> ${dateStr}</span>
                         <div class="h-px bg-gray-200 flex-1"></div>
                     </div>
-                    ${itemsHtml}
-                `;
+                    ${itemsHtml}`;
             }).join('');
         }
 
-        // --- REVISI 7: RIWAYAT LATIHAN HANYA MILIK SENDIRI ---
         function renderRiwayatAbsen(data) {
-            const dates = data[0].slice(3);
+            const rawDates = data[0].slice(3);
+            // Konversi Header Tanggal (jika ISO/Date object jadi DD/MM/YYYY)
+            const dates = rawDates.map(d => {
+                if(!d) return "-";
+                if(typeof d === 'object' || String(d).includes('T')) {
+                    const dt = new Date(d);
+                    if(!isNaN(dt.getTime())) {
+                        const pad = (n) => String(n).padStart(2, '0');
+                        return `${pad(dt.getDate())}/${pad(dt.getMonth()+1)}/${dt.getFullYear()}`;
+                    }
+                }
+                return String(d);
+            });
+
             let stat = { Hadir: 0, Izin: 0, Sakit: 0, Alpa: 0 };
             const myHistory = [];
 
-            // Pencarian nama yang lebih aman (menghindari spasi/case sensitive)
             let myRowIdx = -1;
             for(let i=1; i<data.length; i++) { 
-                if(String(data[i][1]).trim().toLowerCase() === user.nama.trim().toLowerCase()) { 
-                    myRowIdx = i; 
-                    break; 
-                } 
+                if(String(data[i][1]).trim().toLowerCase() === user.nama.trim().toLowerCase()) { myRowIdx = i; break; } 
             }
             
             let matRow=-1, fdRow=-1, fpRow=-1;
@@ -956,7 +998,7 @@
                 if(data[i][1] === "FOTO PULANG:") fpRow = i;
             }
 
-            dates.forEach((tgl, index) => {
+            dates.forEach((tglStr, index) => {
                 const col = index + 3;
                 let statusKu = "-";
                 if(myRowIdx !== -1) {
@@ -967,13 +1009,11 @@
                     else if(st === 'Alpa') { stat.Alpa++; statusKu="Alpa"; }
                 }
                 
-                // Hanya masukkan ke history jika statusnya terisi (bukan kosong)
                 if(statusKu !== "-") {
                     const materi = (matRow !== -1 && data[matRow][col]) ? data[matRow][col] : "-";
                     const linkDatang = (fdRow !== -1 && data[fdRow][col]) ? data[fdRow][col] : "";
                     const linkPulang = (fpRow !== -1 && data[fpRow][col]) ? data[fpRow][col] : "";
-                    
-                    myHistory.push({ tgl, statusKu, materi, linkDatang, linkPulang });
+                    myHistory.push({ tgl: tglStr, statusKu, materi, linkDatang, linkPulang });
                 }
             });
 
@@ -996,8 +1036,8 @@
             container.innerHTML = myHistory.reverse().map(h => {
                 const badgeClass = h.statusKu==='Hadir'?'bg-emerald-50 text-emerald-600':h.statusKu==='Alpa'?'bg-rose-50 text-rose-600':'bg-amber-50 text-amber-600';
                 
-                const btnDatang = h.linkDatang ? `<button onclick="openPhotoModal('${h.linkDatang}', 'Foto Datang - ${h.tgl}')" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-xl flex-1 text-center font-bold hover:bg-blue-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-image"></i> Lihat Datang</button>` : '';
-                const btnPulang = h.linkPulang ? `<button onclick="openPhotoModal('${h.linkPulang}', 'Foto Pulang - ${h.tgl}')" class="px-3 py-2 bg-emerald-50 text-emerald-600 rounded-xl flex-1 text-center font-bold hover:bg-emerald-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-image"></i> Lihat Pulang</button>` : '';
+                const btnDatang = h.linkDatang ? `<button onclick="openPhotoModal('${h.linkDatang}', 'Foto Datang - ${h.tgl}')" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-xl flex-1 text-center font-bold hover:bg-blue-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-image"></i> Datang</button>` : '';
+                const btnPulang = h.linkPulang ? `<button onclick="openPhotoModal('${h.linkPulang}', 'Foto Pulang - ${h.tgl}')" class="px-3 py-2 bg-emerald-50 text-emerald-600 rounded-xl flex-1 text-center font-bold hover:bg-emerald-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-image"></i> Pulang</button>` : '';
                 
                 return `
                 <div class="p-4 flex flex-col gap-2">
@@ -1011,16 +1051,15 @@
             }).join('');
         }
 
-        // --- PREVIEW FOTO ---
         function openPhotoModal(url, title) {
-            document.getElementById('modalPhotoImg').src = url;
+            const directUrl = getDirectImageLink(url); // Konversi GDrive Link ke Direct Image
+            document.getElementById('modalPhotoImg').src = directUrl;
             document.getElementById('modalPhotoTitle').textContent = title;
+            document.getElementById('modalPhotoDownload').href = directUrl;
+            document.getElementById('modalPhotoDownload').setAttribute('download', title.replace(/\s+/g, '_') + '.jpg');
             document.getElementById('photoModal').classList.remove('hidden');
         }
-        function closePhotoModal() {
-            document.getElementById('photoModal').classList.add('hidden');
-            document.getElementById('modalPhotoImg').src = '';
-        }
+        function closePhotoModal() { document.getElementById('photoModal').classList.add('hidden'); document.getElementById('modalPhotoImg').src = ''; }
 
         function loadAbsensiData() {
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAbsensiData' }) }).then(r=>r.json()).then(d=>{
@@ -1042,49 +1081,42 @@
             }).catch(e=>showToast("Gagal muat data", "error"));
         }
 
-        function handlePhoto(e, type) {
-            const file = e.target.files[0]; 
-            if(!file) return;
-            if(file.size > 3*1024*1024) { 
-                showToast("Maks 3MB", "error"); 
-                e.target.value=''; 
-                return; 
-            }
-            const r = new FileReader();
-            r.onload = (ev) => {
-                if(type === 'Datang') { fotoDatangBase64 = ev.target.result; document.getElementById('fotoDatangPreview').src = fotoDatangBase64; document.getElementById('fotoDatangPreviewContainer').classList.remove('hidden'); }
-                else { fotoPulangBase64 = ev.target.result; document.getElementById('fotoPulangPreview').src = fotoPulangBase64; document.getElementById('fotoPulangPreviewContainer').classList.remove('hidden'); }
-            }; 
-            r.readAsDataURL(file);
-        }
-        
-        function removePhoto(type) {
-            if(type === 'Datang') { fotoDatangBase64 = null; document.getElementById('fotoDatangInput').value=''; document.getElementById('fotoDatangPreviewContainer').classList.add('hidden'); }
-            else { fotoPulangBase64 = null; document.getElementById('fotoPulangInput').value=''; document.getElementById('fotoPulangPreviewContainer').classList.add('hidden'); }
-        }
-
+        // Submit form absensi (Datang / Pulang)
         document.getElementById('formAbsensi').addEventListener('submit', (e) => {
             e.preventDefault();
-            if(!fotoDatangBase64 || !fotoPulangBase64) { showToast("Foto Datang & Pulang Wajib diisi!", "error"); return; }
             
-            // Cek jika tabel kosong (belum load data)
+            // Tentukan mana yang mau disave
+            let typeToSubmit = "";
+            let b64ToSubmit = "";
+            if (fotoDatangBase64) { typeToSubmit = "Datang"; b64ToSubmit = fotoDatangBase64; }
+            else if (fotoPulangBase64) { typeToSubmit = "Pulang"; b64ToSubmit = fotoPulangBase64; }
+            else { showToast("Ambil foto terlebih dahulu!", "error"); return; }
+            
             if (document.getElementById('tableAbsensiBody').children.length <= 1 || !document.querySelector('#tableAbsensiBody tr[data-nama]')) {
-                showToast("Klik 'Load Data Anggota' terlebih dahulu!", "error");
-                return;
+                showToast("Klik 'Load Data Anggota' terlebih dahulu!", "error"); return;
             }
 
             const absData = Array.from(document.querySelectorAll('#tableAbsensiBody tr[data-nama]')).map(row => ({ nama: row.getAttribute('data-nama'), kelas: row.getAttribute('data-kelas'), status: row.querySelector('select').value }));
             
-            showLoading(true, "Menyimpan Absen...");
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'saveAbsensi', tanggal: document.getElementById('absensiDate').value, materi: document.getElementById('materiLatihan').value, absensiData: absData, fotoDatangBase64: fotoDatangBase64, fotoPulangBase64: fotoPulangBase64 })})
+            showLoading(true, `Menyimpan Absen ${typeToSubmit}...`);
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ 
+                action: 'saveAbsensi', 
+                type: typeToSubmit, // KIRIM TIPE (Datang/Pulang)
+                tanggal: document.getElementById('absensiDate').value, 
+                materi: document.getElementById('materiLatihan').value, 
+                absensiData: absData, 
+                fotoBase64: b64ToSubmit // Kirim base64 fotonya
+            })})
             .then(r=>r.json()).then(d=>{ 
                 showLoading(false); 
                 if(d.success){ 
                     showToast(d.message, "success"); 
-                    removePhoto('Datang'); 
-                    removePhoto('Pulang'); 
+                    fotoDatangBase64 = null; fotoPulangBase64 = null;
+                    document.getElementById('fotoDatangPreviewContainer').classList.add('hidden');
+                    document.getElementById('fotoPulangPreviewContainer').classList.add('hidden');
+                    document.getElementById('btnSimpanAbsen').classList.add('hidden');
                     document.getElementById('materiLatihan').value=''; 
-                    fetchRiwayatSemua(); // Update riwayat langsung
+                    fetchRiwayatSemua(); // Refresh UI
                 } else showToast(d.message, "error"); 
             }).catch(e=>{showLoading(false); showToast("Error koneksi", "error");});
         });
