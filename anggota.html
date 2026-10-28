@@ -51,9 +51,9 @@
                         <h1 class="text-base font-extrabold tracking-tight leading-tight">PRASPADAJO</h1>
                     </div>
                 </div>
-                <!-- REVISI 2: TOMBOL ABSEN DI HEADER -->
                 <div class="flex gap-2">
-                    <button id="btnHeaderAbsen" onclick="switchTab('absensi')" class="hidden bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-xl shadow-md active:scale-95 transition-colors" title="Menu Absensi"><i class="fa-solid fa-clipboard-user text-sm"></i></button>
+                    <!-- Tombol Absen di Header -->
+                    <button id="btnHeaderAbsen" onclick="openAbsenModal()" class="hidden bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-xl shadow-md active:scale-95 transition-colors" title="Menu Absensi"><i class="fa-solid fa-clipboard-user text-sm"></i></button>
                     <button onclick="openPasswordModal()" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-xl shadow-md active:scale-95"><i class="fa-solid fa-key text-sm"></i></button>
                     <button onclick="handleLogout()" class="bg-rose-500 hover:bg-rose-600 text-white p-2 rounded-xl shadow-md active:scale-95"><i class="fa-solid fa-right-from-bracket text-sm"></i></button>
                 </div>
@@ -136,12 +136,18 @@
             </div>
         </main>
 
-        <!-- VIEW 4: ABSENSI -->
-        <main id="viewAbsensi" class="hidden flex-grow bg-gray-50 flex-col relative z-10 overflow-y-auto custom-scroll p-5">
-            <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-4">
+        <!-- VIEW 4: ABSENSI (MUNCUL SEBAGAI POPUP MODAL) -->
+        <div id="absenModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] hidden flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto custom-scroll">
+            <div class="bg-white w-full max-w-md rounded-3xl border border-gray-100 shadow-2xl relative my-auto flex flex-col gap-4 p-5">
+                
                 <div class="flex justify-between items-center border-b pb-3">
                     <h2 class="font-bold text-gray-800 text-sm">Input Absensi Harian</h2>
-                    <input type="date" id="absensiDate" onchange="checkTodayAbsensiStatus()" class="px-2 py-1 bg-gray-50 border rounded-lg text-xs font-bold text-blue-600 outline-none disabled:opacity-50">
+                    <button onclick="closeAbsenModal()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
+                <div class="flex justify-between items-center bg-gray-50 p-2 rounded-xl border">
+                    <label class="text-[10px] font-bold text-gray-600 uppercase">Tanggal Absensi</label>
+                    <input type="date" id="absensiDate" onchange="checkTodayAbsensiStatus()" class="px-2 py-1 bg-white border rounded-lg text-xs font-bold text-blue-600 outline-none disabled:opacity-50">
                 </div>
                 
                 <form id="formAbsensi" class="flex flex-col gap-4">
@@ -169,7 +175,7 @@
                         </div>
                     </div>
 
-                    <!-- KOTAK FOTO DATANG & PULANG (REVISI 3: PERBAIKAN POSISI) -->
+                    <!-- KOTAK FOTO DATANG & PULANG -->
                     <div class="grid grid-cols-2 gap-2 mt-2">
                         <!-- Foto Datang -->
                         <div id="boxDatang" class="bg-gray-50 border border-dashed border-gray-300 p-2 rounded-xl text-center relative h-full flex flex-col justify-center transition-all">
@@ -206,7 +212,7 @@
                     <button type="submit" id="btnSimpanAbsen" class="hidden w-full bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 text-sm mt-2"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Absensi</button>
                 </form>
             </div>
-        </main>
+        </div>
 
         <!-- VIEW SETUP & SUB-TUGAS -->
         <div id="viewSetup" class="fixed inset-0 sm:absolute bg-black/80 backdrop-blur-sm z-40 hidden flex-col justify-end pointer-events-auto">
@@ -286,15 +292,27 @@
             <p id="uploadStatusText" class="text-[11px] text-gray-500 font-medium text-center px-8">Sedang memproses dan membersihkan format agar aman di server...</p>
         </div>
 
-        <!-- POPUP SUKSES UPLOAD -->
+        <!-- POPUP SUKSES UPLOAD TUGAS -->
         <div id="successUploadModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden flex-col items-center justify-center p-4">
             <div class="bg-white rounded-3xl p-6 shadow-2xl w-full max-w-xs text-center flex flex-col items-center transform scale-100 transition-transform">
                 <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
                     <i class="fa-solid fa-check text-4xl text-emerald-500"></i>
                 </div>
                 <h3 class="font-bold text-gray-800 text-lg mb-1">Berhasil!</h3>
-                <p class="text-xs text-gray-500 mb-5">Data berhasil terkirim dan tersimpan ke server.</p>
+                <p class="text-xs text-gray-500 mb-5">Video tugas kamu berhasil terkirim dan tersimpan ke server.</p>
                 <button onclick="closeSuccessModal()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl active:scale-95 text-sm">Kembali ke Dashboard</button>
+            </div>
+        </div>
+
+        <!-- POPUP SUKSES ABSEN (REVISI BARU) -->
+        <div id="successAbsenModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden flex-col items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-6 shadow-2xl w-full max-w-xs text-center flex flex-col items-center transform scale-100 transition-transform">
+                <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-check text-4xl text-emerald-500"></i>
+                </div>
+                <h3 class="font-bold text-gray-800 text-lg mb-1">Absen Disimpan!</h3>
+                <p id="successAbsenText" class="text-xs text-gray-500 mb-5">Absen berhasil disimpan oleh petugas.</p>
+                <button onclick="closeSuccessAbsenModal()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl active:scale-95 text-sm">Selesai</button>
             </div>
         </div>
 
@@ -486,7 +504,7 @@
         function handleLogout() { localStorage.removeItem('userSession'); sessionStorage.removeItem('userSession'); window.location.href = 'index.html'; }
 
         function switchTab(tabKey) {
-            const tabs = ['dashboard', 'riwayatTugas', 'riwayatLatihan', 'absensi'];
+            const tabs = ['dashboard', 'riwayatTugas', 'riwayatLatihan'];
             
             // Highlight menu navbar
             tabs.forEach(t => {
@@ -499,13 +517,6 @@
                     btn.classList.remove('text-blue-600', 'border-blue-600'); btn.classList.add('text-gray-400', 'border-transparent');
                 }
             });
-            
-            // Highlight header btn
-            const btnAbsenHeader = document.getElementById('btnHeaderAbsen');
-            if(btnAbsenHeader) {
-                if (tabKey === 'absensi') btnAbsenHeader.classList.add('ring-2', 'ring-white');
-                else btnAbsenHeader.classList.remove('ring-2', 'ring-white');
-            }
 
             // Tampilkan view
             tabs.forEach(t => {
@@ -514,16 +525,23 @@
                 
                 if (t === tabKey) {
                     view.classList.remove('hidden'); view.classList.add('flex');
-                    
-                    if (t === 'absensi') {
-                        if (document.getElementById('tableAbsensiBody').children.length <= 1) loadAbsensiData();
-                        checkTodayAbsensiStatus();
-                    }
                     if (t === 'riwayatTugas') document.getElementById('badgeRiwayatDot').classList.add('hidden');
                 } else {
                     view.classList.add('hidden'); view.classList.remove('flex');
                 }
             });
+        }
+
+        // --- FUNGSI MODAL ABSENSI ---
+        function openAbsenModal() {
+            document.getElementById('absenModal').classList.remove('hidden');
+            document.getElementById('absenModal').classList.add('flex');
+            if (document.getElementById('tableAbsensiBody').children.length <= 1) loadAbsensiData();
+            checkTodayAbsensiStatus();
+        }
+        function closeAbsenModal() {
+            document.getElementById('absenModal').classList.add('hidden');
+            document.getElementById('absenModal').classList.remove('flex');
         }
 
         function fetchTasks() {
@@ -717,13 +735,13 @@
             document.getElementById('pauseStatusBadge').classList.add('hidden');
         }
 
-        // REVISI 4: TINGKATKAN RESOLUSI & BITRATE VIDEO
+        // REVISI 1: OPSI B (960x540, 1Mbps)
         async function startMediaStream() {
             try {
                 if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
                 mediaStream = await navigator.mediaDevices.getUserMedia({ 
                     audio: true, 
-                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: currentFacingMode } 
+                    video: { width: { ideal: 960 }, height: { ideal: 540 }, facingMode: currentFacingMode } 
                 });
                 const videoEl = document.getElementById('videoPreview'); 
                 videoEl.srcObject = mediaStream; 
@@ -743,7 +761,8 @@
         function startRecording() {
             if (!mediaStream) return; recordedChunks = [];
             try {
-                let options = { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 1500000 };
+                // REVISI 1: OPSI B (Bitrate 1Mbps)
+                let options = { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 1000000 };
                 if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/mp4' };
                 mediaRecorder = new MediaRecorder(mediaStream, options);
                 mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
@@ -1012,7 +1031,7 @@
                     const mySubs = dDash.submissions.filter(s => s.namaAnggota.trim().toLowerCase() === user.nama.trim().toLowerCase());
                     renderRiwayatNilai(mySubs, dDash.tasks);
                 }
-                if (!document.getElementById('viewAbsensi').classList.contains('hidden')) checkTodayAbsensiStatus();
+                if (!document.getElementById('absenModal').classList.contains('hidden')) checkTodayAbsensiStatus();
             }).catch(e => { showLoading(false); console.error("Gagal load riwayat"); });
         }
 
@@ -1164,9 +1183,7 @@
             const container = document.getElementById('riwayatListContainer');
             if(myHistoryMap.size === 0) { container.innerHTML = `<div class="p-5 text-center text-xs text-gray-400">Belum ada riwayat latihan.</div>`; return; }
 
-            // Konversi Map kembali ke Array dan urutkan
             const myHistory = Array.from(myHistoryMap.values());
-            // myHistory.reverse(); // Hapus reverse agar urutan sesuai Map (yang terakhir diproses akan di akhir, tapi karena Map key unik, urutan aslinya tetap)
 
             container.innerHTML = myHistory.map(h => {
                 const badgeClass = h.statusKu==='Hadir'?'bg-emerald-50 text-emerald-600':h.statusKu==='Alpa'?'bg-rose-50 text-rose-600':'bg-amber-50 text-amber-600';
@@ -1253,8 +1270,6 @@
             .then(r=>r.json()).then(d=>{ 
                 showLoading(false); 
                 if(d.success){ 
-                    showToast(d.message, "success"); 
-                    
                     // Optimistic UI Update
                     if(typeToSubmit === 'Datang') {
                         localHasDatang = true;
@@ -1270,10 +1285,23 @@
                         document.getElementById('btnSimpanAbsen').classList.add('hidden');
                     }
                     
+                    // TUTUP MODAL ABSEN & TAMPILKAN POPUP SUKSES
+                    closeAbsenModal();
+                    const textMsg = typeToSubmit === 'Datang' ? 'Absen Masuk' : 'Absen Pulang';
+                    document.getElementById('successAbsenText').innerHTML = `${textMsg} berhasil disimpan oleh petugas absen <b>(${user.nama})</b>`;
+                    document.getElementById('successAbsenModal').classList.remove('hidden');
+                    document.getElementById('successAbsenModal').classList.add('flex');
+
                     fetchRiwayatSemua(); 
                 } else showToast(d.message, "error"); 
             }).catch(e=>{showLoading(false); showToast("Error koneksi", "error");});
         });
+
+        // Fungsi untuk menutup popup sukses absen
+        function closeSuccessAbsenModal() {
+            document.getElementById('successAbsenModal').classList.add('hidden');
+            document.getElementById('successAbsenModal').classList.remove('flex');
+        }
 
         function openPasswordModal() { document.getElementById('passwordModal').classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.remove('scale-95'); }
         function closePasswordModal() { document.getElementById('passwordModal').classList.add('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.add('scale-95'); }
