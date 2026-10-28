@@ -14,6 +14,9 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script>
 
+    <!-- SortableJS untuk Fitur Drag & Drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
     <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }</script>
     <script>
         (function checkAuth() {
@@ -35,6 +38,11 @@
         /* Animasi Transisi Halus untuk Kotak Komentar */
         .comment-box-anim { transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, margin 0.3s ease-in-out; max-height: 0; opacity: 0; overflow: hidden; }
         .comment-box-anim.open { max-height: 150px; opacity: 1; margin-top: 0.5rem; overflow: visible; }
+        
+        /* Styling Drag & Drop */
+        .drag-handle { cursor: grab; }
+        .drag-handle:active { cursor: grabbing; }
+        .sortable-ghost { opacity: 0.4; background-color: #eff6ff !important; border: 2px dashed #3b82f6 !important; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans text-gray-800 antialiased flex flex-col justify-between">
@@ -171,10 +179,13 @@
                             </div>
                         </div>
 
-                        <!-- DINAMIS SUB TUGAS -->
+                        <!-- DINAMIS SUB TUGAS DENGAN DRAG & DROP -->
                         <div class="border border-gray-200 rounded-xl overflow-hidden">
                             <div class="bg-gray-50 p-3 border-b flex justify-between items-center">
-                                <label class="text-xs font-bold text-gray-600 uppercase">Daftar Gerakan / Sub-Tugas</label>
+                                <label class="text-xs font-bold text-gray-600 uppercase flex items-center gap-2">
+                                    Daftar Gerakan / Sub-Tugas 
+                                    <span class="text-[9px] font-normal text-gray-400 normal-case hidden sm:inline">(Geser ikon <i class="fa-solid fa-grip-vertical"></i> untuk ubah urutan)</span>
+                                </label>
                                 <button type="button" onclick="addSubTaskRow()" class="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-blue-200">+ Tambah Gerakan</button>
                             </div>
                             <div id="subTaskDynamicContainer" class="p-3 flex flex-col gap-2 bg-white">
@@ -391,6 +402,7 @@
         let state = { user: null, tasks: [], members: [], submissions: [], absensiHistory: [], showUngradedOnly: false, _notifiedUngraded: false };
         let fpInstance = null; 
         let fotoDatangBase64 = null, fotoPulangBase64 = null; 
+        let sortableInstance = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             const raw = localStorage.getItem('userSession') || sessionStorage.getItem('userSession');
@@ -398,10 +410,21 @@
             
             setupFlatpickr(); 
             addSubTaskRow('Tugas Utama', '01:00', '05:00'); 
-            document.getElementById('absensiDate').value = new Date().toISOString().split('T')[0];
+            initSortable(); // Inisialisasi Drag & Drop
             
+            document.getElementById('absensiDate').value = new Date().toISOString().split('T')[0];
             loadDashboardData();
         });
+
+        function initSortable() {
+            const container = document.getElementById('subTaskDynamicContainer');
+            if(sortableInstance) sortableInstance.destroy();
+            sortableInstance = new Sortable(container, {
+                handle: '.drag-handle',
+                animation: 150,
+                ghostClass: 'sortable-ghost'
+            });
+        }
 
         function handleLogout() { localStorage.removeItem('userSession'); sessionStorage.removeItem('userSession'); window.location.href = 'index.html'; }
 
@@ -455,13 +478,16 @@
         function addSubTaskRow(name = '', min = '01:00', max = '05:00') {
             const container = document.getElementById('subTaskDynamicContainer');
             const row = document.createElement('div');
-            row.className = "flex gap-2 items-center bg-gray-50 p-2 rounded-lg border subtask-row";
+            row.className = "flex gap-2 items-center bg-gray-50 p-2 rounded-lg border subtask-row group";
             row.innerHTML = `
-                <div class="flex-grow"><input type="text" class="sub-name w-full px-2 py-1.5 border rounded text-xs" placeholder="Nama Gerakan (Cth: Push Up)" value="${name}" required></div>
-                <div class="w-20"><input type="text" class="sub-min w-full px-2 py-1.5 border rounded text-xs text-center" placeholder="mm:ss" value="${min}" pattern="^[0-9]{1,2}:[0-5][0-9]$" title="Format mm:ss" onblur="formatTimeInput(this)" required></div>
+                <div class="drag-handle px-1 text-gray-400 hover:text-blue-600 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-grip-vertical text-lg"></i>
+                </div>
+                <div class="flex-grow"><input type="text" class="sub-name w-full px-2 py-1.5 border rounded text-xs focus:border-blue-500 outline-none" placeholder="Nama Gerakan (Cth: Push Up)" value="${name}" required></div>
+                <div class="w-20"><input type="text" class="sub-min w-full px-2 py-1.5 border rounded text-xs text-center focus:border-blue-500 outline-none" placeholder="mm:ss" value="${min}" pattern="^[0-9]{1,2}:[0-5][0-9]$" title="Format mm:ss" onblur="formatTimeInput(this)" required></div>
                 <span class="text-xs font-bold text-gray-400">-</span>
-                <div class="w-20"><input type="text" class="sub-max w-full px-2 py-1.5 border rounded text-xs text-center" placeholder="mm:ss" value="${max}" pattern="^[0-9]{1,2}:[0-5][0-9]$" title="Format mm:ss" onblur="formatTimeInput(this)" required></div>
-                <button type="button" onclick="this.parentElement.remove()" class="w-8 h-8 bg-rose-100 text-rose-600 rounded flex items-center justify-center hover:bg-rose-200"><i class="fa-solid fa-xmark"></i></button>
+                <div class="w-20"><input type="text" class="sub-max w-full px-2 py-1.5 border rounded text-xs text-center focus:border-blue-500 outline-none" placeholder="mm:ss" value="${max}" pattern="^[0-9]{1,2}:[0-5][0-9]$" title="Format mm:ss" onblur="formatTimeInput(this)" required></div>
+                <button type="button" onclick="this.parentElement.remove()" class="w-8 h-8 bg-rose-100 text-rose-600 rounded flex items-center justify-center hover:bg-rose-200 transition-colors"><i class="fa-solid fa-xmark"></i></button>
             `;
             container.appendChild(row);
         }
@@ -503,6 +529,25 @@
         function getLocalDateString(dateObj) {
             const pad = (n) => n.toString().padStart(2, '0');
             return `${dateObj.getFullYear()}-${pad(dateObj.getMonth() + 1)}-${pad(dateObj.getDate())}`;
+        }
+
+        // --- FUNGSI SAKTI UNTUK MEMBERSIHKAN TANGGAL DARI DATABASE (TIMEZONE WIB) ---
+        function extractLocalDate(dateStr) {
+            if (!dateStr) return '';
+            let str = dateStr.toString().trim();
+            if (str.includes('T')) {
+                // Jika string berupa ISO (contoh: 2026-10-27T17:00:00.000Z)
+                const d = new Date(str);
+                if (!isNaN(d.getTime())) {
+                    const pad = (n) => String(n).padStart(2, '0');
+                    // Date() otomatis menyesuaikan dengan timezone lokal perangkat (WIB)
+                    // Sehingga 17:00 UTC akan menjadi 00:00 tanggal berikutnya di WIB
+                    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+                } else {
+                    return str.split('T')[0]; // Fallback jika gagal parse
+                }
+            }
+            return str;
         }
 
         function matchesSubmissionDate(s, dateVal) {
@@ -808,22 +853,15 @@
             document.getElementById('tipePengumpulan').value = t.tipePengumpulan;
             setupFlatpickr();
             
-            // PERBAIKAN: Konversi format waktu (ISO String) ke YYYY-MM-DD berdasarkan zona waktu lokal
+            // PERBAIKAN: Konversi format waktu (ISO String) ke YYYY-MM-DD berdasarkan zona waktu lokal WIB
             let rawDate = (t.tanggalPengerjaan || "").toString().trim();
-            if (rawDate.includes('T')) {
-                if (rawDate.includes(' to ')) {
-                    const parts = rawDate.split(' to ').map(x => {
-                        const d = new Date(x.trim());
-                        return isNaN(d) ? x.trim() : d.toLocaleDateString('en-CA'); // Menghasilkan YYYY-MM-DD
-                    });
-                    rawDate = parts.join(' to ');
-                } else {
-                    const parts = rawDate.split(',').map(x => {
-                        const d = new Date(x.trim());
-                        return isNaN(d) ? x.trim() : d.toLocaleDateString('en-CA');
-                    });
-                    rawDate = parts.join(', ');
-                }
+            let cleanedDates = [];
+            if (rawDate.includes(' to ')) {
+                cleanedDates = rawDate.split(' to ').map(x => extractLocalDate(x));
+                rawDate = cleanedDates.join(' to ');
+            } else {
+                cleanedDates = rawDate.split(',').map(x => extractLocalDate(x));
+                rawDate = cleanedDates.join(', ');
             }
             
             fpInstance.setDate(rawDate.includes(' to ') ? rawDate.split(' to ') : rawDate.split(', '));
@@ -1050,16 +1088,10 @@
             // PERBAIKAN: Sanitasi format tanggal (UTC ke Waktu Lokal)
             if (raw.includes('T')) {
                 if (raw.includes(' to ')) {
-                    const parts = raw.split(' to ').map(x => {
-                        const d = new Date(x.trim());
-                        return isNaN(d) ? x.trim() : d.toLocaleDateString('en-CA');
-                    });
+                    const parts = raw.split(' to ').map(x => extractLocalDate(x));
                     if (parts.length >= 2) return dateVal >= parts[0] && dateVal <= parts[1];
                 } else {
-                    const parts = raw.split(',').map(x => {
-                        const d = new Date(x.trim());
-                        return isNaN(d) ? x.trim() : d.toLocaleDateString('en-CA');
-                    });
+                    const parts = raw.split(',').map(x => extractLocalDate(x));
                     return parts.includes(dateVal);
                 }
             }
