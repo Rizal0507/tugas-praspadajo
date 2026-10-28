@@ -8,12 +8,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-
     <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }</script>
     <script>
         (function checkAuth() {
@@ -31,16 +29,12 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-
         .comment-box-anim { transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, margin 0.3s ease-in-out; max-height: 0; opacity: 0; overflow: hidden; }
         .comment-box-anim.open { max-height: 150px; opacity: 1; margin-top: 0.5rem; overflow: visible; }
-
         .drag-handle { cursor: grab; }
         .drag-handle:active { cursor: grabbing; }
         .sortable-ghost { opacity: 0.4; background-color: #eff6ff !important; border: 2px dashed #3b82f6 !important; }
-
         .form-locked { opacity: 0.6; pointer-events: none; }
-
         .sidebar-open { transform: translateX(0) !important; }
     </style>
 </head>
@@ -370,7 +364,16 @@
                 <div>
                     <label class="text-[10px] font-bold text-gray-600 uppercase block mb-1">BPM (Tempo)</label>
                     <input type="number" id="metroBpmInput" value="96" min="40" max="240" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold outline-none focus:border-blue-500 text-center">
-                    <p class="text-[9px] text-gray-400 mt-1 text-center">Default 96 BPM · 4/4 · Woodblock (ketukan 1 aksen)</p>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-600 uppercase block mb-1">Jenis Suara</label>
+                    <select id="metroSoundSelect" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold outline-none focus:border-blue-500">
+                        <option value="click">Click (Tajam Digital)</option>
+                        <option value="beep">Beep (Nada Bersih)</option>
+                        <option value="tick">Tick (Jarum Jam)</option>
+                        <option value="woodblock">Woodblock (Tok Kayu)</option>
+                    </select>
+                    <p class="text-[9px] text-gray-400 mt-1 text-center">Default 96 BPM · 4/4 · Ketukan 1 diberi aksen</p>
                 </div>
                 <button type="button" onclick="testMetroSound()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 rounded-xl text-xs active:scale-95 border border-gray-200">
                     <i class="fa-solid fa-volume-high mr-1"></i> Test Suara (4 Ketukan)
@@ -454,7 +457,6 @@
         let fpInstance = null;
         let sortableInstance = null;
 
-        // State Absensi
         let absenStream = null, currentPhotoType = "Datang";
         let absenFacingMode = "user";
         let fotoDatangBase64 = null, fotoPulangBase64 = null;
@@ -505,12 +507,10 @@
         function switchTab(tabKey) {
             const tabs = ['monitoring', 'buatTugas', 'absensi', 'riwayatAbsensi', 'anggota'];
             const tabNames = { 'monitoring': 'Monitoring', 'buatTugas': 'Buat Tugas', 'absensi': 'Absensi', 'riwayatAbsensi': 'Riwayat Absen', 'anggota': 'Kelola Anggota' };
-
             if (window.innerWidth < 768) {
                 const sidebar = document.getElementById('sidebar');
                 if (!sidebar.classList.contains('-translate-x-full')) toggleSidebar();
             }
-
             tabs.forEach(t => {
                 const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
                 const view = document.getElementById(`view${t.charAt(0).toUpperCase() + t.slice(1)}`);
@@ -565,7 +565,7 @@
             }
         }
 
-        // ============ SUB TASK ROW (dengan metronome) ============
+        // ============ SUB TASK ROW + METRONOME ============
         function addSubTaskRow(name = '', min = '01:00', max = '05:00', metro = null) {
             const container = document.getElementById('subTaskDynamicContainer');
             const row = document.createElement('div');
@@ -573,8 +573,10 @@
 
             const isMetroOn = !!(metro && metro.on);
             const bpmVal = (metro && metro.bpm) ? parseInt(metro.bpm) || 96 : 96;
+            const soundVal = (metro && metro.sound) ? metro.sound : 'click';
             row.dataset.metroOn = isMetroOn ? 'true' : 'false';
             row.dataset.metroBpm = bpmVal;
+            row.dataset.metroSound = soundVal;
 
             const metroBtnClass = isMetroOn
                 ? 'metro-btn w-8 h-8 bg-blue-600 text-white rounded flex items-center justify-center hover:bg-blue-700 transition-colors flex-none'
@@ -611,8 +613,10 @@
             if (!currentMetroRow) return;
             const isOn = currentMetroRow.dataset.metroOn === 'true';
             const bpm = currentMetroRow.dataset.metroBpm || '96';
+            const sound = currentMetroRow.dataset.metroSound || 'click';
             document.getElementById('metroOnToggle').checked = isOn;
             document.getElementById('metroBpmInput').value = bpm;
+            document.getElementById('metroSoundSelect').value = sound;
             const modal = document.getElementById('metroModal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -631,72 +635,117 @@
             let bpm = parseInt(document.getElementById('metroBpmInput').value) || 96;
             if (bpm < 40) bpm = 40;
             if (bpm > 240) bpm = 240;
+            const sound = document.getElementById('metroSoundSelect').value;
             currentMetroRow.dataset.metroOn = isOn ? 'true' : 'false';
             currentMetroRow.dataset.metroBpm = bpm;
+            currentMetroRow.dataset.metroSound = sound;
             updateMetroBtnStyle(currentMetroRow);
             closeMetroModal();
-            showToast(isOn ? `Metronome ON · ${bpm} BPM` : 'Metronome OFF', 'success');
+            showToast(isOn ? `Metronome ON · ${bpm} BPM · ${sound}` : 'Metronome OFF', 'success');
         }
 
-        // ============ CLICK SYNTH (metronome digital style) ============
-function playClick(isAccent) {
-    try {
-        const Ctx = window.AudioContext || window.webkitAudioContext;
-        if (!metroAudioCtx) metroAudioCtx = new Ctx();
-        if (metroAudioCtx.state === 'suspended') metroAudioCtx.resume();
-
-        const ctx = metroAudioCtx;
-        const now = ctx.currentTime;
-
-        // LAYER 1: High-frequency noise burst → bunyi "TS" pendek & tajam
-        const noiseDur = 0.008;
-        const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * noiseDur), ctx.sampleRate);
-        const data = buf.getChannelData(0);
-        for (let i = 0; i < data.length; i++) {
-            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 3);
+        // ============ 4 VARIAN SUARA METRONOME ============
+        function ensureAudioCtx() {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!metroAudioCtx) metroAudioCtx = new Ctx();
+            if (metroAudioCtx.state === 'suspended') metroAudioCtx.resume();
+            return metroAudioCtx;
         }
-        const noiseSrc = ctx.createBufferSource();
-        noiseSrc.buffer = buf;
-        const noiseFilter = ctx.createBiquadFilter();
-        noiseFilter.type = 'highpass';
-        noiseFilter.frequency.value = 3500;
-        const noiseGain = ctx.createGain();
-        noiseGain.gain.value = isAccent ? 0.35 : 0.22;
-        noiseSrc.connect(noiseFilter);
-        noiseFilter.connect(noiseGain);
-        noiseGain.connect(ctx.destination);
-        noiseSrc.start(now);
 
-        // LAYER 2: Square wave → bunyi "TIK" bodi utama
-        const osc = ctx.createOscillator();
-        const oscGain = ctx.createGain();
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(isAccent ? 2200 : 1500, now);
-        osc.frequency.exponentialRampToValueAtTime(isAccent ? 1400 : 900, now + 0.015);
+        // 1) CLICK - metronome digital tajam
+        function playClickSound(isAccent) {
+            const ctx = ensureAudioCtx();
+            const now = ctx.currentTime;
+            const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.008), ctx.sampleRate);
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < data.length; i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/data.length, 3);
+            const noiseSrc = ctx.createBufferSource(); noiseSrc.buffer = buf;
+            const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 3500;
+            const ng = ctx.createGain(); ng.gain.value = isAccent ? 0.35 : 0.22;
+            noiseSrc.connect(hp); hp.connect(ng); ng.connect(ctx.destination); noiseSrc.start(now);
 
-        oscGain.gain.setValueAtTime(0, now);
-        oscGain.gain.linearRampToValueAtTime(isAccent ? 0.28 : 0.18, now + 0.001);
-        oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+            const osc = ctx.createOscillator(); const og = ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(isAccent ? 2200 : 1500, now);
+            osc.frequency.exponentialRampToValueAtTime(isAccent ? 1400 : 900, now + 0.015);
+            og.gain.setValueAtTime(0, now);
+            og.gain.linearRampToValueAtTime(isAccent ? 0.28 : 0.18, now + 0.001);
+            og.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+            osc.connect(og); og.connect(ctx.destination); osc.start(now); osc.stop(now + 0.03);
+        }
 
-        osc.connect(oscGain);
-        oscGain.connect(ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.03);
-    } catch (e) { console.error('Click error:', e); }
-}
+        // 2) BEEP - sine murni bersih
+        function playBeepSound(isAccent) {
+            const ctx = ensureAudioCtx();
+            const now = ctx.currentTime;
+            const osc = ctx.createOscillator(); const g = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = isAccent ? 1600 : 1000;
+            g.gain.setValueAtTime(0, now);
+            g.gain.linearRampToValueAtTime(isAccent ? 0.4 : 0.28, now + 0.003);
+            g.gain.setValueAtTime(isAccent ? 0.4 : 0.28, now + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+            osc.connect(g); g.connect(ctx.destination); osc.start(now); osc.stop(now + 0.1);
+        }
 
-function testMetroSound() {
-    const bpm = parseInt(document.getElementById('metroBpmInput').value) || 96;
-    const interval = 60000 / bpm;
-    let beat = 0;
-    const playBeat = () => {
-        if (beat >= 4) return;
-        playClick(beat === 0);
-        beat++;
-        if (beat < 4) setTimeout(playBeat, interval);
-    };
-    playBeat();
-}
+        // 3) TICK - jarum jam (noise pendek)
+        function playTickSound(isAccent) {
+            const ctx = ensureAudioCtx();
+            const now = ctx.currentTime;
+            const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.012), ctx.sampleRate);
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < data.length; i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/data.length, 5);
+            const src = ctx.createBufferSource(); src.buffer = buf;
+            const bp = ctx.createBiquadFilter(); bp.type = 'bandpass';
+            bp.frequency.value = isAccent ? 4500 : 2800; bp.Q.value = 6;
+            const g = ctx.createGain(); g.gain.value = isAccent ? 0.55 : 0.4;
+            src.connect(bp); bp.connect(g); g.connect(ctx.destination); src.start(now);
+        }
+
+        // 4) WOODBLOCK - tok kayu (triangle + noise)
+        function playWoodblockSound(isAccent) {
+            const ctx = ensureAudioCtx();
+            const now = ctx.currentTime;
+            const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.015), ctx.sampleRate);
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < data.length; i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/data.length, 4);
+            const src = ctx.createBufferSource(); src.buffer = buf;
+            const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2500; bp.Q.value = 2;
+            const ng = ctx.createGain(); ng.gain.value = isAccent ? 0.5 : 0.32;
+            src.connect(bp); bp.connect(ng); ng.connect(ctx.destination); src.start(now);
+
+            const osc = ctx.createOscillator(); const og = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(isAccent ? 1700 : 1100, now);
+            osc.frequency.exponentialRampToValueAtTime(isAccent ? 800 : 550, now + 0.04);
+            og.gain.setValueAtTime(0, now);
+            og.gain.linearRampToValueAtTime(isAccent ? 0.6 : 0.4, now + 0.002);
+            og.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+            osc.connect(og); og.connect(ctx.destination); osc.start(now); osc.stop(now + 0.08);
+        }
+
+        function playMetroSound(isAccent, soundType) {
+            try {
+                if (soundType === 'beep') return playBeepSound(isAccent);
+                if (soundType === 'tick') return playTickSound(isAccent);
+                if (soundType === 'woodblock') return playWoodblockSound(isAccent);
+                return playClickSound(isAccent);
+            } catch(e) { console.error('Metronome error:', e); }
+        }
+
+        function testMetroSound() {
+            const bpm = parseInt(document.getElementById('metroBpmInput').value) || 96;
+            const sound = document.getElementById('metroSoundSelect').value;
+            const interval = 60000 / bpm;
+            let beat = 0;
+            const playBeat = () => {
+                if (beat >= 4) return;
+                playMetroSound(beat === 0, sound);
+                beat++;
+                if (beat < 4) setTimeout(playBeat, interval);
+            };
+            playBeat();
+        }
 
         function getSubTasksJSON() {
             const rows = document.querySelectorAll('.subtask-row');
@@ -708,7 +757,8 @@ function testMetroSound() {
                     max: r.querySelector('.sub-max').value.trim(),
                     metro: {
                         on: r.dataset.metroOn === 'true',
-                        bpm: parseInt(r.dataset.metroBpm) || 96
+                        bpm: parseInt(r.dataset.metroBpm) || 96,
+                        sound: r.dataset.metroSound || 'click'
                     }
                 });
             });
@@ -898,12 +948,8 @@ function testMetroSound() {
 
         function toggleKomentarBox(subId) {
             const box = document.getElementById(`boxKomentar_${subId}`);
-            if (box.classList.contains('open')) {
-                box.classList.remove('open');
-            } else {
-                box.classList.add('open');
-                document.getElementById(`inputKomentar_${subId}`).focus();
-            }
+            if (box.classList.contains('open')) box.classList.remove('open');
+            else { box.classList.add('open'); document.getElementById(`inputKomentar_${subId}`).focus(); }
         }
 
         function executeSubmitNilai(subId) {
@@ -912,15 +958,11 @@ function testMetroSound() {
             const nilaiVal = selectEl.value;
             const komentarVal = komentarEl.value.trim();
             if(!nilaiVal) { showToast("Pilih nilai (A-E) terlebih dahulu!", "error"); return; }
-            selectEl.disabled = true;
-            komentarEl.disabled = true;
+            selectEl.disabled = true; komentarEl.disabled = true;
             showLoading(true, "Menyimpan Evaluasi...");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'nilaiTugas', subId: subId, nilai: nilaiVal, komentar: komentarVal }) })
-            .then(r => r.json())
-            .then(d => {
-                selectEl.disabled = false;
-                komentarEl.disabled = false;
-                showLoading(false);
+            .then(r => r.json()).then(d => {
+                selectEl.disabled = false; komentarEl.disabled = false; showLoading(false);
                 if(d.success) {
                     showToast("Evaluasi Nilai & Catatan berhasil disimpan!", "success");
                     let sub = state.submissions.find(s => s.subId === subId);
@@ -929,8 +971,7 @@ function testMetroSound() {
                     if (state.showUngradedOnly) filterSubmissions();
                     selectEl.className = `flex-1 p-2 border rounded-lg text-xs font-bold outline-none cursor-pointer ${nilaiVal==='A'?'text-emerald-600 bg-emerald-50 border-emerald-300':nilaiVal==='B'?'text-blue-600 bg-blue-50 border-blue-300':nilaiVal==='C'?'text-amber-600 bg-amber-50 border-amber-300':nilaiVal==='D'?'text-orange-600 bg-orange-50 border-orange-300':'text-rose-600 bg-rose-50 border-rose-300'}`;
                 } else { showToast(d.message, "error"); }
-            })
-            .catch(e => { selectEl.disabled = false; komentarEl.disabled = false; showLoading(false); showToast("Gagal terhubung ke server", "error"); });
+            }).catch(e => { selectEl.disabled = false; komentarEl.disabled = false; showLoading(false); showToast("Gagal terhubung ke server", "error"); });
         }
 
         function renderCheckboxesAnggota() {
@@ -967,14 +1008,11 @@ function testMetroSound() {
             if(subTugasJSON === "[]") { showToast("Tambahkan minimal 1 Gerakan/Sub-Tugas!", "error"); return; }
             showLoading(true, "Menyimpan Tugas...");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({
-                action: action,
-                taskId: taskId,
+                action: action, taskId: taskId,
                 judulTugas: document.getElementById('taskTitle').value,
                 instruksi: document.getElementById('taskDesc').value,
                 tipePengumpulan: document.getElementById('tipePengumpulan').value,
-                tanggalPengerjaan: dates,
-                targetMember: targets,
-                jenisTugas: "video",
+                tanggalPengerjaan: dates, targetMember: targets, jenisTugas: "video",
                 subTugas: subTugasJSON
             })}).then(r=>r.json()).then(d=>{
                 showLoading(false);
@@ -1032,8 +1070,7 @@ function testMetroSound() {
                     let m = parseInt(maxVal) || 5;
                     maxVal = `${m.toString().padStart(2, '0')}:00`;
                 }
-                // Normalisasi state metro (tugas lama tanpa field → OFF)
-                const metroState = s.metro ? { on: !!s.metro.on, bpm: parseInt(s.metro.bpm) || 96 } : null;
+                const metroState = s.metro ? { on: !!s.metro.on, bpm: parseInt(s.metro.bpm) || 96, sound: s.metro.sound || 'click' } : null;
                 addSubTaskRow(s.nama, minVal || '01:00', maxVal || '05:00', metroState);
             });
             document.getElementById('btnCancelEdit').classList.remove('hidden');
@@ -1171,16 +1208,14 @@ function testMetroSound() {
 
             if (hasPulang) {
                 absenLocked = true;
-                btnDatang.classList.add('hidden');
-                btnPulang.classList.add('hidden');
+                btnDatang.classList.add('hidden'); btnPulang.classList.add('hidden');
                 statusDatang.classList.remove('hidden'); statusDatang.classList.add('flex');
                 statusPulang.classList.remove('hidden'); statusPulang.classList.add('flex');
                 formMateriEval.classList.remove('hidden'); formMateriEval.classList.add('flex');
                 dateInput.disabled = true;
                 formAbsensi.classList.add('form-locked');
                 btnSimpan.classList.add('hidden');
-                boxDatang.classList.add('opacity-50');
-                boxPulang.classList.add('opacity-50');
+                boxDatang.classList.add('opacity-50'); boxPulang.classList.add('opacity-50');
             } else if (hasDatang) {
                 absenLocked = false;
                 btnDatang.classList.add('hidden');
@@ -1210,8 +1245,7 @@ function testMetroSound() {
         document.getElementById('formAbsensi').addEventListener('submit', (e) => {
             e.preventDefault();
             if(absenLocked) { showToast("Absensi hari ini sudah selesai dan terkunci.", "error"); return; }
-            let typeToSubmit = "";
-            let b64ToSubmit = "";
+            let typeToSubmit = "", b64ToSubmit = "";
             if (fotoDatangBase64) { typeToSubmit = "Datang"; b64ToSubmit = fotoDatangBase64; }
             else if (fotoPulangBase64) {
                 typeToSubmit = "Pulang"; b64ToSubmit = fotoPulangBase64;
@@ -1220,22 +1254,17 @@ function testMetroSound() {
                 }
             }
             else { showToast("Ambil foto terlebih dahulu!", "error"); return; }
-
             if (document.getElementById('tableAbsensiBody').children.length <= 1 || !document.querySelector('#tableAbsensiBody tr[data-nama]')) {
                 showToast("Klik 'Load Data Anggota' terlebih dahulu!", "error"); return;
             }
-
             const absData = Array.from(document.querySelectorAll('#tableAbsensiBody tr[data-nama]')).map(row => ({ nama: row.getAttribute('data-nama'), kelas: row.getAttribute('data-kelas'), status: row.querySelector('select').value }));
-
             showLoading(true, `Menyimpan Absen ${typeToSubmit}...`);
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({
-                action: 'saveAbsensi',
-                type: typeToSubmit,
+                action: 'saveAbsensi', type: typeToSubmit,
                 tanggal: document.getElementById('absensiDate').value,
                 materi: document.getElementById('materiLatihan').value,
                 evaluasi: document.getElementById('evaluasiLatihan').value,
-                absensiData: absData,
-                fotoBase64: b64ToSubmit
+                absensiData: absData, fotoBase64: b64ToSubmit
             })})
             .then(r=>r.json()).then(d=>{
                 showLoading(false);
@@ -1370,13 +1399,11 @@ function testMetroSound() {
             const newStatus = !currentStatus;
             showLoading(true, "Memperbarui Hak Absen...");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'toggleHakAbsen', username: username, hakAbsen: newStatus }) })
-            .then(r => r.json())
-            .then(d => {
+            .then(r => r.json()).then(d => {
                 showLoading(false);
                 if(d.success) { showToast("Hak Akses diperbarui", "success"); loadDashboardData(); }
                 else { showToast(d.message, "error"); }
-            })
-            .catch(e => { showLoading(false); showToast("Gagal memperbarui hak akses", "error"); });
+            }).catch(e => { showLoading(false); showToast("Gagal memperbarui hak akses", "error"); });
         }
 
         document.getElementById('formAddMember').addEventListener('submit', (e) => {
@@ -1385,7 +1412,7 @@ function testMetroSound() {
             .then(r=>r.json()).then(d=>{ showLoading(false); if(d.success){ showToast("Tersimpan","success"); document.getElementById('formAddMember').reset(); loadDashboardData(); } else showToast(d.message,"error"); }).catch(e=>showLoading(false));
         });
 
-        // --- LAPORAN PENGUMPULAN TUGAS ---
+        // --- LAPORAN ---
         function openReportModal() {
             document.getElementById('reportDate').value = getLocalToday();
             document.getElementById('reportText').value = '';
@@ -1404,9 +1431,7 @@ function testMetroSound() {
             sel.innerHTML = '<option value="">Semua Tugas</option>';
             if (!dateVal) return;
             const activeTasks = state.tasks.filter(t => isTaskActiveOnDate(t, dateVal));
-            activeTasks.forEach(t => {
-                sel.innerHTML += `<option value="${t.taskId}">${t.judulTugas}</option>`;
-            });
+            activeTasks.forEach(t => { sel.innerHTML += `<option value="${t.taskId}">${t.judulTugas}</option>`; });
         }
 
         function isTaskActiveOnDate(t, dateVal) {
@@ -1436,9 +1461,7 @@ function testMetroSound() {
             const selectedTaskId = document.getElementById('reportTaskSelect').value;
             if (!dateVal) { showToast("Pilih tanggal terlebih dahulu!", "error"); return; }
             let activeTasks = state.tasks.filter(t => isTaskActiveOnDate(t, dateVal));
-            if (selectedTaskId) {
-                activeTasks = activeTasks.filter(t => t.taskId === selectedTaskId);
-            }
+            if (selectedTaskId) activeTasks = activeTasks.filter(t => t.taskId === selectedTaskId);
             const memberData = {};
             activeTasks.forEach(t => {
                 let subs = [];
@@ -1453,8 +1476,7 @@ function testMetroSound() {
                     if (!memberData[m.nama]) memberData[m.nama] = { total: 0, submitted: 0 };
                     const totalSubTasks = subs.length;
                     const userSubmissionsForTask = state.submissions.filter(x =>
-                        x.taskId === t.taskId &&
-                        x.namaAnggota === m.nama &&
+                        x.taskId === t.taskId && x.namaAnggota === m.nama &&
                         (t.tipePengumpulan === 'Satu Kali' || matchesSubmissionDate(x, dateVal))
                     );
                     const submittedCount = userSubmissionsForTask.length;
@@ -1462,45 +1484,27 @@ function testMetroSound() {
                     memberData[m.nama].submitted += Math.min(submittedCount, totalSubTasks);
                 });
             });
-
             const processedNames = Object.keys(memberData).map(nama => {
                 const data = memberData[nama];
-                let statusStr = "";
-                let rank = 0;
+                let statusStr = "", rank = 0;
                 if (data.submitted === 0) { statusStr = "belum mengerjakan"; rank = 2; }
                 else if (data.submitted >= data.total) { statusStr = "selesai"; rank = 0; }
-                else {
-                    const missingCount = data.total - data.submitted;
-                    statusStr = `kurang (${missingCount} gerakan)`;
-                    rank = 1;
-                }
+                else { const missingCount = data.total - data.submitted; statusStr = `kurang (${missingCount} gerakan)`; rank = 1; }
                 return { nama, statusStr, rank };
             });
-
-            processedNames.sort((a, b) => {
-                if (a.rank !== b.rank) return a.rank - b.rank;
-                return a.nama.localeCompare(b.nama);
-            });
-
+            processedNames.sort((a, b) => { if (a.rank !== b.rank) return a.rank - b.rank; return a.nama.localeCompare(b.nama); });
             const d = new Date(dateVal + 'T00:00:00');
             const pad = (n) => n.toString().padStart(2, '0');
             const tglFmt = `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
             const jam = new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }).replace('.', ':');
-
             let headerTask = "";
             if (selectedTaskId) {
                 const t = state.tasks.find(x => x.taskId === selectedTaskId);
                 if (t) headerTask = ` - ${t.judulTugas}`;
             }
-
             let text = `Pengumpulan Tugas${headerTask} (${tglFmt}, ${jam})\n`;
-            if (processedNames.length === 0) {
-                text += 'Tidak ada tugas aktif pada tanggal ini.';
-            } else {
-                processedNames.forEach((m, i) => {
-                    text += `${i+1}. ${m.nama} — ${m.statusStr}\n`;
-                });
-            }
+            if (processedNames.length === 0) text += 'Tidak ada tugas aktif pada tanggal ini.';
+            else processedNames.forEach((m, i) => { text += `${i+1}. ${m.nama} — ${m.statusStr}\n`; });
             document.getElementById('reportText').value = text.trim();
             showToast("Laporan berhasil dibuat", "success");
         }
@@ -1509,12 +1513,8 @@ function testMetroSound() {
             const ta = document.getElementById('reportText');
             if (!ta.value.trim()) { showToast("Buat laporan terlebih dahulu!", "error"); return; }
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(ta.value)
-                    .then(() => showToast("Teks laporan disalin!", "success"))
-                    .catch(() => { ta.select(); document.execCommand('copy'); showToast("Teks laporan disalin!", "success"); });
-            } else {
-                ta.select(); document.execCommand('copy'); showToast("Teks laporan disalin!", "success");
-            }
+                navigator.clipboard.writeText(ta.value).then(() => showToast("Teks laporan disalin!", "success")).catch(() => { ta.select(); document.execCommand('copy'); showToast("Teks laporan disalin!", "success"); });
+            } else { ta.select(); document.execCommand('copy'); showToast("Teks laporan disalin!", "success"); }
         }
 
         function shareReportWA() {
