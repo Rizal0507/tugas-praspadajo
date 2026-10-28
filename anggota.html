@@ -40,9 +40,17 @@
             100% { transform: translateY(-20vh) scale(1) rotate(360deg); opacity: 0; }
         }
         .sunflower { position: fixed; bottom: -50px; font-size: 2rem; animation: float-up 5s ease-in forwards; z-index: 100; pointer-events: none; }
+
+        /* Countdown Text Animation */
+        @keyframes pop-in { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+        .countdown-anim { animation: pop-in 0.8s ease-out forwards; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen font-sans text-gray-800 antialiased flex flex-col items-center relative">
+<body class="bg-gray-100 min-h-screen font-sans text-gray-800 antialiased flex flex-col items-center relative overflow-hidden">
+
+    <!-- AUDIO ELEMENTS -->
+    <audio id="beep1" src="beep1.mp3" preload="auto"></audio>
+    <audio id="beep2" src="beep2.mp3" preload="auto"></audio>
 
     <!-- Backdrop Mobile Sidebar -->
     <div id="sidebarBackdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] hidden md:hidden transition-opacity"></div>
@@ -53,52 +61,26 @@
         <!-- SIDEBAR -->
         <aside id="sidebar" class="fixed md:relative inset-y-0 left-0 z-[90] w-72 bg-white border-r border-gray-100 flex-shrink-0 flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out h-full md:h-auto">
             
-            <!-- HEADER / PROFIL -->
-            <div class="bg-gradient-to-br from-blue-700 via-blue-600 to-blue-500 text-white px-5 pt-6 pb-8 relative overflow-hidden flex-none md:rounded-tr-[2.5rem]">
+            <!-- HEADER / PROFIL SIDEBAR -->
+            <div class="bg-gradient-to-br from-blue-700 via-blue-600 to-blue-500 text-white px-5 pt-8 pb-6 relative overflow-hidden flex-none md:rounded-tr-[2.5rem]">
                 <div class="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
                 <div class="relative z-10 flex flex-col items-center text-center">
                     <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl p-2 flex items-center justify-center border border-white/30 shadow-lg mb-3">
                         <img src="./logo.png" alt="Logo" class="max-h-full max-w-full object-contain drop-shadow-md" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-white text-3xl\'></i>';">
                     </div>
                     
-                    <p id="greetingText" class="text-[10px] text-blue-100 font-bold uppercase tracking-widest mb-1">Selamat Datang,</p>
-                    <h2 id="userNameDisplay" class="text-xl font-extrabold text-white leading-tight truncate w-full">Nama Siswa</h2>
+                    <h2 id="sidebarNameDisplay" class="text-lg font-extrabold text-white leading-tight truncate w-full mb-2">Nama Lengkap</h2>
                     
-                    <div class="flex items-center justify-center gap-2 mt-2">
-                        <span class="bg-blue-900/50 text-blue-100 text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/10"><i class="fa-solid fa-users-rectangle mr-1"></i> <span id="userClassDisplay">Kelas</span></span>
-                        <span id="roleBadge" class="bg-blue-800 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-white/10">Anggota</span>
-                    </div>
-
-                    <div class="mt-4 w-full bg-black/20 rounded-xl p-3 border border-white/10 shadow-inner">
-                        <p id="motivationText" class="text-xs italic text-blue-50 font-medium leading-relaxed">"Semangat latihan hari ini!"</p>
+                    <div class="flex items-center justify-center gap-2">
+                        <span class="bg-blue-900/50 text-blue-100 text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/10"><i class="fa-solid fa-users-rectangle mr-1"></i> <span id="sidebarClassDisplay">Kelas</span></span>
+                        <span id="sidebarRoleBadge" class="bg-blue-800 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-white/10">Anggota</span>
                     </div>
                 </div>
             </div>
 
-            <!-- MENU NAVIGATION -->
-            <nav class="flex flex-col p-3 gap-1 overflow-y-auto custom-scroll bg-gray-50 md:bg-white flex-grow">
-                <!-- Menu Absen (Khusus Petugas, ditaruh paling atas) -->
-                <button id="btnSidebarAbsen" onclick="openAbsenModal()" class="hidden w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-600 hover:bg-emerald-100 flex items-center gap-2 transition-colors border border-emerald-200 mb-2">
-                    <i class="fa-solid fa-clipboard-user w-4 text-center"></i> <span>Input Absensi Harian</span>
-                </button>
-
-                <button onclick="switchTab('dashboard')" id="tabBtnDashboard" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold bg-blue-600 text-white flex items-center gap-2 transition-colors">
-                    <i class="fa-solid fa-list-check w-4 text-center"></i> <span>Tugas Hari Ini</span>
-                    <span id="badgeTugasCount" class="hidden ml-auto bg-rose-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">0</span>
-                </button>
-                <button onclick="switchTab('riwayatTugas')" id="tabBtnRiwayatTugas" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors relative">
-                    <i class="fa-solid fa-medal w-4 text-center"></i> <span>Riwayat Tugas</span>
-                    <span id="badgeRiwayatDot" class="hidden absolute right-3 w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
-                </button>
-                <button onclick="switchTab('riwayatLatihan')" id="tabBtnRiwayatLatihan" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors">
-                    <i class="fa-solid fa-chart-line w-4 text-center"></i> <span>Riwayat Latihan</span>
-                </button>
-                <button onclick="switchTab('materi')" id="tabBtnMateri" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors">
-                    <i class="fa-solid fa-book-open w-4 text-center"></i> <span>Materi</span>
-                </button>
-                <button onclick="switchTab('dataAnggota')" id="tabBtnDataAnggota" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors">
-                    <i class="fa-solid fa-id-card w-4 text-center"></i> <span>Data Anggota</span>
-                </button>
+            <!-- MENU NAVIGATION (Di-render via JS) -->
+            <nav id="sidebarMenuContainer" class="flex flex-col p-3 gap-1 overflow-y-auto custom-scroll bg-gray-50 md:bg-white flex-grow">
+                <!-- Menu akan di-inject oleh JavaScript -->
             </nav>
 
             <!-- FOOTER ACTIONS -->
@@ -115,18 +97,22 @@
             
             <!-- MOBILE HEADER -->
             <div class="md:hidden flex items-center justify-between bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100 flex-none">
-                <div class="flex items-center gap-2">
-                    <button onclick="toggleSidebar()" class="bg-blue-50 text-blue-600 p-2 rounded-lg"><i class="fa-solid fa-bars"></i></button>
-                    <span class="font-bold text-gray-800 text-sm" id="mobileTitle">Tugas Hari Ini</span>
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleSidebar()" class="bg-blue-50 text-blue-600 p-2 rounded-lg shadow-sm"><i class="fa-solid fa-bars text-sm"></i></button>
+                    <div class="flex flex-col">
+                        <span id="mobileGreeting" class="text-[10px] font-extrabold text-blue-500 uppercase tracking-widest">Selamat Pagi</span>
+                        <span id="mobileName" class="font-extrabold text-gray-800 text-sm leading-tight">Nama</span>
+                        <span id="mobileMotivation" class="text-[9px] text-gray-500 italic mt-0.5 max-w-[200px] truncate">"Motivasi..."</span>
+                    </div>
                 </div>
-                <img src="./logo.png" alt="Logo" class="h-6 w-auto object-contain" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-blue-600\'></i>';">
+                <img src="./logo.png" alt="Logo" class="h-8 w-auto object-contain" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-blue-600 text-2xl\'></i>';">
             </div>
 
             <!-- TAB: DASHBOARD TUGAS -->
             <section id="viewDashboard" class="tab-view flex flex-col gap-4 w-full">
                 <div id="upcomingTasksSection" class="hidden"></div>
 
-                <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
+                <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center sticky top-0 z-10">
                     <h3 class="font-bold text-gray-800 text-sm">Tugas Tersedia Hari Ini</h3>
                     <button onclick="fetchTasks()" class="text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg text-[11px] font-bold flex gap-1.5 active:scale-95 hover:bg-blue-100 transition-colors"><i class="fa-solid fa-rotate"></i> Refresh</button>
                 </div>
@@ -265,7 +251,6 @@
 
                 <!-- KOTAK FOTO DATANG & PULANG -->
                 <div class="grid grid-cols-2 gap-2 mt-2">
-                    <!-- Foto Datang -->
                     <div id="boxDatang" class="bg-gray-50 border border-dashed border-gray-300 p-2 rounded-xl text-center relative h-full flex flex-col justify-center transition-all">
                         <div id="fotoDatangPreviewContainer" class="hidden mb-2 relative aspect-video w-full bg-black rounded-lg overflow-hidden">
                             <img id="fotoDatangPreview" src="" class="w-full h-full object-cover">
@@ -280,8 +265,6 @@
                             <span class="text-[8px] text-gray-400 font-normal mt-1">(Bisa diperbarui)</span>
                         </div>
                     </div>
-
-                    <!-- Foto Pulang -->
                     <div id="boxPulang" class="bg-gray-50 border border-dashed border-gray-300 p-2 rounded-xl text-center relative h-full flex flex-col justify-center opacity-50 cursor-not-allowed transition-all">
                         <div id="fotoPulangPreviewContainer" class="hidden mb-2 relative aspect-video w-full bg-black rounded-lg overflow-hidden">
                             <img id="fotoPulangPreview" src="" class="w-full h-full object-cover">
@@ -321,6 +304,11 @@
 
     <!-- VIEW KAMERA TUGAS (VIDEO) -->
     <div id="viewCamera" class="fixed inset-0 bg-black z-50 hidden flex-col pointer-events-auto">
+        <!-- COUNTDOWN OVERLAY -->
+        <div id="countdownOverlay" class="absolute inset-0 bg-black/80 z-[60] hidden flex-col items-center justify-center">
+            <h1 id="countdownText" class="text-white text-8xl font-black countdown-anim">3</h1>
+        </div>
+
         <div class="absolute top-0 left-0 w-full h-1.5 bg-gray-800 z-30">
             <div id="videoProgressBar" class="h-full bg-rose-500 transition-all duration-1000" style="width: 0%;"></div>
         </div>
@@ -404,13 +392,11 @@
         </div>
     </div>
 
-    <!-- POPUP EASTER EGG (SEMUA TUGAS SELESAI) -->
+    <!-- POPUP EASTER EGG -->
     <div id="easterEggModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[140] hidden flex-col items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 shadow-2xl w-full max-w-sm text-center flex flex-col items-center transform scale-100 transition-transform relative overflow-hidden">
             <div class="absolute -top-10 -right-10 text-9xl opacity-10">🌻</div>
-            <div class="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mb-4 text-5xl">
-                🌻
-            </div>
+            <div class="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mb-4 text-5xl">🌻</div>
             <h3 class="font-extrabold text-amber-500 text-2xl mb-2">Luar Biasa!</h3>
             <p id="easterEggText" class="text-xs text-gray-600 mb-6 leading-relaxed font-medium"></p>
             <button onclick="closeEasterEgg()" class="w-full bg-amber-500 text-white font-bold py-3 rounded-xl active:scale-95 text-sm shadow-md">Terima Kasih!</button>
@@ -462,6 +448,8 @@
         let mediaStream = null, mediaRecorder = null, recordedChunks = [];
         let isRecording = false, isPaused = false, timerInterval, secondsRecorded = 0;
         let currentFacingMode = "environment";
+        let isMinBeepPlayed = false; // Flag untuk beep batas minimal
+        let isCountdownActive = false; // Flag agar tidak dobel klik
         
         // State Absensi
         let absenStream = null, currentPhotoType = "Datang";
@@ -590,11 +578,51 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Set Profil Sidebar
-            document.getElementById('userNameDisplay').textContent = user.nama;
-            document.getElementById('userClassDisplay').textContent = user.kelas;
+        // --- MENU RENDERING ---
+        function renderMenu() {
+            const container = document.getElementById('sidebarMenuContainer');
+            let html = '';
             
+            // Menu Absen (Hanya Petugas)
+            if(user.hakAbsen) {
+                html += `<button onclick="openAbsenModal()" class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-600 hover:bg-emerald-100 flex items-center gap-2 transition-colors border border-emerald-200 mb-2">
+                    <i class="fa-solid fa-clipboard-user w-4 text-center"></i> <span>Input Absensi Harian</span>
+                </button>`;
+            }
+            
+            // Menu Data Anggota (Selalu di atas jika bukan petugas)
+            html += `<button onclick="switchTab('dataAnggota')" id="tabBtnDataAnggota" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors">
+                <i class="fa-solid fa-id-card w-4 text-center"></i> <span>Data Anggota</span>
+            </button>`;
+            
+            // Menu Tugas
+            html += `<button onclick="switchTab('dashboard')" id="tabBtnDashboard" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold bg-blue-600 text-white flex items-center gap-2 transition-colors">
+                <i class="fa-solid fa-list-check w-4 text-center"></i> <span>Tugas Hari Ini</span>
+                <span id="badgeTugasCount" class="hidden ml-auto bg-rose-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">0</span>
+            </button>`;
+            
+            html += `<button onclick="switchTab('riwayatTugas')" id="tabBtnRiwayatTugas" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors relative">
+                <i class="fa-solid fa-medal w-4 text-center"></i> <span>Riwayat Tugas</span>
+                <span id="badgeRiwayatDot" class="hidden absolute right-3 w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
+            </button>`;
+            
+            html += `<button onclick="switchTab('riwayatLatihan')" id="tabBtnRiwayatLatihan" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors">
+                <i class="fa-solid fa-chart-line w-4 text-center"></i> <span>Riwayat Latihan</span>
+            </button>`;
+            
+            html += `<button onclick="switchTab('materi')" id="tabBtnMateri" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors">
+                <i class="fa-solid fa-book-open w-4 text-center"></i> <span>Materi</span>
+            </button>`;
+            
+            container.innerHTML = html;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set Profil Sidebar & Mobile Header
+            document.getElementById('sidebarNameDisplay').textContent = user.nama;
+            document.getElementById('sidebarClassDisplay').textContent = user.kelas;
+            document.getElementById('mobileName').textContent = user.nama;
+
             // Set Data Anggota View
             document.getElementById('dataNama').textContent = user.nama;
             document.getElementById('dataKelas').textContent = `Kelas ${user.kelas}`;
@@ -608,7 +636,8 @@
             if (hour >= 11 && hour < 15) greeting = "Selamat Siang";
             else if (hour >= 15 && hour < 18) greeting = "Selamat Sore";
             else if (hour >= 18 || hour < 11) greeting = "Selamat Malam";
-            document.getElementById('greetingText').textContent = greeting;
+            
+            document.getElementById('mobileGreeting').textContent = greeting;
 
             const quotes = [
                 "Disiplin adalah jembatan antara cita-cita dan pencapaian.",
@@ -618,16 +647,17 @@
                 "Tubuh yang kuat dibentuk dari konsistensi, bukan keajaiban.",
                 "Percayalah pada proses, hasil tidak akan mengkhianati usaha."
             ];
-            document.getElementById('motivationText').textContent = `"${quotes[Math.floor(Math.random() * quotes.length)]}"`;
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            document.getElementById('mobileMotivation').textContent = `"${randomQuote}"`;
 
             // Cek Hak Absen
             if(user.hakAbsen) {
-                document.getElementById('roleBadge').textContent = "Petugas Absen";
-                document.getElementById('roleBadge').className = "bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-emerald-300 shadow-sm";
-                document.getElementById('btnSidebarAbsen').classList.remove('hidden');
+                document.getElementById('sidebarRoleBadge').textContent = "Petugas Absen";
+                document.getElementById('sidebarRoleBadge').className = "bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-emerald-300 shadow-sm";
                 document.getElementById('absensiDate').value = getLocalToday();
             }
-            
+
+            renderMenu();
             fetchTasks();
             fetchRiwayatSemua();
         });
@@ -653,8 +683,6 @@
                     btn.classList.remove('text-gray-600', 'hover:bg-gray-100');
                     view.classList.remove('hidden'); view.classList.add('flex');
                     
-                    document.getElementById('mobileTitle').textContent = tabNames[t];
-
                     if (t === 'riwayatTugas') document.getElementById('badgeRiwayatDot').classList.add('hidden');
                 } else {
                     btn.classList.remove('bg-blue-600', 'text-white'); 
@@ -671,9 +699,7 @@
             const el = document.getElementById('dataPassword');
             const btn = document.getElementById('btnTogglePass');
             if (passVisible) {
-                // Karena password tidak disimpan di session untuk keamanan, kita tampilkan placeholder
-                // Jika sistem GAS mengirim password, bisa diganti menjadi user.password
-                el.textContent = user.password || "password_rahasia"; 
+                el.textContent = user.password || "Password tidak tersedia"; 
                 btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
             } else {
                 el.textContent = "••••••••";
@@ -742,9 +768,17 @@
         }
 
         function renderTasks(tasks) {
+            const today = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Jakarta"}));
             const todayStr = getLocalToday();
+            
+            // Hitung tanggal besok
+            let tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const pad = (n) => String(n).padStart(2, '0');
+            const tomorrowStr = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth()+1)}-${pad(tomorrow.getDate())}`;
+
             const todayTasks = [];
-            const upcomingTasks = [];
+            const tomorrowTasks = [];
             let totalUnfinishedToday = 0;
 
             tasks.forEach(t => {
@@ -758,9 +792,8 @@
                 if (t.tipePengumpulan === 'Harian') {
                     if (dateList.includes(todayStr)) {
                         todayTasks.push(t);
-                    } else {
-                        const futureDates = dateList.filter(d => d > todayStr).sort();
-                        if (futureDates.length > 0) upcomingTasks.push({ ...t, nextDate: futureDates[0] });
+                    } else if (dateList.includes(tomorrowStr)) {
+                        tomorrowTasks.push(t);
                     }
                 } else if (t.tipePengumpulan === 'Satu Kali') {
                     const dl = dateList[dateList.length - 1];
@@ -770,18 +803,18 @@
                 }
             });
 
-            // 1. Render Upcoming
+            // 1. Render Tugas Besok (Upcoming)
             const upcomingSection = document.getElementById('upcomingTasksSection');
-            if (upcomingTasks.length > 0) {
+            if (tomorrowTasks.length > 0) {
                 upcomingSection.classList.remove('hidden');
                 upcomingSection.innerHTML = `
                     <div class="flex flex-col gap-2 mb-2">
-                        <span class="text-[10px] font-extrabold text-blue-600 uppercase tracking-wider flex items-center gap-1 px-1"><i class="fa-solid fa-calendar-day"></i> Tugas Selanjutnya</span>
-                        ${upcomingTasks.map(u => `
+                        <span class="text-[10px] font-extrabold text-blue-600 uppercase tracking-wider flex items-center gap-1 px-1"><i class="fa-solid fa-calendar-day"></i> Tugas Terjadwal Besok</span>
+                        ${tomorrowTasks.map(u => `
                             <div class="bg-indigo-50/80 border border-indigo-100 p-3.5 rounded-2xl shadow-sm relative overflow-hidden flex flex-col gap-1.5">
                                 <div class="flex justify-between items-start">
                                     <span class="text-[9px] font-bold text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-md">${u.tipePengumpulan}</span>
-                                    <span class="text-[10px] font-bold text-indigo-700 bg-white px-2 py-0.5 rounded shadow-sm">${formatDateIndo(u.nextDate)}</span>
+                                    <span class="text-[10px] font-bold text-indigo-700 bg-white px-2 py-0.5 rounded shadow-sm">${formatDateIndo(tomorrowStr)}</span>
                                 </div>
                                 <h5 class="text-sm font-bold text-gray-800">${u.judulTugas}</h5>
                                 <p class="text-[10px] text-gray-500 line-clamp-1">${u.instruksi}</p>
@@ -793,18 +826,15 @@
             // 2. Render Tugas Hari Ini
             const container = document.getElementById('taskListContainer');
             
-            // Hitung tugas yang belum selesai
             const todayTasksFiltered = todayTasks.filter(t => {
                 if(t.isLama) return true;
                 const pendingSubs = (t.subTugas || []).filter(sub => !isSubDone(t.taskId, todayStr, sub.nama));
                 return pendingSubs.length > 0;
             });
 
-            // Hitung TOTAL sub-tugas yang ada di hari ini (untuk cek easter egg)
             let totalSubsToday = 0;
             todayTasks.forEach(t => { if(!t.isLama) totalSubsToday += (t.subTugas || []).length; });
 
-            // LOGIKA EASTER EGG
             if (todayTasks.length > 0 && todayTasksFiltered.length === 0 && totalSubsToday > 0) {
                 triggerEasterEgg();
             }
@@ -919,7 +949,13 @@
             document.getElementById('kameraTarget').textContent = `${formatSecToText(currentMinSec)} - ${formatSecToText(currentMaxSec)}`;
             closeSetup();
             document.getElementById('viewCamera').classList.remove('hidden'); document.getElementById('viewCamera').classList.add('flex');
+            
+            // Reset state
+            isMinBeepPlayed = false;
+            isCountdownActive = false;
+            
             await startMediaStream();
+            
             isPaused = false;
             const btnP = document.getElementById('btnPause');
             btnP.disabled = true;
@@ -942,13 +978,55 @@
         }
 
         function switchCamera() {
-            if (isRecording) { showToast("Tidak dapat mengganti kamera saat merekam!", "error"); return; }
+            if (isRecording || isCountdownActive) { showToast("Tidak dapat mengganti kamera saat merekam!", "error"); return; }
             currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
             startMediaStream();
             showToast(currentFacingMode === "environment" ? "Kamera Belakang" : "Kamera Depan", "info");
         }
 
-        function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(false); }
+        function toggleRecording() { 
+            if (!isRecording && !isCountdownActive) startCountdown(); 
+            else if (isRecording) stopRecording(false); 
+        }
+
+        // --- LOGIKA COUNTDOWN & BEEP ---
+        function startCountdown() {
+            isCountdownActive = true;
+            const overlay = document.getElementById('countdownOverlay');
+            const text = document.getElementById('countdownText');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            
+            let count = 3;
+            text.textContent = count;
+            
+            const playBeep1 = () => { document.getElementById('beep1').currentTime = 0; document.getElementById('beep1').play().catch(e=>{}); };
+            const playBeep2 = () => { document.getElementById('beep2').currentTime = 0; document.getElementById('beep2').play().catch(e=>{}); };
+
+            playBeep1(); // Bunyi saat angka 3 muncul
+
+            const interval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    text.textContent = count;
+                    text.classList.remove('countdown-anim');
+                    void text.offsetWidth; // trigger reflow
+                    text.classList.add('countdown-anim');
+                    playBeep1();
+                } else {
+                    clearInterval(interval);
+                    text.textContent = "Mulai!";
+                    playBeep2(); // Bunyi panjang saat mulai
+                    
+                    setTimeout(() => {
+                        overlay.classList.add('hidden');
+                        overlay.classList.remove('flex');
+                        isCountdownActive = false;
+                        startRecording(); // Mulai rekam setelah countdown
+                    }, 500);
+                }
+            }, 1000);
+        }
 
         function startRecording() {
             if (!mediaStream) return; recordedChunks = [];
@@ -1011,8 +1089,33 @@
             document.getElementById('timerDisplay').textContent = `${m}:${s}`;
             let percent = (secondsRecorded / currentMaxSec) * 100; if (percent > 100) percent = 100;
             const pb = document.getElementById('videoProgressBar'); pb.style.width = `${percent}%`;
+            
             if(secondsRecorded < currentMinSec) { pb.classList.remove('bg-emerald-500'); pb.classList.add('bg-rose-500'); } 
             else { pb.classList.remove('bg-rose-500'); pb.classList.add('bg-emerald-500'); }
+            
+            // LOGIKA BEEP 5 DETIK SEBELUM MINIMAL
+            if (secondsRecorded === (currentMinSec - 5) && !isMinBeepPlayed) {
+                isMinBeepPlayed = true;
+                let beepCount = 0;
+                const beepInterval = setInterval(() => {
+                    if(beepCount < 5) {
+                        const audio = document.getElementById('beep1');
+                        audio.currentTime = 0;
+                        audio.play().catch(e=>{});
+                        beepCount++;
+                    } else {
+                        clearInterval(beepInterval);
+                    }
+                }, 1000);
+            }
+            
+            // BEEP SAAT MENCAPAI MINIMAL
+            if (secondsRecorded === currentMinSec) {
+                 const audio = document.getElementById('beep2');
+                 audio.currentTime = 0;
+                 audio.play().catch(e=>{});
+            }
+
             if(secondsRecorded >= currentMaxSec && isRecording) { stopRecording(false); showToast("Batas maksimal tercapai.", "info"); }
         }
 
