@@ -168,7 +168,7 @@
                                 <label class="text-xs font-bold text-blue-800 uppercase mb-1 block">Pilih Tanggal / Rentang</label>
                                 <input type="text" id="tanggalPengerjaan" required placeholder="Pilih Tanggal..." class="w-full px-3 py-2 bg-white border border-blue-200 rounded-xl text-xs font-bold outline-none cursor-pointer">
                             </div>
-                            <!-- REVISI: Input Batas Durasi Video (Menit & Detik) -->
+                            <!-- Input Batas Durasi Video (Menit & Detik) -->
                             <div class="sm:col-span-2">
                                 <label class="text-xs font-bold text-blue-800 uppercase mb-1 block">Batas Durasi Video (Keseluruhan)</label>
                                 <div class="flex items-center gap-2">
@@ -181,7 +181,7 @@
                             </div>
                         </div>
 
-                        <!-- REVISI: TUKAR POSISI - DINAMIS SUB TUGAS DI ATAS TARGET ANGGOTA -->
+                        <!-- TUKAR POSISI - DINAMIS SUB TUGAS DI ATAS TARGET ANGGOTA -->
                         <div class="border border-gray-200 rounded-xl overflow-hidden">
                             <div class="bg-gray-50 p-3 border-b flex justify-between items-center">
                                 <label class="text-xs font-bold text-gray-600 uppercase">Daftar Gerakan / Sub-Tugas</label>
@@ -368,9 +368,17 @@
                 <button onclick="closeReportModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             <div class="flex flex-col gap-3">
-                <div>
-                    <label class="text-xs font-bold text-gray-600 uppercase mb-1 block">Pilih Tanggal</label>
-                    <input type="date" id="reportDate" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold outline-none focus:border-blue-500">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-gray-600 uppercase mb-1 block">Pilih Tanggal</label>
+                        <input type="date" id="reportDate" onchange="updateReportTaskDropdown()" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-600 uppercase mb-1 block">Pilih Tugas</label>
+                        <select id="reportTaskSelect" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold outline-none focus:border-blue-500">
+                            <option value="">Semua Tugas</option>
+                        </select>
+                    </div>
                 </div>
                 <button type="button" onclick="generateReport()" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded-xl text-sm active:scale-95"><i class="fa-solid fa-file-lines mr-1"></i> Buat Laporan</button>
                 <textarea id="reportText" rows="10" readonly class="w-full p-3 bg-gray-50 border rounded-xl text-xs font-mono outline-none" placeholder="Pilih tanggal lalu klik Buat Laporan..."></textarea>
@@ -391,15 +399,15 @@
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbwYTFRirtCpDT1vXJ0hSeFtElQR44rdoMPKskHgRPO3OlCr5_D_cXvLQOFzkDt4lY_IYw/exec';
         
         let state = { user: null, tasks: [], members: [], submissions: [], absensiHistory: [], showUngradedOnly: false, _notifiedUngraded: false };
-        let fpInstance = null; // Flatpickr Instance
-        let fotoDatangBase64 = null, fotoPulangBase64 = null; // Foto Absensi
+        let fpInstance = null; 
+        let fotoDatangBase64 = null, fotoPulangBase64 = null; 
 
         document.addEventListener('DOMContentLoaded', () => {
             const raw = localStorage.getItem('userSession') || sessionStorage.getItem('userSession');
             if (raw) { state.user = JSON.parse(raw); }
             
             setupFlatpickr(); 
-            addSubTaskRow('Tugas Utama', '01:00', '05:00'); // Default baris 1
+            addSubTaskRow('Tugas Utama', '01:00', '05:00'); 
             document.getElementById('absensiDate').value = new Date().toISOString().split('T')[0];
             
             loadDashboardData();
@@ -424,11 +432,10 @@
             });
         }
 
-        // --- KALENDER FLATPICKR ---
         function setupFlatpickr() {
             const type = document.getElementById('tipePengumpulan').value;
             const inputEl = document.getElementById('tanggalPengerjaan');
-            inputEl.value = ""; // Reset
+            inputEl.value = ""; 
             
             if(fpInstance) fpInstance.destroy();
             
@@ -440,7 +447,6 @@
             });
         }
 
-        // --- FORMAT INPUT WAKTU (MM:SS) ---
         function formatTimeInput(el) {
             let v = el.value.trim();
             if(!v) return;
@@ -456,7 +462,6 @@
             }
         }
 
-        // --- SUB TUGAS DINAMIS ---
         function addSubTaskRow(name = '', min = '01:00', max = '05:00') {
             const container = document.getElementById('subTaskDynamicContainer');
             const row = document.createElement('div');
@@ -484,7 +489,6 @@
             return JSON.stringify(result);
         }
 
-        // --- FETCH DATA DASHBOARD ---
         function loadDashboardData(isManual = false) {
             if (isManual) state._notifiedUngraded = false;
             showLoading(true, "Memuat Data...");
@@ -504,7 +508,6 @@
             sel.innerHTML = '<option value="">Semua Tugas</option>' + state.tasks.map(t => `<option value="${t.taskId}">${t.judulTugas}</option>`).join('');
         }
 
-        // --- REVISI: FILTER CERDAS & TABEL MONITORING ---
         function isGraded(s) { return s.nilai && s.nilai !== '-'; }
 
         function getLocalDateString(dateObj) {
@@ -610,7 +613,6 @@
             }
         }
 
-        // --- RENDER TABEL MONITORING TUGAS & PENILAIAN ---
         function filterSubmissions() {
             const taskId = document.getElementById('selectTaskFilter').value;
             renderMemberFilterOptions(taskId);
@@ -618,7 +620,7 @@
             const memberVal = document.getElementById('selectFilterMember').value;
             const tbody = document.getElementById('tableSubmissionsBody');
             
-            let filteredSubs = state.submissions.slice().reverse(); // Tampilkan yang terbaru di atas
+            let filteredSubs = state.submissions.slice().reverse(); 
             if(taskId) filteredSubs = filteredSubs.filter(s => s.taskId === taskId);
             if(dateVal) filteredSubs = filteredSubs.filter(s => matchesSubmissionDate(s, dateVal));
             if(memberVal) filteredSubs = filteredSubs.filter(s => s.namaAnggota === memberVal);
@@ -632,7 +634,6 @@
                 const taskRef = state.tasks.find(t => t.taskId === s.taskId);
                 const judul = taskRef ? taskRef.judulTugas : "Tugas Latihan";
                 
-                // Form Penilaian (Nilai + Catatan/Komentar)
                 const nilaiVal = (s.nilai && s.nilai !== '-') ? s.nilai : '';
                 const komentarVal = s.komentar || '';
                 
@@ -651,7 +652,6 @@
                     <td class="py-3 px-4 text-center align-top pt-5">${btnLink}</td>
                     <td class="py-3 px-4 align-top">
                         <div class="bg-gray-100/50 p-2.5 rounded-xl border border-gray-200">
-                            <!-- Container Penilaian -->
                             <div class="flex gap-2 items-center">
                                 <select id="selNilai_${s.subId}" class="flex-1 p-2 border rounded-lg text-xs font-bold outline-none cursor-pointer ${colorClass}">
                                     <option value="">-- Beri Nilai --</option>
@@ -668,8 +668,6 @@
                                     Simpan
                                 </button>
                             </div>
-                            
-                            <!-- Kotak Input Komentar (Tersembunyi by default kecuali sudah ada isinya) -->
                             <div id="boxKomentar_${s.subId}" class="comment-box-anim ${komentarVal ? 'open' : ''}">
                                 <textarea id="inputKomentar_${s.subId}" rows="2" placeholder="Tulis catatan perbaikan untuk anggota ini..." class="w-full p-2 border border-blue-200 rounded-lg text-[10px] bg-blue-50/30 outline-none focus:border-blue-500">${komentarVal}</textarea>
                             </div>
@@ -679,7 +677,6 @@
             }).join('');
         }
 
-        // Tampilkan/Sembunyikan kotak komentar
         function toggleKomentarBox(subId) {
             const box = document.getElementById(`boxKomentar_${subId}`);
             if (box.classList.contains('open')) {
@@ -690,7 +687,6 @@
             }
         }
 
-        // Eksekusi Simpan Nilai + Komentar ke Backend
         function executeSubmitNilai(subId) {
             const selectEl = document.getElementById(`selNilai_${subId}`);
             const komentarEl = document.getElementById(`inputKomentar_${subId}`);
@@ -703,7 +699,6 @@
                 return;
             }
 
-            // Disable input selama proses
             selectEl.disabled = true;
             komentarEl.disabled = true;
             showLoading(true, "Menyimpan Evaluasi...");
@@ -725,8 +720,6 @@
                 
                 if(d.success) {
                     showToast("Evaluasi Nilai & Catatan berhasil disimpan!", "success");
-                    
-                    // Update state lokal
                     let sub = state.submissions.find(s => s.subId === subId);
                     if(sub) {
                         sub.nilai = nilaiVal;
@@ -735,7 +728,6 @@
                     updateUngradedNotification();
                     if (state.showUngradedOnly) filterSubmissions();
                     
-                    // Update warna dropdown
                     selectEl.className = `flex-1 p-2 border rounded-lg text-xs font-bold outline-none cursor-pointer ${nilaiVal==='A'?'text-emerald-600 bg-emerald-50 border-emerald-300':nilaiVal==='B'?'text-blue-600 bg-blue-50 border-blue-300':nilaiVal==='C'?'text-amber-600 bg-amber-50 border-amber-300':nilaiVal==='D'?'text-orange-600 bg-orange-50 border-orange-300':'text-rose-600 bg-rose-50 border-rose-300'}`;
                 } else {
                     showToast(d.message, "error");
@@ -749,7 +741,6 @@
             });
         }
 
-        // --- KELOLA TUGAS (BUAT, EDIT, DELETE) ---
         function renderCheckboxesAnggota() {
             const container = document.getElementById('targetAnggotaCheckboxes');
             const targetMembers = state.members.filter(m => m.role === 'Anggota');
@@ -785,7 +776,6 @@
             const subTugasJSON = getSubTasksJSON();
             if(subTugasJSON === "[]") { showToast("Tambahkan minimal 1 Gerakan/Sub-Tugas!", "error"); return; }
 
-            // REVISI: Batas durasi video (menit & detik) -> total detik
             const durasiMenitVal = Math.max(0, parseInt(document.getElementById('durasiMenit').value) || 0);
             const durasiDetikVal = Math.min(59, Math.max(0, parseInt(document.getElementById('durasiDetik').value) || 0));
             const batasDurasiDetik = (durasiMenitVal * 60) + durasiDetikVal;
@@ -830,7 +820,6 @@
             document.getElementById('taskTitle').value = t.judulTugas;
             document.getElementById('taskDesc').value = t.instruksi;
 
-            // Restore batas durasi video (menit & detik)
             const totalDetik = parseInt(t.batasDurasiDetik) || 0;
             document.getElementById('durasiMenit').value = totalDetik > 0 ? Math.floor(totalDetik / 60) : '';
             document.getElementById('durasiDetik').value = totalDetik > 0 ? (totalDetik % 60) : '';
@@ -850,7 +839,6 @@
             else subs.forEach(s => {
                 let minVal = s.min;
                 let maxVal = s.max;
-                // Convert old numeric format to mm:ss if needed
                 if (typeof minVal === 'number' || (!isNaN(parseInt(minVal)) && !minVal.includes(':'))) {
                     let m = parseInt(minVal) || 0;
                     minVal = `${m.toString().padStart(2, '0')}:00`;
@@ -887,7 +875,6 @@
             .then(r=>r.json()).then(d=>{ showLoading(false); if(d.success){ showToast(d.message,"success"); loadDashboardData(); } else showToast(d.message,"error"); }).catch(e=>{showLoading(false); showToast("Koneksi Error","error")});
         }
 
-        // --- ABSENSI HARIAN (INPUT) ---
         function renderAbsensiTable() {
             const tbody = document.getElementById('tableAbsensiBody');
             const targets = state.members.filter(m => m.role === 'Anggota');
@@ -934,7 +921,6 @@
             .then(r=>r.json()).then(d=>{ showLoading(false); if(d.success){ showToast(d.message, "success"); removePhoto('Datang'); removePhoto('Pulang'); document.getElementById('materiLatihan').value=''; } else showToast(d.message, "error"); }).catch(e=>{showLoading(false); showToast("Gagal menyimpan", "error");});
         });
 
-        // --- RIWAYAT ABSENSI ---
         function loadRiwayatAbsensi() {
             showLoading(true, "Mengambil Histori...");
             fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action: 'getAbsensiHistory' }) }).then(r=>r.json()).then(d=>{
@@ -980,7 +966,6 @@
             `).join('');
         }
 
-        // --- TAMBAH ANGGOTA & HAK ABSEN ---
         function renderUsersTable() {
             const tbody = document.getElementById('tableUsersBody');
             document.getElementById('memberCountBadge').textContent = state.members.length;
@@ -1034,16 +1019,29 @@
             .then(r=>r.json()).then(d=>{ showLoading(false); if(d.success){ showToast("Tersimpan","success"); document.getElementById('formAddMember').reset(); loadDashboardData(); } else showToast(d.message,"error"); }).catch(e=>showLoading(false));
         });
 
-        // --- REVISI: LAPORAN PENGUMPULAN TUGAS ---
+        // --- LAPORAN PENGUMPULAN TUGAS ---
         function openReportModal() {
             document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
             document.getElementById('reportText').value = '';
+            updateReportTaskDropdown(); // Load tasks for today
             document.getElementById('reportModal').classList.remove('opacity-0', 'pointer-events-none');
             document.getElementById('reportModalContent').classList.remove('scale-95');
         }
         function closeReportModal() {
             document.getElementById('reportModal').classList.add('opacity-0', 'pointer-events-none');
             document.getElementById('reportModalContent').classList.add('scale-95');
+        }
+
+        function updateReportTaskDropdown() {
+            const dateVal = document.getElementById('reportDate').value;
+            const sel = document.getElementById('reportTaskSelect');
+            sel.innerHTML = '<option value="">Semua Tugas</option>';
+            if (!dateVal) return;
+
+            const activeTasks = state.tasks.filter(t => isTaskActiveOnDate(t, dateVal));
+            activeTasks.forEach(t => {
+                sel.innerHTML += `<option value="${t.taskId}">${t.judulTugas}</option>`;
+            });
         }
 
         function isTaskActiveOnDate(t, dateVal) {
@@ -1061,97 +1059,98 @@
 
         function generateReport() {
             const dateVal = document.getElementById('reportDate').value;
+            const selectedTaskId = document.getElementById('reportTaskSelect').value;
             if (!dateVal) { showToast("Pilih tanggal terlebih dahulu!", "error"); return; }
 
-            const activeTasks = state.tasks.filter(t => isTaskActiveOnDate(t, dateVal));
+            // Ambil semua tugas aktif di tanggal tersebut
+            let activeTasks = state.tasks.filter(t => isTaskActiveOnDate(t, dateVal));
             
-            // Fallback jika tidak ada tugas aktif spesifik di tanggal itu
-            if (activeTasks.length === 0) {
-                const subs = state.submissions.filter(s => matchesSubmissionDate(s, dateVal));
-                const tglFmt = new Date(dateVal + 'T00:00:00').toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
-                const jam = new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }).replace('.', ':');
-                let text = `Pengumpulan Tugas (${tglFmt}, ${jam})\n`;
-                if (subs.length === 0) {
-                    text += 'Belum ada data pengumpulan pada tanggal ini.';
-                } else {
-                    subs.forEach((s, i) => {
-                        text += `${i+1}. ${s.namaAnggota} — ${s.subTugasName}: ${isGraded(s) ? 'selesai' : 'done'}\n`;
-                    });
-                }
-                document.getElementById('reportText').value = text.trim();
-                showToast("Laporan berhasil dibuat", "success");
-                return;
+            // Jika user memilih tugas tertentu, filter hanya tugas itu
+            if (selectedTaskId) {
+                activeTasks = activeTasks.filter(t => t.taskId === selectedTaskId);
             }
 
-            const memberStatuses = {}; // nama -> { total, submitted, details }
+            const isMulti = activeTasks.length > 1;
+            const memberData = {}; // nama -> { total, submitted, missing: [] }
 
             activeTasks.forEach(t => {
                 let subs = [];
                 try { subs = JSON.parse(t.subTugasRaw); } catch(e) {}
                 if (!Array.isArray(subs)) subs = [];
-                
+
                 let targets = state.members.filter(m => m.role === 'Anggota');
                 if (t.targetMember && t.targetMember !== 'Semua') {
-                    const arr = t.targetMember.split(',');
+                    const arr = t.targetMember.split(',').map(s => s.trim());
                     targets = targets.filter(m => arr.includes(m.username));
                 }
-                
+
                 targets.forEach(m => {
-                    if (!memberStatuses[m.nama]) memberStatuses[m.nama] = { total: 0, submitted: 0, details: [] };
+                    if (!memberData[m.nama]) memberData[m.nama] = { total: 0, submitted: 0, missing: [] };
                     
                     subs.forEach(sub => {
-                        const label = activeTasks.length > 1 ? `${t.judulTugas} - ${sub.nama}` : sub.nama;
-                        memberStatuses[m.nama].total++;
+                        memberData[m.nama].total++;
                         
-                        const s = state.submissions.find(x => 
+                        // Cek apakah sub-tugas ini sudah dikumpulkan
+                        const isSubmitted = state.submissions.some(x => 
                             x.taskId === t.taskId &&
                             x.namaAnggota === m.nama &&
                             x.subTugasName === sub.nama &&
                             (t.tipePengumpulan === 'Satu Kali' || matchesSubmissionDate(x, dateVal))
                         );
                         
-                        if (s) {
-                            memberStatuses[m.nama].submitted++;
-                            memberStatuses[m.nama].details.push(`${label}: ${isGraded(s) ? 'selesai' : 'done'}`);
+                        if (isSubmitted) {
+                            memberData[m.nama].submitted++;
                         } else {
-                            memberStatuses[m.nama].details.push(`${label}: kurang`);
+                            const label = isMulti ? `${t.judulTugas} - ${sub.nama}` : sub.nama;
+                            memberData[m.nama].missing.push(label);
                         }
                     });
                 });
             });
 
-            // SORTING: Full (Lengkap) -> Partial (Sebagian) -> None (Belum sama sekali)
-            const sortedNames = Object.keys(memberStatuses).sort((a, b) => {
-                const dataA = memberStatuses[a];
-                const dataB = memberStatuses[b];
-                
-                const isFullA = dataA.submitted === dataA.total;
-                const isFullB = dataB.submitted === dataB.total;
-                const isNoneA = dataA.submitted === 0;
-                const isNoneB = dataB.submitted === 0;
-                
-                if (isFullA && !isFullB) return -1;
-                if (!isFullA && isFullB) return 1;
-                if (isNoneA && !isNoneB) return 1;
-                if (!isNoneA && isNoneB) return -1;
-                return a.localeCompare(b);
+            // Tentukan status string untuk masing-masing anggota
+            const processedNames = Object.keys(memberData).map(nama => {
+                const data = memberData[nama];
+                let statusStr = "";
+                let rank = 0; // 0 = selesai, 1 = kurang, 2 = belum
+
+                if (data.submitted === 0) {
+                    statusStr = "belum mengerjakan";
+                    rank = 2;
+                } else if (data.missing.length === 0) {
+                    statusStr = "selesai";
+                    rank = 0;
+                } else {
+                    statusStr = `kurang (${data.missing.join(', ')})`;
+                    rank = 1;
+                }
+                return { nama, statusStr, rank };
+            });
+
+            // Urutkan: 1. Selesai (0), 2. Kurang (1), 3. Belum (2). Jika sama, urut abjad.
+            processedNames.sort((a, b) => {
+                if (a.rank !== b.rank) return a.rank - b.rank;
+                return a.nama.localeCompare(b.nama);
             });
 
             const tglFmt = new Date(dateVal + 'T00:00:00').toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
             const jam = new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }).replace('.', ':');
-            let text = `Pengumpulan Tugas (${tglFmt}, ${jam})\n`;
-            let no = 1;
             
-            sortedNames.forEach(nama => {
-                const data = memberStatuses[nama];
-                let detailStr = "";
-                if (data.submitted === 0) {
-                    detailStr = "Belum mengerjakan";
-                } else {
-                    detailStr = data.details.join(', ');
-                }
-                text += `${no++}. ${nama} — ${detailStr}\n`;
-            });
+            let headerTask = "";
+            if (selectedTaskId) {
+                const t = state.tasks.find(x => x.taskId === selectedTaskId);
+                if (t) headerTask = ` - ${t.judulTugas}`;
+            }
+
+            let text = `Pengumpulan Tugas${headerTask} (${tglFmt}, ${jam})\n`;
+            
+            if (processedNames.length === 0) {
+                text += 'Tidak ada tugas aktif pada tanggal ini.';
+            } else {
+                processedNames.forEach((m, i) => {
+                    text += `${i+1}. ${m.nama} — ${m.statusStr}\n`;
+                });
+            }
 
             document.getElementById('reportText').value = text.trim();
             showToast("Laporan berhasil dibuat", "success");
