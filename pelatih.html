@@ -638,69 +638,65 @@
             showToast(isOn ? `Metronome ON · ${bpm} BPM` : 'Metronome OFF', 'success');
         }
 
-        // ============ WOODBLOCK SYNTH (versi baru: lebih tegas) ============
-        function playWoodblock(isAccent) {
-            try {
-                const Ctx = window.AudioContext || window.webkitAudioContext;
-                if (!metroAudioCtx) metroAudioCtx = new Ctx();
-                if (metroAudioCtx.state === 'suspended') metroAudioCtx.resume();
+        // ============ CLICK SYNTH (metronome digital style) ============
+function playClick(isAccent) {
+    try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!metroAudioCtx) metroAudioCtx = new Ctx();
+        if (metroAudioCtx.state === 'suspended') metroAudioCtx.resume();
 
-                const ctx = metroAudioCtx;
-                const now = ctx.currentTime;
+        const ctx = metroAudioCtx;
+        const now = ctx.currentTime;
 
-                // LAYER 1: Click transient (noise burst) - bunyi "TIK" tajam
-                const clickDur = 0.015;
-                const clickBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * clickDur), ctx.sampleRate);
-                const clickData = clickBuf.getChannelData(0);
-                for (let i = 0; i < clickData.length; i++) {
-                    clickData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / clickData.length, 4);
-                }
-                const clickSrc = ctx.createBufferSource();
-                clickSrc.buffer = clickBuf;
-
-                const clickFilter = ctx.createBiquadFilter();
-                clickFilter.type = 'bandpass';
-                clickFilter.frequency.value = 2500;
-                clickFilter.Q.value = 2;
-
-                const clickGain = ctx.createGain();
-                clickGain.gain.value = isAccent ? 0.55 : 0.35;
-
-                clickSrc.connect(clickFilter);
-                clickFilter.connect(clickGain);
-                clickGain.connect(ctx.destination);
-                clickSrc.start(now);
-
-                // LAYER 2: Wood tone (triangle wave, pitch drop cepat)
-                const osc = ctx.createOscillator();
-                const oscGain = ctx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(isAccent ? 1700 : 1100, now);
-                osc.frequency.exponentialRampToValueAtTime(isAccent ? 800 : 550, now + 0.04);
-
-                oscGain.gain.setValueAtTime(0, now);
-                oscGain.gain.linearRampToValueAtTime(isAccent ? 0.7 : 0.45, now + 0.002);
-                oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
-
-                osc.connect(oscGain);
-                oscGain.connect(ctx.destination);
-                osc.start(now);
-                osc.stop(now + 0.08);
-            } catch (e) { console.error('Woodblock error:', e); }
+        // LAYER 1: High-frequency noise burst → bunyi "TS" pendek & tajam
+        const noiseDur = 0.008;
+        const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * noiseDur), ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 3);
         }
+        const noiseSrc = ctx.createBufferSource();
+        noiseSrc.buffer = buf;
+        const noiseFilter = ctx.createBiquadFilter();
+        noiseFilter.type = 'highpass';
+        noiseFilter.frequency.value = 3500;
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.value = isAccent ? 0.35 : 0.22;
+        noiseSrc.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(ctx.destination);
+        noiseSrc.start(now);
 
-        function testMetroSound() {
-            const bpm = parseInt(document.getElementById('metroBpmInput').value) || 96;
-            const interval = 60000 / bpm;
-            let beat = 0;
-            const playBeat = () => {
-                if (beat >= 4) return;
-                playWoodblock(beat === 0);
-                beat++;
-                if (beat < 4) setTimeout(playBeat, interval);
-            };
-            playBeat();
-        }
+        // LAYER 2: Square wave → bunyi "TIK" bodi utama
+        const osc = ctx.createOscillator();
+        const oscGain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(isAccent ? 2200 : 1500, now);
+        osc.frequency.exponentialRampToValueAtTime(isAccent ? 1400 : 900, now + 0.015);
+
+        oscGain.gain.setValueAtTime(0, now);
+        oscGain.gain.linearRampToValueAtTime(isAccent ? 0.28 : 0.18, now + 0.001);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+
+        osc.connect(oscGain);
+        oscGain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.03);
+    } catch (e) { console.error('Click error:', e); }
+}
+
+function testMetroSound() {
+    const bpm = parseInt(document.getElementById('metroBpmInput').value) || 96;
+    const interval = 60000 / bpm;
+    let beat = 0;
+    const playBeat = () => {
+        if (beat >= 4) return;
+        playClick(beat === 0);
+        beat++;
+        if (beat < 4) setTimeout(playBeat, interval);
+    };
+    playBeat();
+}
 
         function getSubTasksJSON() {
             const rows = document.querySelectorAll('.subtask-row');
