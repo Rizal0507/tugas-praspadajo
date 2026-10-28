@@ -137,7 +137,7 @@
             <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-4">
                 <div class="flex justify-between items-center border-b pb-3">
                     <h2 class="font-bold text-gray-800 text-sm">Input Absensi Harian</h2>
-                    <input type="date" id="absensiDate" onchange="checkTodayAbsensiStatus()" class="px-2 py-1 bg-gray-50 border rounded-lg text-xs font-bold text-blue-600 outline-none">
+                    <input type="date" id="absensiDate" onchange="checkTodayAbsensiStatus()" class="px-2 py-1 bg-gray-50 border rounded-lg text-xs font-bold text-blue-600 outline-none disabled:opacity-50">
                 </div>
                 
                 <form id="formAbsensi" class="flex flex-col gap-4">
@@ -157,12 +157,10 @@
                     <div id="formMateriEval" class="hidden flex-col gap-3 bg-blue-50/50 p-3 rounded-xl border border-blue-100">
                         <div>
                             <label class="text-[10px] font-bold text-gray-600 uppercase mb-1 block">Materi Latihan</label>
-                            <!-- FIX: MENGHAPUS ATRIBUT REQUIRED AGAR TIDAK NYANGKUT -->
                             <textarea id="materiLatihan" rows="2" placeholder="Ringkasan materi latihan hari ini..." class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs outline-none focus:border-blue-500"></textarea>
                         </div>
                         <div>
                             <label class="text-[10px] font-bold text-gray-600 uppercase mb-1 block">Evaluasi / Catatan Latihan</label>
-                            <!-- FIX: MENGHAPUS ATRIBUT REQUIRED AGAR TIDAK NYANGKUT -->
                             <textarea id="evaluasiLatihan" rows="2" placeholder="Catatan evaluasi selama latihan..." class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs outline-none focus:border-blue-500"></textarea>
                         </div>
                     </div>
@@ -333,7 +331,6 @@
         
         let user = JSON.parse(localStorage.getItem('userSession') || sessionStorage.getItem('userSession'));
         let activeTasks = [], userSubs = {};
-        let subCountMap = {}; // Peta jumlah sub-tugas yang sudah dikerjakan per TaskID & Tanggal
         let selectedTask = null, currentSubTugas = "Utama", selectedDay = "1";
         let currentMinSec = 60, currentMaxSec = 300;
         
@@ -415,6 +412,25 @@
             return match ? `https://lh3.googleusercontent.com/d/${match[0]}` : url;
         }
 
+        // NORMALISASI EKSTREM: Hanya sisakan huruf dan angka
+        function normalizeStr(str) {
+            return String(str || "").replace(/[^a-z0-9]/gi, '').toLowerCase();
+        }
+
+        // FUNGSI PENGECEK TUGAS (Membaca Key dengan format TaskID_DD-MM-YYYY_NamaTugas dari GAS)
+        function isSubDone(taskId, tanggal, subName) {
+            const prefix = `${taskId}_${tanggal}_`;
+            const targetNorm = normalizeStr(subName);
+            
+            return Object.keys(userSubs).some(k => {
+                if (k.startsWith(prefix)) {
+                    const subNameInDB = k.replace(prefix, '');
+                    return normalizeStr(subNameInDB) === targetNorm;
+                }
+                return false;
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('userNameDisplay').textContent = user.nama;
             document.getElementById('userClassDisplay').textContent = `Kelas ${user.kelas}`;
@@ -481,17 +497,6 @@
                 if (d.success) {
                     activeTasks = d.tasks; 
                     userSubs = d.userSubs || {};
-                    
-                    // Buat hitungan kuantitas berdasarkan TaskID dan Tanggal
-                    subCountMap = {};
-                    Object.keys(userSubs).forEach(k => {
-                        const match = k.match(/(TASK_\d+)_(\d{4}-\d{2}-\d{2})_/);
-                        if (match) {
-                            const mapKey = `${match[1]}_${match[2]}`;
-                            subCountMap[mapKey] = (subCountMap[mapKey] || 0) + 1;
-                        }
-                    });
-                    
                     renderTasks(activeTasks);
                 }
             }).catch(e => container.innerHTML = `<p class="text-center text-xs text-rose-500">Gagal memuat koneksi</p>`);
@@ -549,16 +554,11 @@
             // 2. Render Tugas Hari Ini
             const container = document.getElementById('taskListContainer');
             
-            // Cek keterselesaian tugas (Berdasarkan KUOTA, bukan nama teks!)
+            // Cek keterselesaian tugas (Gunakan Normalisasi Ekstrem per nama sub-tugas!)
             const todayTasksFiltered = todayTasks.filter(t => {
                 if(t.isLama) return true;
-                
-                const mapKey = `${t.taskId}_${todayStr}`;
-                const doneCount = subCountMap[mapKey] || 0;
-                const totalSubs = (t.subTugas || []).length;
-
-                // Sembunyikan jika sudah selesai semua
-                return doneCount < totalSubs;
+                const pendingSubs = (t.subTugas || []).filter(sub => !isSubDone(t.taskId, todayStr, sub.nama));
+                return pendingSubs.length > 0; // Hanya tampilkan yang belum selesai
             });
 
             if (todayTasksFiltered.length === 0) {
@@ -571,18 +571,14 @@
                 const isLama = t.isLama;
                 const isBertumpuk = t.subTugas && t.subTugas.length > 1;
                 
-                const mapKey = `${t.taskId}_${todayStr}`;
-                const doneCount = subCountMap[mapKey] || 0;
-                const totalSubs = (t.subTugas || []).length;
-                const remainingCount = totalSubs - doneCount;
-                
-                totalUnfinishedToday += remainingCount;
+                const pendingSubs = (t.subTugas || []).filter(sub => !isSubDone(t.taskId, todayStr, sub.nama));
+                totalUnfinishedToday += pendingSubs.length;
 
                 let statusTeks = '';
-                if (totalSubs === 1) {
+                if ((t.subTugas || []).length === 1) {
                     statusTeks = `<div class="text-[10px] font-bold text-rose-500 bg-rose-50 px-3 py-2 rounded-xl text-center mt-2 border border-rose-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-circle-exclamation"></i> Anda belum mengerjakan tugas ini</div>`;
                 } else {
-                    statusTeks = `<div class="text-[10px] font-bold text-amber-600 bg-amber-50 px-3 py-2 rounded-xl text-center mt-2 border border-amber-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-clock"></i> Sisa ${remainingCount} gerakan belum dikerjakan</div>`;
+                    statusTeks = `<div class="text-[10px] font-bold text-amber-600 bg-amber-50 px-3 py-2 rounded-xl text-center mt-2 border border-amber-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-clock"></i> Sisa ${pendingSubs.length} gerakan belum dikerjakan</div>`;
                 }
                 
                 let labelTanggal = isLama ? "Sistem Lama" : (t.tipePengumpulan === "Satu Kali" ? `Deadline: ${t.tanggalPengerjaan.replace(' to ', ' s/d ')}` : `Tugas Rutin Hari Ini`);
@@ -638,34 +634,31 @@
             const container = document.getElementById('subTasksContainer');
             container.innerHTML = '';
 
-            // Dapatkan berapa yang sudah dikerjakan
-            const mapKey = `${selectedTask.taskId}_${selectedDay}`;
-            const doneCount = subCountMap[mapKey] || 0;
-            
-            // Kita hanya menampilkan sisa tugas yang belum dikerjakan
-            // Menggunakan slice() berdasarkan jumlah yang sudah selesai, 
-            // untuk menghindari bug nama tugas yang berubah-ubah.
-            const sisaTugas = selectedTask.subTugas.slice(doneCount);
-
-            if (sisaTugas.length === 0) {
-                container.innerHTML = `<div class="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold py-5 rounded-xl text-xs text-center flex flex-col items-center gap-2"><i class="fa-solid fa-circle-check text-2xl"></i> Semua tugas untuk hari ini sudah selesai!</div>`;
-                return;
-            }
-
-            sisaTugas.forEach(sub => {
-                const minSec = parseDuration(sub.min);
-                const maxSec = parseDuration(sub.max);
-                const targetTeks = `${formatSecToText(minSec)} - ${formatSecToText(maxSec)}`;
+            let pendingCount = 0;
+            selectedTask.subTugas.forEach(sub => {
+                // Cek dengan fungsi isSubDone yang baru
+                const isDone = isSubDone(selectedTask.taskId, selectedDay, sub.nama);
                 
-                container.innerHTML += `
-                    <button onclick="prepareCamera('${sub.nama}', ${minSec}, ${maxSec})" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 active:scale-95 shadow-lg group transition-transform">
-                        <span>${sub.nama}</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-[9px] text-blue-200 bg-blue-800/50 px-1.5 py-0.5 rounded">${targetTeks}</span>
-                            <span class="bg-blue-800 px-2 py-1 rounded text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-video"></i> Rekam</span>
-                        </div>
-                    </button>`;
+                if(!isDone) {
+                    pendingCount++;
+                    const minSec = parseDuration(sub.min);
+                    const maxSec = parseDuration(sub.max);
+                    const targetTeks = `${formatSecToText(minSec)} - ${formatSecToText(maxSec)}`;
+                    
+                    container.innerHTML += `
+                        <button onclick="prepareCamera('${sub.nama}', ${minSec}, ${maxSec})" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 active:scale-95 shadow-lg group transition-transform">
+                            <span>${sub.nama}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[9px] text-blue-200 bg-blue-800/50 px-1.5 py-0.5 rounded">${targetTeks}</span>
+                                <span class="bg-blue-800 px-2 py-1 rounded text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-video"></i> Rekam</span>
+                            </div>
+                        </button>`;
+                }
             });
+
+            if(pendingCount === 0) {
+                container.innerHTML = `<div class="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold py-5 rounded-xl text-xs text-center flex flex-col items-center gap-2"><i class="fa-solid fa-circle-check text-2xl"></i> Semua tugas untuk hari ini sudah selesai!</div>`;
+            }
         }
 
         // --- SISTEM KAMERA TUGAS (VIDEO) ---
@@ -801,10 +794,9 @@
                     if (d.success) { 
                         document.getElementById('successUploadModal').classList.remove('hidden'); document.getElementById('successUploadModal').classList.add('flex');
                         
-                        // Update jumlah secara lokal agar UI langsung berubah tanpa harus nunggu refresh GAS
-                        const mapKey = `${selectedTask.taskId}_${selectedDay}`;
-                        subCountMap[mapKey] = (subCountMap[mapKey] || 0) + 1;
-                        userSubs[`${selectedTask.taskId}_${selectedDay}_${currentSubTugas}`] = true;
+                        // Update state lokal (tambahkan key dengan format yang benar)
+                        const newKey = `${selectedTask.taskId}_${selectedDay}_${currentSubTugas}`;
+                        userSubs[newKey] = true;
                         
                         fetchTasks(); 
                         fetchRiwayatSemua();
@@ -1152,7 +1144,6 @@
             if (fotoDatangBase64) { typeToSubmit = "Datang"; b64ToSubmit = fotoDatangBase64; }
             else if (fotoPulangBase64) { 
                 typeToSubmit = "Pulang"; b64ToSubmit = fotoPulangBase64; 
-                // Validasi JS pengganti required HTML
                 if(!document.getElementById('materiLatihan').value.trim() || !document.getElementById('evaluasiLatihan').value.trim()) {
                     showToast("Materi & Evaluasi Latihan wajib diisi sebelum pulang!", "error"); return;
                 }
