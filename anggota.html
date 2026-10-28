@@ -96,18 +96,17 @@
         <!-- MAIN CONTENT -->
         <main class="flex-grow p-4 sm:p-6 bg-gray-50 flex flex-col h-screen md:h-[850px] overflow-y-auto custom-scroll relative w-full">
             
-            <!-- MOBILE HEADER -->
-            <div class="md:hidden flex items-center justify-between bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100 flex-none">
-                <div class="flex items-center gap-3">
-                    <button onclick="toggleSidebar()" class="bg-blue-50 text-blue-600 p-2 rounded-lg shadow-sm"><i class="fa-solid fa-bars text-sm"></i></button>
-                    <div class="flex flex-col">
+                        <!-- MOBILE HEADER -->
+            <div class="md:hidden flex items-center justify-between bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100 flex-none w-full">
+                <div class="flex items-center gap-3 w-full min-w-0">
+                    <button onclick="toggleSidebar()" class="bg-blue-50 text-blue-600 p-2 rounded-lg shadow-sm flex-shrink-0"><i class="fa-solid fa-bars text-sm"></i></button>
+                    <div class="flex flex-col flex-1 min-w-0">
                         <span id="mobileGreeting" class="text-[10px] font-extrabold text-blue-500 uppercase tracking-widest">Selamat Pagi</span>
-                        <span id="mobileName" class="font-extrabold text-gray-800 text-sm leading-tight">Nama</span>
-                        <!-- Motivasi dibiarkan sampai 2 baris -->
-                        <span id="mobileMotivation" class="text-[9px] text-gray-500 italic mt-0.5 leading-snug line-clamp-2 max-w-[220px]">"Motivasi..."</span>
+                        <span id="mobileName" class="font-extrabold text-gray-800 text-sm leading-tight truncate">Nama</span>
+                        <!-- Teks Motivasi sekarang memanjang penuh ke ujung layar, dan turun ke baris 2 jika kepanjangan -->
+                        <span id="mobileMotivation" class="text-[10px] text-gray-500 italic mt-0.5 leading-snug whitespace-normal">"Motivasi..."</span>
                     </div>
                 </div>
-                <!-- Logo dihapus dari mobile header -->
             </div>
 
             <!-- TAB: DASHBOARD TUGAS -->
