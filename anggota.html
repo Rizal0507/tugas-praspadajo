@@ -65,7 +65,8 @@
             <div class="bg-gradient-to-br from-blue-700 via-blue-600 to-blue-500 text-white px-5 pt-8 pb-6 relative overflow-hidden flex-none md:rounded-tr-[2.5rem]">
                 <div class="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
                 <div class="relative z-10 flex flex-col items-center text-center">
-                    <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl p-2 flex items-center justify-center border border-white/30 shadow-lg mb-3">
+                    <!-- REVISI: Logo tanpa border, HD -->
+                    <div class="w-16 h-16 mb-3 flex items-center justify-center">
                         <img src="./logo.png" alt="Logo" class="max-h-full max-w-full object-contain drop-shadow-md" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-white text-3xl\'></i>';">
                     </div>
                     
@@ -102,10 +103,11 @@
                     <div class="flex flex-col">
                         <span id="mobileGreeting" class="text-[10px] font-extrabold text-blue-500 uppercase tracking-widest">Selamat Pagi</span>
                         <span id="mobileName" class="font-extrabold text-gray-800 text-sm leading-tight">Nama</span>
-                        <span id="mobileMotivation" class="text-[9px] text-gray-500 italic mt-0.5 max-w-[200px] truncate">"Motivasi..."</span>
+                        <!-- Motivasi dibiarkan sampai 2 baris -->
+                        <span id="mobileMotivation" class="text-[9px] text-gray-500 italic mt-0.5 leading-snug line-clamp-2 max-w-[220px]">"Motivasi..."</span>
                     </div>
                 </div>
-                <img src="./logo.png" alt="Logo" class="h-8 w-auto object-contain" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-blue-600 text-2xl\'></i>';">
+                <!-- Logo dihapus dari mobile header -->
             </div>
 
             <!-- TAB: DASHBOARD TUGAS -->
@@ -448,8 +450,8 @@
         let mediaStream = null, mediaRecorder = null, recordedChunks = [];
         let isRecording = false, isPaused = false, timerInterval, secondsRecorded = 0;
         let currentFacingMode = "environment";
-        let isMinBeepPlayed = false; // Flag untuk beep batas minimal
-        let isCountdownActive = false; // Flag agar tidak dobel klik
+        let isMinBeepPlayed = false; 
+        let isCountdownActive = false; 
         
         // State Absensi
         let absenStream = null, currentPhotoType = "Datang";
@@ -575,6 +577,41 @@
             } else {
                 sidebar.classList.add('-translate-x-full');
                 backdrop.classList.add('hidden');
+            }
+        }
+
+        // --- SWIPE SIDEBAR FEATURE ---
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, false);
+
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, false);
+
+        function handleSwipe() {
+            if (window.innerWidth >= 768) return; // Hanya untuk mobile
+
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            
+            // Geser ke kanan (Buka Sidebar)
+            if (touchEndX - touchStartX > 70 && touchStartX < 50) {
+                if (sidebar.classList.contains('-translate-x-full')) {
+                    sidebar.classList.remove('-translate-x-full');
+                    backdrop.classList.remove('hidden');
+                }
+            }
+            // Geser ke kiri (Tutup Sidebar)
+            if (touchStartX - touchEndX > 70) {
+                if (!sidebar.classList.contains('-translate-x-full')) {
+                    sidebar.classList.add('-translate-x-full');
+                    backdrop.classList.add('hidden');
+                }
             }
         }
 
@@ -956,6 +993,9 @@
             
             await startMediaStream();
             
+            // Tampilkan tombol switch kamera saat masuk mode preview
+            document.getElementById('btnSwitchCamera').classList.remove('hidden');
+            
             isPaused = false;
             const btnP = document.getElementById('btnPause');
             btnP.disabled = true;
@@ -996,6 +1036,9 @@
             const text = document.getElementById('countdownText');
             overlay.classList.remove('hidden');
             overlay.classList.add('flex');
+            
+            // Sembunyikan tombol switch kamera saat mulai rekam
+            document.getElementById('btnSwitchCamera').classList.add('hidden');
             
             let count = 3;
             text.textContent = count;
@@ -1041,7 +1084,7 @@
                 document.getElementById('btnRecord').classList.add('recording-pulse');
                 document.getElementById('recIndicator').classList.remove('hidden');
                 document.getElementById('btnCancelCamera').classList.add('hidden');
-                document.getElementById('btnSwitchCamera').classList.add('opacity-40', 'pointer-events-none');
+                
                 const btnP = document.getElementById('btnPause');
                 btnP.disabled = false;
                 btnP.className = "w-12 h-12 bg-white text-gray-800 rounded-full flex items-center justify-center text-sm shadow-lg active:scale-95 transition-all";
@@ -1072,7 +1115,10 @@
             document.getElementById('btnRecord').classList.remove('recording-pulse');
             document.getElementById('recIndicator').classList.add('hidden');
             document.getElementById('btnCancelCamera').classList.remove('hidden');
-            document.getElementById('btnSwitchCamera').classList.remove('opacity-40', 'pointer-events-none');
+            
+            // Munculkan lagi tombol switch kamera saat selesai rekam (meski view sudah tertutup, untuk reset state)
+            document.getElementById('btnSwitchCamera').classList.remove('hidden');
+            
             document.getElementById('pauseStatusBadge').classList.add('hidden');
         }
 
