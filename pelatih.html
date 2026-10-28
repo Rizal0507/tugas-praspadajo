@@ -43,17 +43,23 @@
         .sortable-ghost { opacity: 0.4; background-color: #eff6ff !important; border: 2px dashed #3b82f6 !important; }
         
         .form-locked { opacity: 0.6; pointer-events: none; }
+
+        /* Sidebar Animation */
+        .sidebar-open { transform: translateX(0) !important; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen font-sans text-gray-800 antialiased flex flex-col items-center">
+<body class="bg-gray-100 min-h-screen font-sans text-gray-800 antialiased flex flex-col items-center relative">
 
-    <!-- Main Wrapper (Responsive Sidebar layout) -->
+    <!-- Backdrop untuk Mobile Sidebar -->
+    <div id="sidebarBackdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] hidden md:hidden transition-opacity"></div>
+
+    <!-- Main Wrapper -->
     <div class="w-full max-w-6xl mx-auto bg-white min-h-screen sm:min-h-[850px] sm:my-6 sm:rounded-[2.5rem] sm:shadow-2xl flex flex-col md:flex-row overflow-hidden relative">
         
-        <!-- SIDEBAR (Untuk Desktop) & TOP NAV (Untuk Mobile) -->
-        <aside class="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-gray-100 flex-shrink-0 flex flex-col z-30">
+        <!-- SIDEBAR (Off-canvas di Mobile) -->
+        <aside id="sidebar" class="fixed md:relative inset-y-0 left-0 z-[90] w-64 bg-white border-r border-gray-100 flex-shrink-0 flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out h-full md:h-auto">
             
-            <!-- HEADER (Dikecilkan agar mirip anggota) -->
+            <!-- HEADER -->
             <header class="bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 text-white px-5 pt-5 pb-6 relative overflow-hidden flex-none md:rounded-tr-[2.5rem]">
                 <div class="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
                 <div class="relative z-10 flex items-center gap-3">
@@ -79,21 +85,30 @@
             </header>
 
             <!-- MENU NAVIGATION -->
-            <nav class="flex flex-row md:flex-col p-3 gap-1 overflow-x-auto md:overflow-visible no-scrollbar bg-gray-50 md:bg-white flex-grow md:h-full">
-                <button onclick="switchTab('monitoring')" id="tabBtnMonitoring" class="tab-btn flex-shrink-0 md:w-full text-left px-3 py-2.5 rounded-xl text-[11px] md:text-xs font-bold bg-blue-600 text-white flex items-center gap-2 transition-colors whitespace-nowrap">
+            <nav class="flex flex-col p-3 gap-1 overflow-y-auto custom-scroll bg-gray-50 md:bg-white flex-grow">
+                <button onclick="switchTab('monitoring')" id="tabBtnMonitoring" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold bg-blue-600 text-white flex items-center gap-2 transition-colors">
                     <i class="fa-solid fa-chart-pie w-4 text-center"></i> <span>Monitoring</span>
-                    <span id="badgeUngraded" class="hidden md:ml-auto bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none">0</span>
+                    <span id="badgeUngraded" class="hidden ml-auto bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none">0</span>
                 </button>
-                <button onclick="switchTab('buatTugas')" id="tabBtnBuatTugas" class="tab-btn flex-shrink-0 md:w-full text-left px-3 py-2.5 rounded-xl text-[11px] md:text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors whitespace-nowrap"><i class="fa-solid fa-plus-circle w-4 text-center"></i> <span>Buat Tugas</span></button>
-                <button onclick="switchTab('absensi')" id="tabBtnAbsensi" class="tab-btn flex-shrink-0 md:w-full text-left px-3 py-2.5 rounded-xl text-[11px] md:text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors whitespace-nowrap"><i class="fa-solid fa-clipboard-user w-4 text-center"></i> <span>Absen</span></button>
-                <button onclick="switchTab('riwayatAbsensi')" id="tabBtnRiwayatAbsensi" class="tab-btn flex-shrink-0 md:w-full text-left px-3 py-2.5 rounded-xl text-[11px] md:text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors whitespace-nowrap"><i class="fa-solid fa-clock-rotate-left w-4 text-center"></i> <span>Riwayat Absen</span></button>
-                <button onclick="switchTab('anggota')" id="tabBtnAnggota" class="tab-btn flex-shrink-0 md:w-full text-left px-3 py-2.5 rounded-xl text-[11px] md:text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors whitespace-nowrap"><i class="fa-solid fa-users-gear w-4 text-center"></i> <span>Anggota</span></button>
+                <button onclick="switchTab('buatTugas')" id="tabBtnBuatTugas" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors"><i class="fa-solid fa-plus-circle w-4 text-center"></i> <span>Buat Tugas</span></button>
+                <button onclick="switchTab('absensi')" id="tabBtnAbsensi" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors"><i class="fa-solid fa-clipboard-user w-4 text-center"></i> <span>Absen</span></button>
+                <button onclick="switchTab('riwayatAbsensi')" id="tabBtnRiwayatAbsensi" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors"><i class="fa-solid fa-clock-rotate-left w-4 text-center"></i> <span>Riwayat Absen</span></button>
+                <button onclick="switchTab('anggota')" id="tabBtnAnggota" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors"><i class="fa-solid fa-users-gear w-4 text-center"></i> <span>Anggota</span></button>
             </nav>
         </aside>
 
         <!-- MAIN CONTENT -->
-        <main class="flex-grow p-4 sm:p-6 bg-gray-50 flex flex-col h-screen md:h-[850px] overflow-y-auto custom-scroll relative">
+        <main class="flex-grow p-4 sm:p-6 bg-gray-50 flex flex-col h-screen md:h-[850px] overflow-y-auto custom-scroll relative w-full">
             
+            <!-- MOBILE HEADER (Hanya muncul di HP) -->
+            <div class="md:hidden flex items-center justify-between bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100 flex-none">
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleSidebar()" class="bg-blue-50 text-blue-600 p-2 rounded-lg"><i class="fa-solid fa-bars"></i></button>
+                    <span class="font-bold text-gray-800 text-sm" id="mobileTitle">Monitoring</span>
+                </div>
+                <img src="./logo.png" alt="Logo" class="h-6 w-auto object-contain" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-blue-600\'></i>';">
+            </div>
+
             <!-- TAB: MONITORING -->
             <section id="viewMonitoring" class="tab-view flex flex-col gap-5">
                 <!-- FILTER CERDAS -->
@@ -472,6 +487,18 @@
             loadDashboardData();
         });
 
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            }
+        }
+
         function initSortable() {
             const container = document.getElementById('subTaskDynamicContainer');
             if(sortableInstance) sortableInstance.destroy();
@@ -486,6 +513,14 @@
 
         function switchTab(tabKey) {
             const tabs = ['monitoring', 'buatTugas', 'absensi', 'riwayatAbsensi', 'anggota'];
+            const tabNames = { 'monitoring': 'Monitoring', 'buatTugas': 'Buat Tugas', 'absensi': 'Absensi', 'riwayatAbsensi': 'Riwayat Absen', 'anggota': 'Kelola Anggota' };
+            
+            // Tutup sidebar di mobile
+            if (window.innerWidth < 768) {
+                const sidebar = document.getElementById('sidebar');
+                if (!sidebar.classList.contains('-translate-x-full')) toggleSidebar();
+            }
+
             tabs.forEach(t => {
                 const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
                 const view = document.getElementById(`view${t.charAt(0).toUpperCase() + t.slice(1)}`);
@@ -495,6 +530,9 @@
                     btn.classList.remove('text-gray-600', 'hover:bg-gray-100');
                     view.classList.remove('hidden'); view.classList.add('flex');
                     
+                    // Update judul di header HP
+                    document.getElementById('mobileTitle').textContent = tabNames[t];
+
                     if (t === 'absensi') {
                         renderAbsensiTable(); 
                         checkTodayAbsensiStatus();
@@ -972,7 +1010,7 @@
             .then(r=>r.json()).then(d=>{ showLoading(false); if(d.success){ showToast(d.message,"success"); loadDashboardData(); } else showToast(d.message,"error"); }).catch(e=>{showLoading(false); showToast("Koneksi Error","error")});
         }
 
-        // --- SISTEM ABSENSI PELATIH (SINKRON DENGAN ANGGOTA) ---
+        // --- SISTEM ABSENSI PELATIH ---
         function renderAbsensiTable() {
             const tbody = document.getElementById('tableAbsensiBody');
             const targets = state.members.filter(m => m.role === 'Anggota');
@@ -1195,9 +1233,28 @@
                 if(d.success && d.data.length > 0) {
                     state.absensiHistory = d.data;
                     const headers = d.data[0];
-                    const dates = headers.slice(3);
+                    const rawDates = headers.slice(3);
+                    
                     const sel = document.getElementById('riwayatDateSelect');
-                    sel.innerHTML = '<option value="">Pilih Tanggal</option>' + dates.map(dt => `<option value="${dt}">${dt}</option>`).join('');
+                    sel.innerHTML = '<option value="">Pilih Tanggal</option>';
+                    
+                    rawDates.forEach(dt => {
+                        if(!dt) return;
+                        let displayDate = dt;
+                        // Format Aneh ISO
+                        if (typeof dt === 'object' || String(dt).includes('T')) {
+                            const dateObj = new Date(dt);
+                            if (!isNaN(dateObj.getTime())) {
+                                const pad = (n) => String(n).padStart(2, '0');
+                                displayDate = `${pad(dateObj.getDate())}/${pad(dateObj.getMonth()+1)}/${dateObj.getFullYear()}`;
+                            }
+                        } else if (String(dt).includes('-')) {
+                            // Format YYYY-MM-DD
+                            const parts = String(dt).split('-');
+                            if (parts.length === 3) displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                        }
+                        sel.innerHTML += `<option value="${dt}">${displayDate}</option>`;
+                    });
                 }
             }).catch(e=>{showLoading(false); showToast("Gagal mengambil histori","error");});
         }
@@ -1211,26 +1268,51 @@
             container.classList.remove('hidden'); container.classList.add('flex'); emptyState.classList.add('hidden');
             
             const data = state.absensiHistory;
-            const colIdx = data[0].indexOf(date);
-            let materi = "-", evaluasi = "-", fDatang = "", fPulang = "";
-            const absData = [];
+            const headers = data[0];
             
-            for(let i=1; i<data.length; i++) {
-                const name = data[i][1];
-                const status = data[i][colIdx] || '-';
-                if(name === "MATERI LATIHAN:") { materi = status; }
-                else if(name === "EVALUASI LATIHAN:") { evaluasi = status; }
-                else if(name === "FOTO DATANG:") { fDatang = status; }
-                else if(name === "FOTO PULANG:") { fPulang = status; }
-                else if(name) { absData.push({ nama: name, status: status }); }
-            }
+            // Cari SEMUA index kolom yang cocok dengan tanggal ini (untuk menghindari duplikasi data)
+            let targetColIndices = [];
+            headers.forEach((h, idx) => {
+                if (!h || idx < 3) return;
+                let hStr = String(h);
+                let isMatch = false;
+                if (typeof h === 'object' || hStr.includes('T')) {
+                    const dObj = new Date(h);
+                    const dSel = new Date(date);
+                    if (!isNaN(dObj.getTime()) && !isNaN(dSel.getTime())) {
+                        if (dObj.getFullYear() === dSel.getFullYear() && dObj.getMonth() === dSel.getMonth() && dObj.getDate() === dSel.getDate()) isMatch = true;
+                    }
+                } else if (hStr.trim() === date.trim()) {
+                    isMatch = true;
+                }
+                if (isMatch) targetColIndices.push(idx);
+            });
+
+            // Merge data dari semua kolom yang cocok
+            let materi = "-", evaluasi = "-", fDatang = "", fPulang = "";
+            const absDataMap = new Map();
+
+            targetColIndices.forEach(colIdx => {
+                for(let i=1; i<data.length; i++) {
+                    const name = data[i][1];
+                    const status = data[i][colIdx] || '-';
+                    if(name === "MATERI LATIHAN:") { if(status !== "-" && status !== "") materi = status; }
+                    else if(name === "EVALUASI LATIHAN:") { if(status !== "-" && status !== "") evaluasi = status; }
+                    else if(name === "FOTO DATANG:") { if(status) fDatang = status; }
+                    else if(name === "FOTO PULANG:") { if(status) fPulang = status; }
+                    else if(name && name !== "MATERI LATIHAN:" && name !== "EVALUASI LATIHAN:" && name !== "FOTO DATANG:" && name !== "FOTO PULANG:") { 
+                        if(status !== "-") absDataMap.set(name, { nama: name, status: status });
+                    }
+                }
+            });
             
             document.getElementById('riwayatMateri').textContent = materi;
             document.getElementById('riwayatEvaluasi').textContent = evaluasi;
             document.getElementById('riwayatFotoDatang').src = getDirectImageLink(fDatang) || '';
             document.getElementById('riwayatFotoPulang').src = getDirectImageLink(fPulang) || '';
             
-            document.getElementById('tableRiwayatBody').innerHTML = absData.map((m,i)=>`
+            const absDataArray = Array.from(absDataMap.values());
+            document.getElementById('tableRiwayatBody').innerHTML = absDataArray.map((m,i)=>`
                 <tr class="border-b"><td class="py-2 px-4">${i+1}</td><td class="py-2 px-4 font-bold text-gray-700">${m.nama}</td><td class="py-2 px-4 text-center font-bold text-xs ${m.status==='Hadir'?'text-emerald-600':m.status==='Alpa'?'text-rose-600':'text-blue-600'}">${m.status}</td></tr>
             `).join('');
         }
