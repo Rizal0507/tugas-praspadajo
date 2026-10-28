@@ -32,7 +32,6 @@
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         
-        /* Animasi Transisi Halus untuk Kotak Komentar */
         .comment-box-anim { transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, margin 0.3s ease-in-out; max-height: 0; opacity: 0; overflow: hidden; }
         .comment-box-anim.open { max-height: 150px; opacity: 1; margin-top: 0.5rem; overflow: visible; }
     </style>
@@ -331,15 +330,15 @@
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbwYTFRirtCpDT1vXJ0hSeFtElQR44rdoMPKskHgRPO3OlCr5_D_cXvLQOFzkDt4lY_IYw/exec';
         
         let state = { user: null, tasks: [], members: [], submissions: [], absensiHistory: [] };
-        let fpInstance = null; // Flatpickr Instance
-        let fotoDatangBase64 = null, fotoPulangBase64 = null; // Foto Absensi
+        let fpInstance = null;
+        let fotoDatangBase64 = null, fotoPulangBase64 = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             const raw = localStorage.getItem('userSession') || sessionStorage.getItem('userSession');
             if (raw) { state.user = JSON.parse(raw); }
             
             setupFlatpickr(); 
-            addSubTaskRow('Tugas Utama', 1, 5); // Default baris 1
+            addSubTaskRow('Tugas Utama', 1, 5);
             document.getElementById('absensiDate').value = new Date().toISOString().split('T')[0];
             
             loadDashboardData();
@@ -364,11 +363,10 @@
             });
         }
 
-        // --- KALENDER FLATPICKR ---
         function setupFlatpickr() {
             const type = document.getElementById('tipePengumpulan').value;
             const inputEl = document.getElementById('tanggalPengerjaan');
-            inputEl.value = ""; // Reset
+            inputEl.value = "";
             
             if(fpInstance) fpInstance.destroy();
             
@@ -380,7 +378,6 @@
             });
         }
 
-        // --- SUB TUGAS DINAMIS ---
         function addSubTaskRow(name = '', min = 1, max = 5) {
             const container = document.getElementById('subTaskDynamicContainer');
             const row = document.createElement('div');
@@ -407,7 +404,6 @@
             return JSON.stringify(result);
         }
 
-        // --- FETCH DATA DASHBOARD ---
         function loadDashboardData(isManual = false) {
             showLoading(true, "Memuat Data...");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getDashboardData' }) }).then(r=>r.json()).then(d => {
@@ -425,13 +421,12 @@
             sel.innerHTML = '<option value="">Semua Tugas</option>' + state.tasks.map(t => `<option value="${t.taskId}">${t.judulTugas}</option>`).join('');
         }
 
-        // --- RENDER TABEL MONITORING TUGAS & PENILAIAN ---
         function filterSubmissions() {
             const taskId = document.getElementById('selectTaskFilter').value;
             const query = document.getElementById('inputSearchMember').value.toLowerCase();
             const tbody = document.getElementById('tableSubmissionsBody');
             
-            let filteredSubs = state.submissions.slice().reverse(); // Tampilkan yang terbaru di atas
+            let filteredSubs = state.submissions.slice().reverse();
             if(taskId) filteredSubs = filteredSubs.filter(s => s.taskId === taskId);
             if(query) filteredSubs = filteredSubs.filter(s => s.namaAnggota.toLowerCase().includes(query));
 
@@ -443,7 +438,6 @@
                 const taskRef = state.tasks.find(t => t.taskId === s.taskId);
                 const judul = taskRef ? taskRef.judulTugas : "Tugas Latihan";
                 
-                // Form Penilaian (Nilai + Catatan/Komentar)
                 const nilaiVal = (s.nilai && s.nilai !== '-') ? s.nilai : '';
                 const komentarVal = s.komentar || '';
                 
@@ -460,7 +454,6 @@
                     <td class="py-3 px-4 text-center align-top pt-5">${btnLink}</td>
                     <td class="py-3 px-4 align-top">
                         <div class="bg-gray-100/50 p-2.5 rounded-xl border border-gray-200">
-                            <!-- Container Penilaian -->
                             <div class="flex gap-2 items-center">
                                 <select id="selNilai_${s.subId}" class="flex-1 p-2 border rounded-lg text-xs font-bold outline-none cursor-pointer ${colorClass}">
                                     <option value="">-- Beri Nilai --</option>
@@ -478,7 +471,6 @@
                                 </button>
                             </div>
                             
-                            <!-- Kotak Input Komentar (Tersembunyi by default kecuali sudah ada isinya) -->
                             <div id="boxKomentar_${s.subId}" class="comment-box-anim ${komentarVal ? 'open' : ''}">
                                 <textarea id="inputKomentar_${s.subId}" rows="2" placeholder="Tulis catatan perbaikan untuk anggota ini..." class="w-full p-2 border border-blue-200 rounded-lg text-[10px] bg-blue-50/30 outline-none focus:border-blue-500">${komentarVal}</textarea>
                             </div>
@@ -488,7 +480,6 @@
             }).join('');
         }
 
-        // Tampilkan/Sembunyikan kotak komentar
         function toggleKomentarBox(subId) {
             const box = document.getElementById(`boxKomentar_${subId}`);
             if (box.classList.contains('open')) {
@@ -499,7 +490,6 @@
             }
         }
 
-        // Eksekusi Simpan Nilai + Komentar ke Backend
         function executeSubmitNilai(subId) {
             const selectEl = document.getElementById(`selNilai_${subId}`);
             const komentarEl = document.getElementById(`inputKomentar_${subId}`);
@@ -512,7 +502,6 @@
                 return;
             }
 
-            // Disable input selama proses
             selectEl.disabled = true;
             komentarEl.disabled = true;
             showLoading(true, "Menyimpan Evaluasi...");
@@ -534,15 +523,11 @@
                 
                 if(d.success) {
                     showToast("Evaluasi Nilai & Catatan berhasil disimpan!", "success");
-                    
-                    // Update state lokal
                     let sub = state.submissions.find(s => s.subId === subId);
                     if(sub) {
                         sub.nilai = nilaiVal;
                         sub.komentar = komentarVal;
                     }
-                    
-                    // Update warna dropdown
                     selectEl.className = `flex-1 p-2 border rounded-lg text-xs font-bold outline-none cursor-pointer ${nilaiVal==='A'?'text-emerald-600 bg-emerald-50 border-emerald-300':nilaiVal==='B'?'text-blue-600 bg-blue-50 border-blue-300':nilaiVal==='C'?'text-amber-600 bg-amber-50 border-amber-300':nilaiVal==='D'?'text-orange-600 bg-orange-50 border-orange-300':'text-rose-600 bg-rose-50 border-rose-300'}`;
                 } else {
                     showToast(d.message, "error");
@@ -556,7 +541,6 @@
             });
         }
 
-        // --- KELOLA TUGAS (BUAT, EDIT, DELETE) ---
         function renderCheckboxesAnggota() {
             const container = document.getElementById('targetAnggotaCheckboxes');
             const targetMembers = state.members.filter(m => m.role === 'Anggota');
@@ -670,7 +654,6 @@
             .then(r=>r.json()).then(d=>{ showLoading(false); if(d.success){ showToast(d.message,"success"); loadDashboardData(); } else showToast(d.message,"error"); }).catch(e=>{showLoading(false); showToast("Koneksi Error","error")});
         }
 
-        // --- ABSENSI HARIAN (INPUT) ---
         function renderAbsensiTable() {
             const tbody = document.getElementById('tableAbsensiBody');
             const targets = state.members.filter(m => m.role === 'Anggota');
@@ -717,7 +700,6 @@
             .then(r=>r.json()).then(d=>{ showLoading(false); if(d.success){ showToast(d.message, "success"); removePhoto('Datang'); removePhoto('Pulang'); document.getElementById('materiLatihan').value=''; } else showToast(d.message, "error"); }).catch(e=>{showLoading(false); showToast("Gagal menyimpan", "error");});
         });
 
-        // --- RIWAYAT ABSENSI ---
         function loadRiwayatAbsensi() {
             showLoading(true, "Mengambil Histori...");
             fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action: 'getAbsensiHistory' }) }).then(r=>r.json()).then(d=>{
@@ -763,7 +745,6 @@
             `).join('');
         }
 
-        // --- TAMBAH ANGGOTA & HAK ABSEN ---
         function renderUsersTable() {
             const tbody = document.getElementById('tableUsersBody');
             document.getElementById('memberCountBadge').textContent = state.members.length;
@@ -817,7 +798,6 @@
             .then(r=>r.json()).then(d=>{ showLoading(false); if(d.success){ showToast("Tersimpan","success"); document.getElementById('formAddMember').reset(); loadDashboardData(); } else showToast(d.message,"error"); }).catch(e=>showLoading(false));
         });
 
-        // --- UTILS ---
         function openPasswordModal() { document.getElementById('passwordModal').classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.remove('scale-95'); }
         function closePasswordModal() { document.getElementById('passwordModal').classList.add('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.add('scale-95'); }
         document.getElementById('formGantiPassword').addEventListener('submit', (e) => { e.preventDefault(); showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'gantiPassword', username: state.user.username, oldPassword: document.getElementById('oldPass').value, newPassword: document.getElementById('newPass').value })}).then(r=>r.json()).then(d=>{ showLoading(false); if(d.success) { showToast("Berhasil", "success"); closePasswordModal(); } else showToast(d.message, "error"); }).catch(e=>showLoading(false)); });
