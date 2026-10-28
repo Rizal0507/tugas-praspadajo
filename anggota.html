@@ -182,7 +182,7 @@
             </div>
         </div>
 
-        <!-- VIEW KAMERA DENGAN TOMBOL PAUSE -->
+        <!-- VIEW KAMERA DENGAN TOMBOL PAUSE & SWITCH KAMERA -->
         <div id="viewCamera" class="fixed inset-0 sm:absolute bg-black z-50 hidden flex-col pointer-events-auto">
             <div class="absolute top-0 left-0 w-full h-1.5 bg-gray-800 z-30">
                 <div id="videoProgressBar" class="h-full bg-rose-500 transition-all duration-1000" style="width: 0%;"></div>
@@ -203,8 +203,13 @@
                 <i class="fa-solid fa-triangle-exclamation mr-1 mt-1"></i> <span id="kameraSubName" class="font-extrabold"></span>.
             </div>
             
-            <!-- KONTROL REKAM & PAUSE -->
-            <div class="absolute bottom-0 left-0 w-full pb-10 pt-16 flex items-center justify-center gap-6 bg-gradient-to-t from-black/80 to-transparent z-20">
+            <!-- KONTROL REKAM, PAUSE & SWITCH KAMERA -->
+            <div class="absolute bottom-0 left-0 w-full pb-10 pt-16 flex items-center justify-center gap-4 bg-gradient-to-t from-black/80 to-transparent z-20">
+                <!-- Tombol Switch Kamera Depan/Belakang -->
+                <button id="btnSwitchCamera" onclick="switchCamera()" class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white text-sm active:scale-95 transition-all" title="Ganti Kamera">
+                    <i class="fa-solid fa-camera-rotate"></i>
+                </button>
+
                 <!-- Tombol Pause -->
                 <button id="btnPause" onclick="togglePauseRecording()" disabled class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white text-sm opacity-40 cursor-not-allowed active:scale-95 transition-all" title="Jeda Perekaman">
                     <i id="pauseIcon" class="fa-solid fa-pause"></i>
@@ -250,9 +255,10 @@
         let selectedTask = null, currentSubTugas = "Utama", selectedDay = "1";
         let currentMinSec = 60, currentMaxSec = 300;
         
-        // Perekaman & Pause
+        // Perekaman, Pause, & State Kamera
         let mediaStream = null, mediaRecorder = null, recordedChunks = [];
         let isRecording = false, isPaused = false, timerInterval, secondsRecorded = 0;
+        let currentFacingMode = "environment"; // Default kamera belakang
         
         // Absensi Anggota yang punya Hak
         let fotoDatangBase64 = null, fotoPulangBase64 = null;
@@ -261,7 +267,6 @@
             document.getElementById('userNameDisplay').textContent = user.nama;
             document.getElementById('userClassDisplay').textContent = `Kelas ${user.kelas}`;
             
-            // Cek Hak Absen dari Session yang disimpan Backend saat Login
             if(user.hakAbsen) {
                 document.getElementById('roleBadge').textContent = "ANGGOTA (HAK ABSEN AKTIF)";
                 document.getElementById('roleBadge').className = "bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200 w-max";
@@ -388,7 +393,7 @@
             });
         }
 
-        // --- CAMERA DENGAN FITUR PAUSE ---
+        // --- CAMERA, PAUSE & SWITCH KAMERA ---
         async function prepareCamera(subName, minMnt, maxMnt) {
             currentSubTugas = subName;
             currentMinSec = minMnt * 60;
@@ -400,22 +405,43 @@
             closeSetup();
             document.getElementById('viewCamera').classList.remove('hidden'); document.getElementById('viewCamera').classList.add('flex');
             
+            await startMediaStream();
+            
+            // Reset Tombol Pause
+            isPaused = false;
+            const btnP = document.getElementById('btnPause');
+            btnP.disabled = true;
+            btnP.className = "w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white text-sm opacity-40 cursor-not-allowed active:scale-95 transition-all";
+            document.getElementById('pauseIcon').className = "fa-solid fa-pause";
+            document.getElementById('pauseStatusBadge').classList.add('hidden');
+        }
+
+        async function startMediaStream() {
             try {
-                const constraints = { audio: true, video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "environment" } };
+                if (mediaStream) {
+                    mediaStream.getTracks().forEach(t => t.stop());
+                }
+                const constraints = { 
+                    audio: true, 
+                    video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: currentFacingMode } 
+                };
                 mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-                const videoEl = document.getElementById('videoPreview'); videoEl.srcObject = mediaStream; videoEl.muted = true;
-                
-                document.getElementById('videoProgressBar').style.width = '0%'; 
-                document.getElementById('videoProgressBar').className = "h-full bg-rose-500 transition-all duration-1000";
-                
-                // Reset Tombol Pause
-                isPaused = false;
-                const btnP = document.getElementById('btnPause');
-                btnP.disabled = true;
-                btnP.className = "w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white text-sm opacity-40 cursor-not-allowed active:scale-95 transition-all";
-                document.getElementById('pauseIcon').className = "fa-solid fa-pause";
-                document.getElementById('pauseStatusBadge').classList.add('hidden');
-            } catch (err) { abortRecording(); showToast("Gagal akses kamera", "error"); }
+                const videoEl = document.getElementById('videoPreview'); 
+                videoEl.srcObject = mediaStream; 
+                videoEl.muted = true;
+            } catch (err) { 
+                showToast("Gagal akses kamera", "error"); 
+            }
+        }
+
+        function switchCamera() {
+            if (isRecording) {
+                showToast("Tidak dapat mengganti kamera saat merekam!", "error");
+                return;
+            }
+            currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+            startMediaStream();
+            showToast(currentFacingMode === "environment" ? "Kamera Belakang Aktif" : "Kamera Depan Aktif", "info");
         }
 
         function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(false); }
@@ -436,8 +462,8 @@
                 document.getElementById('btnRecord').classList.add('recording-pulse');
                 document.getElementById('recIndicator').classList.remove('hidden');
                 document.getElementById('btnCancelCamera').classList.add('hidden');
+                document.getElementById('btnSwitchCamera').classList.add('opacity-40', 'pointer-events-none'); // Matikan tombol switch saat rekam
                 
-                // Aktifkan Tombol Pause
                 const btnP = document.getElementById('btnPause');
                 btnP.disabled = false;
                 btnP.className = "w-12 h-12 bg-white text-gray-800 rounded-full flex items-center justify-center text-sm shadow-lg active:scale-95 transition-all";
@@ -446,7 +472,6 @@
             } catch (e) { abortRecording(); showToast("Error Perekaman", "error"); }
         }
 
-        // FITUR BARU: Pause / Resume Rekaman
         function togglePauseRecording() {
             if (!mediaRecorder || !isRecording) return;
             const btnP = document.getElementById('btnPause');
@@ -482,6 +507,7 @@
             document.getElementById('btnRecord').classList.remove('recording-pulse');
             document.getElementById('recIndicator').classList.add('hidden');
             document.getElementById('btnCancelCamera').classList.remove('hidden');
+            document.getElementById('btnSwitchCamera').classList.remove('opacity-40', 'pointer-events-none');
             document.getElementById('pauseStatusBadge').classList.add('hidden');
         }
 
@@ -562,7 +588,6 @@
                         userSubs[`${selectedTask.taskId}_${selectedDay}_${currentSubTugas}`] = true;
                         fetchRiwayatSemua();
                     } else {
-                        // Tampilkan pesan error detail dari backend jika gagal
                         showToast("Gagal: " + d.message, "error");
                     }
                 }).catch(err => {
