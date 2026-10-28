@@ -24,11 +24,9 @@
         @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.3); opacity: 0; } }
         .recording-pulse::before { content: ''; position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-radius: 50%; border: 3px solid #ef4444; animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
         
-        /* Custom Scrollbar untuk Navbar agar tidak berantakan */
         .custom-scroll::-webkit-scrollbar { width: 0px; height: 0px; } 
         .custom-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Form Terkunci */
         .form-locked { opacity: 0.6; pointer-events: none; }
     </style>
 </head>
@@ -134,7 +132,7 @@
             </div>
         </main>
 
-        <!-- VIEW 4: ABSENSI (HANYA UNTUK PETUGAS) -->
+        <!-- VIEW 4: ABSENSI -->
         <main id="viewAbsensi" class="hidden flex-grow bg-gray-50 flex-col relative z-10 overflow-y-auto custom-scroll p-5">
             <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-4">
                 <div class="flex justify-between items-center border-b pb-3">
@@ -159,11 +157,13 @@
                     <div id="formMateriEval" class="hidden flex-col gap-3 bg-blue-50/50 p-3 rounded-xl border border-blue-100">
                         <div>
                             <label class="text-[10px] font-bold text-gray-600 uppercase mb-1 block">Materi Latihan</label>
-                            <textarea id="materiLatihan" rows="2" required placeholder="Ringkasan materi latihan hari ini..." class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs outline-none focus:border-blue-500"></textarea>
+                            <!-- FIX: MENGHAPUS ATRIBUT REQUIRED AGAR TIDAK NYANGKUT -->
+                            <textarea id="materiLatihan" rows="2" placeholder="Ringkasan materi latihan hari ini..." class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs outline-none focus:border-blue-500"></textarea>
                         </div>
                         <div>
                             <label class="text-[10px] font-bold text-gray-600 uppercase mb-1 block">Evaluasi / Catatan Latihan</label>
-                            <textarea id="evaluasiLatihan" rows="2" required placeholder="Catatan evaluasi selama latihan..." class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs outline-none focus:border-blue-500"></textarea>
+                            <!-- FIX: MENGHAPUS ATRIBUT REQUIRED AGAR TIDAK NYANGKUT -->
+                            <textarea id="evaluasiLatihan" rows="2" placeholder="Catatan evaluasi selama latihan..." class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs outline-none focus:border-blue-500"></textarea>
                         </div>
                     </div>
 
@@ -292,7 +292,7 @@
             </div>
         </div>
 
-        <!-- MODAL PREVIEW FOTO ABSEN (DENGAN DOWNLOAD) -->
+        <!-- MODAL PREVIEW FOTO ABSEN -->
         <div id="photoModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[120] hidden flex items-center justify-center p-4">
             <div class="relative max-w-lg w-full bg-black rounded-3xl overflow-hidden shadow-2xl flex flex-col items-center">
                 <button onclick="closePhotoModal()" class="absolute top-3 right-3 w-8 h-8 bg-white/20 backdrop-blur rounded-full flex items-center justify-center text-white z-10"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -333,6 +333,7 @@
         
         let user = JSON.parse(localStorage.getItem('userSession') || sessionStorage.getItem('userSession'));
         let activeTasks = [], userSubs = {};
+        let subCountMap = {}; // Peta jumlah sub-tugas yang sudah dikerjakan per TaskID & Tanggal
         let selectedTask = null, currentSubTugas = "Utama", selectedDay = "1";
         let currentMinSec = 60, currentMaxSec = 300;
         
@@ -343,7 +344,7 @@
         // State Absensi
         let absenStream = null, currentPhotoType = "Datang";
         let fotoDatangBase64 = null, fotoPulangBase64 = null;
-        let absenLocked = false; // Flag untuk mengunci seluruh form jika sudah pulang
+        let absenLocked = false; 
 
         // --- HELPER ---
         function formatSecToText(secVal) {
@@ -414,12 +415,6 @@
             return match ? `https://lh3.googleusercontent.com/d/${match[0]}` : url;
         }
 
-        // NORMALISASI EKSTREM: Hanya sisakan huruf dan angka. 
-        // Contoh: "Calve Raise 10x3" dan "CalveRaise10x3" akan dianggap SAMA.
-        function normalizeKey(str) {
-            return String(str || "").replace(/[^a-z0-9]/gi, '').toLowerCase();
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('userNameDisplay').textContent = user.nama;
             document.getElementById('userClassDisplay').textContent = `Kelas ${user.kelas}`;
@@ -486,6 +481,17 @@
                 if (d.success) {
                     activeTasks = d.tasks; 
                     userSubs = d.userSubs || {};
+                    
+                    // Buat hitungan kuantitas berdasarkan TaskID dan Tanggal
+                    subCountMap = {};
+                    Object.keys(userSubs).forEach(k => {
+                        const match = k.match(/(TASK_\d+)_(\d{4}-\d{2}-\d{2})_/);
+                        if (match) {
+                            const mapKey = `${match[1]}_${match[2]}`;
+                            subCountMap[mapKey] = (subCountMap[mapKey] || 0) + 1;
+                        }
+                    });
+                    
                     renderTasks(activeTasks);
                 }
             }).catch(e => container.innerHTML = `<p class="text-center text-xs text-rose-500">Gagal memuat koneksi</p>`);
@@ -543,15 +549,16 @@
             // 2. Render Tugas Hari Ini
             const container = document.getElementById('taskListContainer');
             
-            // Cek keterselesaian tugas (Gunakan Normalisasi Ekstrem!)
+            // Cek keterselesaian tugas (Berdasarkan KUOTA, bukan nama teks!)
             const todayTasksFiltered = todayTasks.filter(t => {
                 if(t.isLama) return true;
-                const pendingSubs = (t.subTugas || []).filter(sub => {
-                    const keyTarget = normalizeKey(`${t.taskId}_${todayStr}_${sub.nama}`);
-                    // Cari apakah ada key yang cocok di userSubs
-                    return !Object.keys(userSubs).some(k => normalizeKey(k) === keyTarget);
-                });
-                return pendingSubs.length > 0; // Hanya tampilkan yang belum selesai
+                
+                const mapKey = `${t.taskId}_${todayStr}`;
+                const doneCount = subCountMap[mapKey] || 0;
+                const totalSubs = (t.subTugas || []).length;
+
+                // Sembunyikan jika sudah selesai semua
+                return doneCount < totalSubs;
             });
 
             if (todayTasksFiltered.length === 0) {
@@ -564,17 +571,18 @@
                 const isLama = t.isLama;
                 const isBertumpuk = t.subTugas && t.subTugas.length > 1;
                 
-                const pendingSubs = (t.subTugas || []).filter(sub => {
-                    const keyTarget = normalizeKey(`${t.taskId}_${todayStr}_${sub.nama}`);
-                    return !Object.keys(userSubs).some(k => normalizeKey(k) === keyTarget);
-                });
-                totalUnfinishedToday += pendingSubs.length;
+                const mapKey = `${t.taskId}_${todayStr}`;
+                const doneCount = subCountMap[mapKey] || 0;
+                const totalSubs = (t.subTugas || []).length;
+                const remainingCount = totalSubs - doneCount;
+                
+                totalUnfinishedToday += remainingCount;
 
                 let statusTeks = '';
-                if ((t.subTugas || []).length === 1) {
+                if (totalSubs === 1) {
                     statusTeks = `<div class="text-[10px] font-bold text-rose-500 bg-rose-50 px-3 py-2 rounded-xl text-center mt-2 border border-rose-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-circle-exclamation"></i> Anda belum mengerjakan tugas ini</div>`;
                 } else {
-                    statusTeks = `<div class="text-[10px] font-bold text-amber-600 bg-amber-50 px-3 py-2 rounded-xl text-center mt-2 border border-amber-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-clock"></i> Sisa ${pendingSubs.length} gerakan belum dikerjakan</div>`;
+                    statusTeks = `<div class="text-[10px] font-bold text-amber-600 bg-amber-50 px-3 py-2 rounded-xl text-center mt-2 border border-amber-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-clock"></i> Sisa ${remainingCount} gerakan belum dikerjakan</div>`;
                 }
                 
                 let labelTanggal = isLama ? "Sistem Lama" : (t.tipePengumpulan === "Satu Kali" ? `Deadline: ${t.tanggalPengerjaan.replace(' to ', ' s/d ')}` : `Tugas Rutin Hari Ini`);
@@ -630,31 +638,34 @@
             const container = document.getElementById('subTasksContainer');
             container.innerHTML = '';
 
-            let pendingCount = 0;
-            selectedTask.subTugas.forEach(sub => {
-                const keyTarget = normalizeKey(`${selectedTask.taskId}_${selectedDay}_${sub.nama}`);
-                const isDone = Object.keys(userSubs).some(k => normalizeKey(k) === keyTarget);
-                
-                if(!isDone) {
-                    pendingCount++;
-                    const minSec = parseDuration(sub.min);
-                    const maxSec = parseDuration(sub.max);
-                    const targetTeks = `${formatSecToText(minSec)} - ${formatSecToText(maxSec)}`;
-                    
-                    container.innerHTML += `
-                        <button onclick="prepareCamera('${sub.nama}', ${minSec}, ${maxSec})" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 active:scale-95 shadow-lg group transition-transform">
-                            <span>${sub.nama}</span>
-                            <div class="flex items-center gap-2">
-                                <span class="text-[9px] text-blue-200 bg-blue-800/50 px-1.5 py-0.5 rounded">${targetTeks}</span>
-                                <span class="bg-blue-800 px-2 py-1 rounded text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-video"></i> Rekam</span>
-                            </div>
-                        </button>`;
-                }
-            });
+            // Dapatkan berapa yang sudah dikerjakan
+            const mapKey = `${selectedTask.taskId}_${selectedDay}`;
+            const doneCount = subCountMap[mapKey] || 0;
+            
+            // Kita hanya menampilkan sisa tugas yang belum dikerjakan
+            // Menggunakan slice() berdasarkan jumlah yang sudah selesai, 
+            // untuk menghindari bug nama tugas yang berubah-ubah.
+            const sisaTugas = selectedTask.subTugas.slice(doneCount);
 
-            if(pendingCount === 0) {
+            if (sisaTugas.length === 0) {
                 container.innerHTML = `<div class="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold py-5 rounded-xl text-xs text-center flex flex-col items-center gap-2"><i class="fa-solid fa-circle-check text-2xl"></i> Semua tugas untuk hari ini sudah selesai!</div>`;
+                return;
             }
+
+            sisaTugas.forEach(sub => {
+                const minSec = parseDuration(sub.min);
+                const maxSec = parseDuration(sub.max);
+                const targetTeks = `${formatSecToText(minSec)} - ${formatSecToText(maxSec)}`;
+                
+                container.innerHTML += `
+                    <button onclick="prepareCamera('${sub.nama}', ${minSec}, ${maxSec})" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 active:scale-95 shadow-lg group transition-transform">
+                        <span>${sub.nama}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[9px] text-blue-200 bg-blue-800/50 px-1.5 py-0.5 rounded">${targetTeks}</span>
+                            <span class="bg-blue-800 px-2 py-1 rounded text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-video"></i> Rekam</span>
+                        </div>
+                    </button>`;
+            });
         }
 
         // --- SISTEM KAMERA TUGAS (VIDEO) ---
@@ -789,9 +800,14 @@
                     viewUp.classList.add('hidden'); viewUp.classList.remove('flex');
                     if (d.success) { 
                         document.getElementById('successUploadModal').classList.remove('hidden'); document.getElementById('successUploadModal').classList.add('flex');
-                        // Tambahkan langsung ke state lokal agar UI langsung update
+                        
+                        // Update jumlah secara lokal agar UI langsung berubah tanpa harus nunggu refresh GAS
+                        const mapKey = `${selectedTask.taskId}_${selectedDay}`;
+                        subCountMap[mapKey] = (subCountMap[mapKey] || 0) + 1;
                         userSubs[`${selectedTask.taskId}_${selectedDay}_${currentSubTugas}`] = true;
-                        fetchTasks(); fetchRiwayatSemua();
+                        
+                        fetchTasks(); 
+                        fetchRiwayatSemua();
                     } else { showToast("Gagal: " + d.message, "error"); }
                 }).catch(err => {
                     viewUp.classList.add('hidden'); viewUp.classList.remove('flex');
@@ -812,7 +828,7 @@
             
             try {
                 if (absenStream) absenStream.getTracks().forEach(t => t.stop());
-                absenStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }); // Kamera depan untuk selfie
+                absenStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 const videoEl = document.getElementById('absenVideoPreview'); 
                 videoEl.srcObject = absenStream; 
                 videoEl.muted = true;
@@ -830,7 +846,7 @@
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.8); // Compress gambar agar ringan
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8); 
             
             if (currentPhotoType === 'Datang') {
                 fotoDatangBase64 = dataUrl;
@@ -853,7 +869,6 @@
             let hasDatang = false, hasPulang = false;
             let savedMateri = "", savedEvaluasi = "";
             
-            // Cari data absen hari ini di state history
             if(stateAbsensiHistory && stateAbsensiHistory.length > 0) {
                 const headers = stateAbsensiHistory[0];
                 const colIdx = headers.indexOf(today);
@@ -873,7 +888,6 @@
                 }
             }
 
-            // Update UI
             const boxDatang = document.getElementById('boxDatang');
             const btnDatang = document.getElementById('btnTakeDatang');
             const statusDatang = document.getElementById('statusDatangDone');
@@ -885,7 +899,6 @@
             const dateInput = document.getElementById('absensiDate');
             const formAbsensi = document.getElementById('formAbsensi');
 
-            // Reset classes
             formAbsensi.classList.remove('form-locked');
             dateInput.disabled = false;
             formMateriEval.classList.add('hidden'); formMateriEval.classList.remove('flex');
@@ -893,21 +906,19 @@
             statusPulang.classList.add('hidden'); statusPulang.classList.remove('flex');
             
             if (hasPulang) {
-                // SEMUA SELESAI & TERKUNCI
                 absenLocked = true;
                 btnDatang.classList.add('hidden');
                 btnPulang.classList.add('hidden');
                 statusDatang.classList.remove('hidden'); statusDatang.classList.add('flex');
                 statusPulang.classList.remove('hidden'); statusPulang.classList.add('flex');
                 formMateriEval.classList.remove('hidden'); formMateriEval.classList.add('flex');
-                dateInput.disabled = true; // Lock Tanggal
+                dateInput.disabled = true; 
                 formAbsensi.classList.add('form-locked');
                 btnSimpan.classList.add('hidden');
                 boxDatang.classList.add('opacity-50');
                 boxPulang.classList.add('opacity-50');
             } 
             else if (hasDatang) {
-                // FASE PULANG
                 absenLocked = false;
                 btnDatang.classList.add('hidden');
                 statusDatang.classList.remove('hidden'); statusDatang.classList.add('flex');
@@ -916,20 +927,18 @@
                 btnPulang.classList.remove('hidden');
                 formMateriEval.classList.remove('hidden'); formMateriEval.classList.add('flex');
                 
-                // Isi nilai materi yang sudah tersimpan
                 if (savedMateri) document.getElementById('materiLatihan').value = savedMateri;
                 if (savedEvaluasi) document.getElementById('evaluasiLatihan').value = savedEvaluasi;
 
-                dateInput.disabled = true; // Lock Tanggal
+                dateInput.disabled = true; 
             } 
             else {
-                // FASE DATANG (AWAL)
                 absenLocked = false;
                 btnDatang.classList.remove('hidden');
                 btnPulang.classList.add('hidden');
                 boxPulang.classList.add('opacity-50', 'cursor-not-allowed');
                 btnPulang.disabled = true;
-                dateInput.disabled = false; // Bebas ganti tanggal
+                dateInput.disabled = false; 
             }
         }
 
@@ -950,7 +959,6 @@
                     const mySubs = dDash.submissions.filter(s => s.namaAnggota.trim().toLowerCase() === user.nama.trim().toLowerCase());
                     renderRiwayatNilai(mySubs, dDash.tasks);
                 }
-                // Refresh status absen jika tab absensi sedang terbuka
                 if (!document.getElementById('viewAbsensi').classList.contains('hidden')) checkTodayAbsensiStatus();
             }).catch(e => { showLoading(false); console.error("Gagal load riwayat"); });
         }
@@ -1020,7 +1028,6 @@
 
         function renderRiwayatAbsen(data) {
             const rawDates = data[0].slice(3);
-            // Konversi Header Tanggal (jika ISO/Date object jadi DD/MM/YYYY)
             const dates = rawDates.map(d => {
                 if(!d) return "-";
                 if(typeof d === 'object' || String(d).includes('T')) {
@@ -1107,7 +1114,7 @@
         }
 
         function openPhotoModal(url, title) {
-            const directUrl = getDirectImageLink(url); // Konversi GDrive Link ke Direct Image
+            const directUrl = getDirectImageLink(url); 
             document.getElementById('modalPhotoImg').src = directUrl;
             document.getElementById('modalPhotoTitle').textContent = title;
             document.getElementById('modalPhotoDownload').href = directUrl;
@@ -1136,18 +1143,16 @@
             }).catch(e=>showToast("Gagal muat data", "error"));
         }
 
-        // Submit form absensi (Datang / Pulang)
         document.getElementById('formAbsensi').addEventListener('submit', (e) => {
             e.preventDefault();
             if(absenLocked) { showToast("Absensi hari ini sudah selesai dan terkunci.", "error"); return; }
             
-            // Tentukan mana yang mau disave
             let typeToSubmit = "";
             let b64ToSubmit = "";
             if (fotoDatangBase64) { typeToSubmit = "Datang"; b64ToSubmit = fotoDatangBase64; }
             else if (fotoPulangBase64) { 
                 typeToSubmit = "Pulang"; b64ToSubmit = fotoPulangBase64; 
-                // Validasi form wajib untuk pulang
+                // Validasi JS pengganti required HTML
                 if(!document.getElementById('materiLatihan').value.trim() || !document.getElementById('evaluasiLatihan').value.trim()) {
                     showToast("Materi & Evaluasi Latihan wajib diisi sebelum pulang!", "error"); return;
                 }
@@ -1163,12 +1168,12 @@
             showLoading(true, `Menyimpan Absen ${typeToSubmit}...`);
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ 
                 action: 'saveAbsensi', 
-                type: typeToSubmit, // KIRIM TIPE (Datang/Pulang)
+                type: typeToSubmit, 
                 tanggal: document.getElementById('absensiDate').value, 
                 materi: document.getElementById('materiLatihan').value, 
-                evaluasi: document.getElementById('evaluasiLatihan').value, // Kirim Evaluasi
+                evaluasi: document.getElementById('evaluasiLatihan').value, 
                 absensiData: absData, 
-                fotoBase64: b64ToSubmit // Kirim base64 fotonya
+                fotoBase64: b64ToSubmit 
             })})
             .then(r=>r.json()).then(d=>{ 
                 showLoading(false); 
@@ -1179,13 +1184,12 @@
                     document.getElementById('fotoPulangPreviewContainer').classList.add('hidden');
                     document.getElementById('btnSimpanAbsen').classList.add('hidden');
                     
-                    // Jika pulang, kosongkan form teks
                     if(typeToSubmit === 'Pulang') {
                         document.getElementById('materiLatihan').value=''; 
                         document.getElementById('evaluasiLatihan').value='';
                     }
                     
-                    fetchRiwayatSemua(); // Refresh UI untuk mengunci form
+                    fetchRiwayatSemua(); 
                 } else showToast(d.message, "error"); 
             }).catch(e=>{showLoading(false); showToast("Error koneksi", "error");});
         });
