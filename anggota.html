@@ -400,7 +400,7 @@
             return str;
         }
 
-        // FORCE JAKARTA TIMEZONE (Sama seperti GAS)
+        // FORCE JAKARTA TIMEZONE
         function getLocalToday() {
             const d = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Jakarta"}));
             const pad = (n) => String(n).padStart(2, '0');
@@ -413,23 +413,44 @@
             return match ? `https://lh3.googleusercontent.com/d/${match[0]}` : url;
         }
 
-        // NORMALISASI EKSTREM (Hapus semua karakter selain huruf/angka)
         function normalizeStr(str) {
-            return String(str || "")
-                .replace(/[\u00A0\r\n\t]/g, ' ')
-                .replace(/[^a-z0-9]/gi, '')
-                .toLowerCase();
+            return String(str || "").replace(/[^a-z0-9]/gi, '').toLowerCase();
         }
 
-        // SISTEM PENCOCOKAN KUNCI ANTI GAGAL
+        // --- FUNGSI SAKTI: PARSER TANGGAL SUPER PINTAR ---
         function isSubDone(taskId, tanggal, subName) {
-            const searchKey = `${taskId}_${tanggal}_${subName}`;
-            const normSearch = normalizeStr(searchKey);
+            const cleanTaskId = normalizeStr(taskId);
+            const cleanSubName = normalizeStr(subName);
 
             return Object.keys(userSubs).some(k => {
-                // Bersihkan format tanggal ISO (2026-10-28T17:00:00.000Z) menjadi (2026-10-28) jika ada
-                const cleanedK = k.replace(/(\d{4}-\d{2}-\d{2})T\d{2}:\d{2}:\d{2}\.\d{3}Z/g, '$1');
-                return normalizeStr(cleanedK) === normSearch;
+                const cleanK = normalizeStr(k);
+
+                // 1. Cek apakah key mengandung TaskID dan SubTugas yang cocok
+                if (!cleanK.includes(cleanTaskId) || !cleanK.includes(cleanSubName)) {
+                    return false;
+                }
+
+                // 2. Ekstrak tanggal dari key
+                let dateInKey = "";
+                
+                // Pola 1: Mencari format ISO YYYY-MM-DD
+                const isoMatch = k.match(/(\d{4}-\d{2}-\d{2})/);
+                if (isoMatch) {
+                    dateInKey = isoMatch[1];
+                } else {
+                    // Pola 2: Mencari format "Wed Oct 28 2026..."
+                    const longDateMatch = k.match(/(Mon|Tue|Wed|Thu|Fri|Sat|Sun) [A-Z][a-z]{2} \d{1,2} \d{4}/);
+                    if (longDateMatch) {
+                        const dateObj = new Date(longDateMatch[0]);
+                        if (!isNaN(dateObj.getTime())) {
+                            const pad = (n) => String(n).padStart(2, '0');
+                            dateInKey = `${dateObj.getFullYear()}-${pad(dateObj.getMonth() + 1)}-${pad(dateObj.getDate())}`;
+                        }
+                    }
+                }
+
+                // 3. Bandingkan tanggal
+                return dateInKey === tanggal;
             });
         }
 
@@ -800,7 +821,6 @@
                     if (d.success) { 
                         document.getElementById('successUploadModal').classList.remove('hidden'); document.getElementById('successUploadModal').classList.add('flex');
                         
-                        // Tambahkan key ke state lokal menggunakan format yang sama persis
                         const newKey = `${selectedTask.taskId}_${selectedDay}_${currentSubTugas}`;
                         userSubs[newKey] = true;
                         
