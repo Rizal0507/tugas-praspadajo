@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRASPADAJO APP</title>
+    <title>PASKIBRA SMPN 2 JOGOROTO | Web App</title>
 
     <!-- Favicon -->
     <link rel="icon" href="logo.png" type="image/png">
@@ -66,12 +66,15 @@
 
             <!-- REVISI 1: Logo Tanpa Border, Diperbesar, dan Animasi Float -->
             <div class="w-32 h-32 flex items-center justify-center z-10 mb-2 animate-float">
-                <img src="./logo.png" id="appLogo" alt="Logo PRASPADAJO APP" class="max-h-full max-w-full object-contain drop-shadow-2xl" 
+                <img src="./logo.png" id="appLogo" alt="Logo Paskibra SMPN 2 Jogoroto" class="max-h-full max-w-full object-contain drop-shadow-2xl" 
                      onerror="this.onerror=null; this.outerHTML='<i class=\'fa-solid fa-shield-halved text-white text-6xl drop-shadow-lg\'></i>';">
             </div>
             
-            <!-- REVISI 2: Teks Tetap -->
-            <h2 class="text-white text-2xl font-extrabold tracking-widest z-10">PRASPADAJO APP</h2>
+            <!-- REVISI 2: Judul Web App -->
+            <div class="z-10 text-center px-2">
+                <p class="text-blue-100 text-[11px] font-semibold tracking-[0.4em] uppercase mb-1">WEB APP</p>
+                <h2 class="text-white text-base sm:text-lg font-extrabold tracking-wide leading-snug">PASKIBRA SMPN 2 JOGOROTO</h2>
+            </div>
         </div>
 
         <!-- Card Putih Melengkung (Form Login) -->
@@ -83,16 +86,16 @@
             <!-- REVISI 4: Kalimat Motivasi Acak -->
             <p id="motivationText" class="text-gray-400 text-xs text-center mb-6 font-medium">Menyiapkan motivasi...</p>
 
-            <!-- Role Selector Toggle (Kiri: Pelatih | Kanan: Anggota) -->
+            <!-- Role Selector Toggle (Kiri: Pelatih | Kanan: Anggota) - DEFAULT: ANGGOTA -->
             <div class="flex p-1 bg-gray-100 rounded-2xl mb-6 relative">
-                <div id="roleHighlight" class="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-white rounded-xl shadow-sm transition-all duration-300 ease-out"></div>
+                <div id="roleHighlight" class="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-white rounded-xl shadow-sm transition-all duration-300 ease-out" style="transform: translateX(100%);"></div>
                 
                 <!-- Kiri: Pelatih -->
-                <button type="button" id="btnPelatih" class="flex-1 py-3 text-sm font-bold text-blue-600 relative z-10 transition-colors duration-300" onclick="setRole('Pelatih')">
+                <button type="button" id="btnPelatih" class="flex-1 py-3 text-sm font-semibold text-gray-400 relative z-10 transition-colors duration-300" onclick="setRole('Pelatih')">
                     Pelatih
                 </button>
                 <!-- Kanan: Anggota -->
-                <button type="button" id="btnAnggota" class="flex-1 py-3 text-sm font-semibold text-gray-400 relative z-10 transition-colors duration-300" onclick="setRole('Anggota')">
+                <button type="button" id="btnAnggota" class="flex-1 py-3 text-sm font-bold text-blue-600 relative z-10 transition-colors duration-300" onclick="setRole('Anggota')">
                     Anggota
                 </button>
             </div>
@@ -145,7 +148,8 @@
         // Endpoint Google Apps Script
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbwYTFRirtCpDT1vXJ0hSeFtElQR44rdoMPKskHgRPO3OlCr5_D_cXvLQOFzkDt4lY_IYw/exec';
 
-        let currentRole = 'Pelatih';
+        // DEFAULT ROLE: ANGGOTA
+        let currentRole = 'Anggota';
 
         // REVISI 3 & 4: Logika Sapaan dan 30 Variasi Motivasi
         document.addEventListener('DOMContentLoaded', () => {
@@ -195,6 +199,9 @@
 
             const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
             document.getElementById('motivationText').textContent = randomQuote;
+
+            // Pastikan state role konsisten saat pertama kali dimuat
+            setRole(currentRole);
         });
 
         // Toggle Password Input Visibility
