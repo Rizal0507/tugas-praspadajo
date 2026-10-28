@@ -272,7 +272,8 @@
                         <div class="grid grid-cols-2 gap-2">
                             <input type="text" id="newMemberClass" required placeholder="Kelas" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none focus:border-blue-500">
                             <select id="newMemberRole" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none focus:border-blue-500">
-                                <option value="Anggota">Anggota</option><option value="Pengurus">Pengurus (Bisa Absen)</option><option value="Pelatih">Pelatih</option>
+                                <option value="Anggota">Anggota</option>
+                                <option value="Pelatih">Pelatih</option>
                             </select>
                         </div>
                         <input type="text" id="newMemberPass" required placeholder="Password" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none focus:border-blue-500">
@@ -285,7 +286,13 @@
                     <div class="overflow-y-auto max-h-[400px] custom-scroll">
                         <table class="w-full text-left border-collapse text-xs">
                             <thead class="bg-gray-50 text-gray-400 uppercase text-[10px] font-bold sticky top-0">
-                                <tr><th class="py-2 px-3 w-8">No</th><th class="py-2 px-3">Nama</th><th class="py-2 px-3">Username</th><th class="py-2 px-3 text-center">Role</th></tr>
+                                <tr>
+                                    <th class="py-2 px-3 w-8">No</th>
+                                    <th class="py-2 px-3">Nama</th>
+                                    <th class="py-2 px-3">Username</th>
+                                    <th class="py-2 px-3 text-center">Role</th>
+                                    <th class="py-2 px-3 text-center">Hak Absen</th>
+                                </tr>
                             </thead>
                             <tbody id="tableUsersBody" class="divide-y divide-gray-100"></tbody>
                         </table>
@@ -472,7 +479,7 @@
         // --- KELOLA TUGAS (BUAT, EDIT, DELETE) ---
         function renderCheckboxesAnggota() {
             const container = document.getElementById('targetAnggotaCheckboxes');
-            const targetMembers = state.members.filter(m => m.role === 'Anggota' || m.role === 'Pengurus');
+            const targetMembers = state.members.filter(m => m.role === 'Anggota');
             container.innerHTML = targetMembers.map(m => `
                 <label class="flex items-center gap-2 cursor-pointer p-1 hover:bg-gray-100 rounded">
                     <input type="checkbox" value="${m.username}" class="chk-target rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
@@ -589,7 +596,7 @@
         // --- ABSENSI HARIAN (INPUT) ---
         function renderAbsensiTable() {
             const tbody = document.getElementById('tableAbsensiBody');
-            const targets = state.members.filter(m => m.role === 'Anggota' || m.role === 'Pengurus');
+            const targets = state.members.filter(m => m.role === 'Anggota'); // Hapus Pengurus
             tbody.innerHTML = targets.map((m, i) => `
                 <tr class="border-b" data-nama="${m.nama}" data-kelas="${m.kelas}">
                     <td class="py-2 px-4 text-center font-semibold text-gray-400">${i + 1}</td>
@@ -679,18 +686,54 @@
             `).join('');
         }
 
-        // --- TAMBAH ANGGOTA ---
+        // --- TAMBAH ANGGOTA & HAK ABSEN ---
         function renderUsersTable() {
             const tbody = document.getElementById('tableUsersBody');
             document.getElementById('memberCountBadge').textContent = state.members.length;
-            tbody.innerHTML = state.members.map((m, i) => `
+            tbody.innerHTML = state.members.map((m, i) => {
+                let hakAbsenBtn = '-';
+                if(m.role === 'Anggota') {
+                    if(m.hakAbsen) {
+                        hakAbsenBtn = `<button onclick="toggleHakAbsenStatus('${m.username}', true)" class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded-lg text-[9px] font-bold active:scale-95 transition-transform"><i class="fa-solid fa-toggle-on text-emerald-500 mr-1 text-sm align-middle"></i> Aktif</button>`;
+                    } else {
+                        hakAbsenBtn = `<button onclick="toggleHakAbsenStatus('${m.username}', false)" class="bg-gray-50 text-gray-400 border border-gray-200 px-2 py-1 rounded-lg text-[9px] font-bold active:scale-95 transition-transform hover:bg-gray-100 hover:text-gray-600"><i class="fa-solid fa-toggle-off text-gray-300 mr-1 text-sm align-middle"></i> Nonaktif</button>`;
+                    }
+                }
+                
+                return `
                 <tr class="hover:bg-gray-50 border-b">
                     <td class="py-2 px-3 text-center text-gray-400">${i+1}</td>
                     <td class="py-2 px-3 font-bold">${m.nama}</td>
                     <td class="py-2 px-3 font-mono text-blue-600">${m.username}</td>
-                    <td class="py-2 px-3 text-center"><span class="text-[10px] px-2 py-0.5 rounded-full font-bold border ${m.role==='Pelatih'?'bg-purple-50 text-purple-600':m.role==='Pengurus'?'bg-amber-50 text-amber-600':'bg-blue-50 text-blue-600'}">${m.role}</span></td>
-                </tr>`).join('');
+                    <td class="py-2 px-3 text-center"><span class="text-[10px] px-2 py-0.5 rounded-full font-bold border ${m.role==='Pelatih'?'bg-purple-50 text-purple-600':'bg-blue-50 text-blue-600'}">${m.role}</span></td>
+                    <td class="py-2 px-3 text-center">${hakAbsenBtn}</td>
+                </tr>`;
+            }).join('');
         }
+        
+        function toggleHakAbsenStatus(username, currentStatus) {
+            const newStatus = !currentStatus;
+            showLoading(true, "Memperbarui Hak Absen...");
+            fetch(GAS_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'toggleHakAbsen', username: username, hakAbsen: newStatus })
+            })
+            .then(r => r.json())
+            .then(d => {
+                showLoading(false);
+                if(d.success) {
+                    showToast("Hak Akses diperbarui", "success");
+                    loadDashboardData(); // Muat ulang untuk update tabel
+                } else {
+                    showToast(d.message, "error");
+                }
+            })
+            .catch(e => {
+                showLoading(false);
+                showToast("Gagal memperbarui hak akses", "error");
+            });
+        }
+
         document.getElementById('formAddMember').addEventListener('submit', (e) => {
             e.preventDefault(); showLoading(true, "Menyimpan...");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'addMember', nama: document.getElementById('newMemberName').value, username: document.getElementById('newMemberUsername').value, kelas: document.getElementById('newMemberClass').value, role: document.getElementById('newMemberRole').value, password: document.getElementById('newMemberPass').value })})
