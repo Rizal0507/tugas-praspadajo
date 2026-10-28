@@ -60,9 +60,10 @@
 
         <!-- DYNAMIC NAVIGATION -->
         <nav class="bg-white border-b border-gray-100 flex shadow-sm z-20 sticky top-0 overflow-x-auto custom-scroll">
-            <button onclick="switchTab('dashboard')" id="tabBtnDashboard" class="flex-1 min-w-[100px] py-3 text-xs font-bold text-blue-600 border-b-2 border-blue-600 flex justify-center items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Tugas</button>
-            <button onclick="switchTab('riwayat')" id="tabBtnRiwayat" class="flex-1 min-w-[100px] py-3 text-xs font-bold text-gray-400 border-b-2 border-transparent flex justify-center items-center gap-1.5"><i class="fa-solid fa-chart-line"></i> Riwayat</button>
-            <button onclick="switchTab('absensi')" id="tabBtnAbsensi" class="hidden flex-1 min-w-[110px] py-3 text-xs font-bold text-gray-400 border-b-2 border-transparent flex justify-center items-center gap-1.5"><i class="fa-solid fa-clipboard-user"></i> Input Absen</button>
+            <button onclick="switchTab('dashboard')" id="tabBtnDashboard" class="flex-1 min-w-[90px] py-3 text-xs font-bold text-blue-600 border-b-2 border-blue-600 flex justify-center items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Tugas</button>
+            <button onclick="switchTab('riwayatTugas')" id="tabBtnRiwayatTugas" class="flex-1 min-w-[100px] py-3 text-xs font-bold text-gray-400 border-b-2 border-transparent flex justify-center items-center gap-1.5"><i class="fa-solid fa-medal"></i> Riwayat Tugas</button>
+            <button onclick="switchTab('riwayatLatihan')" id="tabBtnRiwayatLatihan" class="flex-1 min-w-[110px] py-3 text-xs font-bold text-gray-400 border-b-2 border-transparent flex justify-center items-center gap-1.5"><i class="fa-solid fa-chart-line"></i> Riwayat Latihan</button>
+            <button onclick="switchTab('absensi')" id="tabBtnAbsensi" class="hidden flex-1 min-w-[100px] py-3 text-xs font-bold text-gray-400 border-b-2 border-transparent flex justify-center items-center gap-1.5"><i class="fa-solid fa-clipboard-user"></i> Absen</button>
         </nav>
 
         <!-- VIEW 1: DASHBOARD TUGAS -->
@@ -76,22 +77,30 @@
             </div>
         </main>
 
-        <!-- VIEW 2: RIWAYAT & GRAFIK (GABUNGAN) -->
-        <main id="viewRiwayat" class="hidden flex-grow bg-gray-50 flex-col relative z-10 overflow-y-auto custom-scroll p-5 gap-5">
-            <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                <h3 class="font-bold text-gray-800 text-sm p-4 border-b flex items-center gap-2"><i class="fa-solid fa-medal text-amber-500"></i> Riwayat & Nilai Tugas</h3>
-                <div id="riwayatNilaiContainer" class="flex flex-col divide-y divide-gray-100 max-h-60 overflow-y-auto custom-scroll">
-                    <div class="p-5 text-center text-gray-400 text-xs">Memuat nilai...</div>
-                </div>
+        <!-- VIEW 2: RIWAYAT TUGAS & NILAI -->
+        <main id="viewRiwayatTugas" class="hidden flex-grow bg-gray-50 flex-col relative z-10 overflow-y-auto custom-scroll p-5 gap-4">
+            <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
+                <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2"><i class="fa-solid fa-medal text-amber-500"></i> Hasil & Catatan Tugas</h3>
+                <button onclick="fetchRiwayatSemua()" class="text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 active:scale-95"><i class="fa-solid fa-rotate text-[10px]"></i> Refresh</button>
+            </div>
+            <div id="riwayatNilaiContainer" class="flex flex-col gap-3">
+                <div class="p-8 text-center text-gray-400 text-xs bg-white rounded-3xl border">Memuat riwayat tugas...</div>
+            </div>
+        </main>
+
+        <!-- VIEW 3: RIWAYAT LATIHAN & STATISTIK -->
+        <main id="viewRiwayatLatihan" class="hidden flex-grow bg-gray-50 flex-col relative z-10 overflow-y-auto custom-scroll p-5 gap-4">
+            <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
+                <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2"><i class="fa-solid fa-chart-pie text-blue-500"></i> Statistik Kehadiran</h3>
+                <button onclick="fetchRiwayatSemua()" class="text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 active:scale-95"><i class="fa-solid fa-rotate text-[10px]"></i> Refresh</button>
             </div>
 
             <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3">
-                <h3 class="font-bold text-gray-800 text-sm border-b pb-2 flex items-center gap-2"><i class="fa-solid fa-chart-pie text-blue-500"></i> Statistik Kehadiran</h3>
-                <div class="flex justify-between text-[10px] font-bold text-gray-500 text-center mt-2">
-                    <div class="flex-1"><span class="block text-emerald-600 text-lg" id="statHadir">0</span>Hadir</div>
-                    <div class="flex-1"><span class="block text-blue-600 text-lg" id="statIzin">0</span>Izin</div>
-                    <div class="flex-1"><span class="block text-amber-600 text-lg" id="statSakit">0</span>Sakit</div>
-                    <div class="flex-1"><span class="block text-rose-600 text-lg" id="statAlpa">0</span>Alpa</div>
+                <div class="flex justify-between text-[10px] font-bold text-gray-500 text-center mt-1">
+                    <div class="flex-1"><span class="block text-emerald-600 text-lg font-extrabold" id="statHadir">0</span>Hadir</div>
+                    <div class="flex-1"><span class="block text-blue-600 text-lg font-extrabold" id="statIzin">0</span>Izin</div>
+                    <div class="flex-1"><span class="block text-amber-600 text-lg font-extrabold" id="statSakit">0</span>Sakit</div>
+                    <div class="flex-1"><span class="block text-rose-600 text-lg font-extrabold" id="statAlpa">0</span>Alpa</div>
                 </div>
                 <div class="w-full bg-gray-100 h-2.5 rounded-full mt-1 overflow-hidden flex">
                     <div id="barHadir" class="bg-emerald-500 h-full" style="width: 0%"></div>
@@ -104,12 +113,12 @@
             <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden mb-6">
                 <h3 class="font-bold text-gray-800 text-sm p-4 border-b">Detail Materi & Foto Absen</h3>
                 <div id="riwayatListContainer" class="flex flex-col divide-y divide-gray-100">
-                    <div class="p-8 text-center text-gray-400 text-xs"><i class="fa-solid fa-spinner animate-spin text-xl text-blue-600 mb-2 block"></i> Memuat histori...</div>
+                    <div class="p-8 text-center text-gray-400 text-xs"><i class="fa-solid fa-spinner animate-spin text-xl text-blue-600 mb-2 block"></i> Memuat histori latihan...</div>
                 </div>
             </div>
         </main>
 
-        <!-- VIEW 3: ABSENSI (HANYA BAGI YANG PUNYA HAK) -->
+        <!-- VIEW 4: ABSENSI (HANYA BAGI YANG PUNYA HAK) -->
         <main id="viewAbsensi" class="hidden flex-grow bg-gray-50 flex-col relative z-10 overflow-y-auto custom-scroll p-5">
             <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-4">
                 <div class="flex justify-between items-center border-b pb-3">
@@ -176,7 +185,7 @@
                 </div>
                 
                 <p id="setupTaskDesc" class="text-xs text-gray-500 mb-4 bg-gray-50 p-3 rounded-xl border border-gray-100 max-h-24 overflow-y-auto custom-scroll"></p>
-                <label class="text-xs font-bold text-gray-600 uppercase mb-2">Pilih Tanggal / Waktu Pengumpulan</label>
+                <label class="text-xs font-bold text-gray-600 uppercase mb-2">Pilih Tanggal / Waktu Pengumpulan (Auto Hari Ini)</label>
                 <select id="selectHariKe" onchange="renderSubTasks()" class="w-full px-4 py-3 bg-gray-50 text-sm font-semibold rounded-2xl border border-gray-200 outline-none focus:border-blue-500 mb-4 shadow-inner"></select>
                 <div id="subTasksContainer" class="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scroll"></div>
             </div>
@@ -203,19 +212,13 @@
                 <i class="fa-solid fa-triangle-exclamation mr-1 mt-1"></i> <span id="kameraSubName" class="font-extrabold"></span>.
             </div>
             
-            <!-- KONTROL REKAM, PAUSE & SWITCH KAMERA -->
             <div class="absolute bottom-0 left-0 w-full pb-10 pt-16 flex items-center justify-center gap-4 bg-gradient-to-t from-black/80 to-transparent z-20">
-                <!-- Tombol Switch Kamera Depan/Belakang -->
                 <button id="btnSwitchCamera" onclick="switchCamera()" class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white text-sm active:scale-95 transition-all" title="Ganti Kamera">
                     <i class="fa-solid fa-camera-rotate"></i>
                 </button>
-
-                <!-- Tombol Pause -->
                 <button id="btnPause" onclick="togglePauseRecording()" disabled class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white text-sm opacity-40 cursor-not-allowed active:scale-95 transition-all" title="Jeda Perekaman">
                     <i id="pauseIcon" class="fa-solid fa-pause"></i>
                 </button>
-
-                <!-- Tombol Rekam / Stop -->
                 <button id="btnRecord" onclick="toggleRecording()" class="relative w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-[0_0_0_4px_rgba(255,255,255,0.3)] transition-all">
                     <div id="btnRecordInner" class="w-14 h-14 bg-rose-500 rounded-full transition-all duration-300"></div>
                 </button>
@@ -230,6 +233,15 @@
             </div>
             <h2 class="text-xl font-bold text-gray-800 mb-2">Mengirim Video...</h2>
             <p id="uploadStatusText" class="text-[11px] text-gray-500 font-medium text-center px-8">Sedang memproses dan membersihkan format agar aman di server...</p>
+        </div>
+
+        <!-- MODAL PREVIEW FOTO ABSEN -->
+        <div id="photoModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[120] hidden flex items-center justify-center p-4">
+            <div class="relative max-w-lg w-full bg-black rounded-3xl overflow-hidden shadow-2xl flex flex-col items-center">
+                <button onclick="closePhotoModal()" class="absolute top-3 right-3 w-8 h-8 bg-white/20 backdrop-blur rounded-full flex items-center justify-center text-white z-10"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <img id="modalPhotoImg" src="" class="w-full max-h-[80vh] object-contain">
+                <div class="p-3 bg-black/90 w-full text-center text-white text-xs font-bold" id="modalPhotoTitle">Foto Absen</div>
+            </div>
         </div>
 
         <!-- MODAL GANTI PASSWORD -->
@@ -255,12 +267,10 @@
         let selectedTask = null, currentSubTugas = "Utama", selectedDay = "1";
         let currentMinSec = 60, currentMaxSec = 300;
         
-        // Perekaman, Pause, & State Kamera
         let mediaStream = null, mediaRecorder = null, recordedChunks = [];
         let isRecording = false, isPaused = false, timerInterval, secondsRecorded = 0;
-        let currentFacingMode = "environment"; // Default kamera belakang
+        let currentFacingMode = "environment";
         
-        // Absensi Anggota yang punya Hak
         let fotoDatangBase64 = null, fotoPulangBase64 = null;
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -281,7 +291,7 @@
         function handleLogout() { localStorage.removeItem('userSession'); sessionStorage.removeItem('userSession'); window.location.href = 'index.html'; }
 
         function switchTab(tabKey) {
-            const tabs = ['dashboard', 'riwayat', 'absensi'];
+            const tabs = ['dashboard', 'riwayatTugas', 'riwayatLatihan', 'absensi'];
             tabs.forEach(t => {
                 const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
                 const view = document.getElementById(`view${t.charAt(0).toUpperCase() + t.slice(1)}`);
@@ -341,6 +351,7 @@
             }).join('');
         }
 
+        // --- FITUR AUTO TANGGAL HARI INI SAAT BUKA MODUL ---
         function openSetup(taskId) {
             selectedTask = activeTasks.find(t => t.taskId === taskId);
             document.getElementById('setupTipeBadge').textContent = selectedTask.tipePengumpulan;
@@ -350,13 +361,27 @@
             const sel = document.getElementById('selectHariKe');
             sel.innerHTML = '';
             
+            const todayStr = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
+            let matchFound = false;
+
             if (selectedTask.isLama) {
-                for(let i=1; i<=7; i++) sel.innerHTML += `<option value="${i}">Hari Ke-${i}</option>`;
+                for(let i=1; i<=7; i++) {
+                    sel.innerHTML += `<option value="${i}">Hari Ke-${i}</option>`;
+                }
             } else if (selectedTask.tipePengumpulan === 'Harian') {
                 const dates = selectedTask.tanggalPengerjaan.split(', ');
-                dates.forEach(d => sel.innerHTML += `<option value="${d}">${d}</option>`);
+                dates.forEach(d => {
+                    const isToday = d.trim() === todayStr;
+                    if(isToday) matchFound = true;
+                    sel.innerHTML += `<option value="${d}" ${isToday ? 'selected' : ''}>${d} ${isToday ? '(Hari Ini)' : ''}</option>`;
+                });
             } else {
                 sel.innerHTML = `<option value="${selectedTask.tanggalPengerjaan}">${selectedTask.tanggalPengerjaan.replace(' to ',' s/d ')}</option>`;
+            }
+
+            // Jika tipe harian dan hari ini tidak ada di daftar tanggal tugas, pilih opsi pertama
+            if(!matchFound && sel.options.length > 0) {
+                sel.selectedIndex = 0;
             }
 
             renderSubTasks(); 
@@ -393,7 +418,6 @@
             });
         }
 
-        // --- CAMERA, PAUSE & SWITCH KAMERA ---
         async function prepareCamera(subName, minMnt, maxMnt) {
             currentSubTugas = subName;
             currentMinSec = minMnt * 60;
@@ -407,7 +431,6 @@
             
             await startMediaStream();
             
-            // Reset Tombol Pause
             isPaused = false;
             const btnP = document.getElementById('btnPause');
             btnP.disabled = true;
@@ -462,7 +485,7 @@
                 document.getElementById('btnRecord').classList.add('recording-pulse');
                 document.getElementById('recIndicator').classList.remove('hidden');
                 document.getElementById('btnCancelCamera').classList.add('hidden');
-                document.getElementById('btnSwitchCamera').classList.add('opacity-40', 'pointer-events-none'); // Matikan tombol switch saat rekam
+                document.getElementById('btnSwitchCamera').classList.add('opacity-40', 'pointer-events-none');
                 
                 const btnP = document.getElementById('btnPause');
                 btnP.disabled = false;
@@ -597,8 +620,9 @@
             }
         }
 
-        // --- RIWAYAT & ABSENSI ---
+        // --- PENGAMBILAN DATA RIWAYAT TERPISAH ---
         function fetchRiwayatSemua() {
+            showToast("Memperbarui riwayat...", "info");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAbsensiHistory' }) })
             .then(r=>r.json()).then(d => { if(d.success && d.data.length > 0) renderRiwayatAbsen(d.data); }).catch(e=>console.error("Gagal load absen"));
 
@@ -611,31 +635,53 @@
             }).catch(e=>console.error("Gagal load nilai"));
         }
 
+        // --- RIWAYAT TUGAS & KOMENTAR PELATIH ---
         function renderRiwayatNilai(mySubs, allTasks) {
             const container = document.getElementById('riwayatNilaiContainer');
-            if(mySubs.length === 0) { container.innerHTML = `<div class="p-5 text-center text-xs text-gray-400">Belum ada tugas yang dikumpulkan.</div>`; return; }
+            if(mySubs.length === 0) { 
+                container.innerHTML = `<div class="p-8 text-center text-xs text-gray-400 bg-white rounded-3xl border">Belum ada tugas yang dikumpulkan.</div>`; 
+                return; 
+            }
 
             container.innerHTML = mySubs.map(s => {
                 const n = s.nilai;
                 const badgeColor = (n==='A')?'bg-emerald-500':(n==='B')?'bg-blue-500':(n==='C')?'bg-amber-500':(n==='D')?'bg-orange-500':(n==='E')?'bg-rose-500':'bg-gray-300';
                 const taskRef = allTasks.find(t => t.taskId === s.taskId);
-                const judul = taskRef ? taskRef.judulTugas : "Tugas";
+                const judul = taskRef ? taskRef.judulTugas : "Tugas Latihan";
+                const komentar = s.komentar ? s.komentar : "Belum ada catatan dari pelatih.";
 
                 return `
-                <div class="p-4 flex justify-between items-center bg-white hover:bg-gray-50 transition-colors">
-                    <div class="flex flex-col pr-2">
-                        <span class="text-[10px] text-gray-400 font-bold mb-0.5"><i class="fa-solid fa-clock mr-1"></i>${s.tanggal}</span>
-                        <h4 class="font-bold text-gray-800 text-xs">${judul}</h4>
-                        <span class="text-[10px] text-blue-600 font-semibold">${s.subTugasName}</span>
+                <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3">
+                    <div class="flex justify-between items-start border-b pb-3">
+                        <div class="pr-2">
+                            <span class="text-[10px] text-gray-400 font-bold block mb-0.5"><i class="fa-solid fa-clock mr-1"></i>${s.waktuKumpul || s.tanggal}</span>
+                            <h4 class="font-bold text-gray-800 text-xs">${judul}</h4>
+                            <span class="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-md inline-block mt-1">${s.subTugasName}</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <span class="text-[9px] font-bold text-gray-400 uppercase mb-1">Nilai</span>
+                            <span class="w-9 h-9 rounded-full ${badgeColor} text-white font-extrabold flex items-center justify-center text-sm shadow-sm">${n && n !== '-' ? n : '?'}</span>
+                        </div>
                     </div>
-                    <div class="flex flex-col items-center ml-2 border-l border-gray-100 pl-4">
-                        <span class="text-[9px] font-bold text-gray-400 uppercase mb-1">Nilai</span>
-                        <span class="w-8 h-8 rounded-full ${badgeColor} text-white font-extrabold flex items-center justify-center text-sm shadow-sm">${n && n !== '-' ? n : '?'}</span>
+                    
+                    <div class="bg-amber-50/60 border border-amber-100 p-2.5 rounded-2xl text-[11px] text-gray-700">
+                        <span class="font-bold text-amber-800 block mb-0.5"><i class="fa-solid fa-comment-dots mr-1"></i> Catatan Perbaikan:</span>
+                        <p class="italic text-gray-600">${komentar}</p>
+                    </div>
+
+                    <div class="flex gap-2 pt-1">
+                        <a href="${s.linkVideo}" target="_blank" class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-2 rounded-xl text-center text-xs flex items-center justify-center gap-1.5 transition-colors">
+                            <i class="fa-solid fa-play"></i> Tonton
+                        </a>
+                        <a href="${s.linkVideo}" download target="_blank" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 py-2 rounded-xl text-center text-xs flex items-center justify-center gap-1.5 transition-colors">
+                            <i class="fa-solid fa-download"></i>
+                        </a>
                     </div>
                 </div>`;
             }).join('');
         }
 
+        // --- RIWAYAT LATIHAN & FOTO ABSEN (BISA DIKLIK) ---
         function renderRiwayatAbsen(data) {
             const dates = data[0].slice(3);
             let stat = { Hadir: 0, Izin: 0, Sakit: 0, Alpa: 0 };
@@ -687,19 +733,31 @@
 
             container.innerHTML = myHistory.reverse().map(h => {
                 const badgeClass = h.statusKu==='Hadir'?'bg-emerald-50 text-emerald-600':h.statusKu==='Alpa'?'bg-rose-50 text-rose-600':'bg-amber-50 text-amber-600';
-                const btnDatang = h.linkDatang ? `<a href="${h.linkDatang}" target="_blank" class="px-2 py-1.5 bg-blue-50 text-blue-600 rounded-lg flex-1 text-center font-bold hover:bg-blue-100"><i class="fa-solid fa-download mr-1"></i> Datang</a>` : '';
-                const btnPulang = h.linkPulang ? `<a href="${h.linkPulang}" target="_blank" class="px-2 py-1.5 bg-blue-50 text-blue-600 rounded-lg flex-1 text-center font-bold hover:bg-blue-100"><i class="fa-solid fa-download mr-1"></i> Pulang</a>` : '';
+                
+                const btnDatang = h.linkDatang ? `<button onclick="openPhotoModal('${h.linkDatang}', 'Foto Datang - ${h.tgl}')" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-xl flex-1 text-center font-bold hover:bg-blue-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-image"></i> Lihat Datang</button>` : '';
+                const btnPulang = h.linkPulang ? `<button onclick="openPhotoModal('${h.linkPulang}', 'Foto Pulang - ${h.tgl}')" class="px-3 py-2 bg-emerald-50 text-emerald-600 rounded-xl flex-1 text-center font-bold hover:bg-emerald-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-image"></i> Lihat Pulang</button>` : '';
                 
                 return `
                 <div class="p-4 flex flex-col gap-2">
                     <div class="flex justify-between items-center">
                         <h4 class="font-bold text-gray-800 text-xs"><i class="fa-regular fa-calendar text-blue-500 mr-1"></i> ${h.tgl}</h4>
-                        <span class="px-2 py-1 rounded-full text-[10px] font-bold ${badgeClass}">${h.statusKu}</span>
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${badgeClass}">${h.statusKu}</span>
                     </div>
-                    <p class="text-[10px] text-gray-500 leading-snug bg-gray-50 p-2 rounded"><span class="font-bold text-gray-700">Materi:</span> ${h.materi}</p>
+                    <p class="text-[10px] text-gray-500 leading-snug bg-gray-50 p-2.5 rounded-xl"><span class="font-bold text-gray-700">Materi:</span> ${h.materi}</p>
                     <div class="flex gap-2 text-[10px] mt-1">${btnDatang}${btnPulang}</div>
                 </div>`;
             }).join('');
+        }
+
+        // --- MODAL PREVIEW FOTO ---
+        function openPhotoModal(url, title) {
+            document.getElementById('modalPhotoImg').src = url;
+            document.getElementById('modalPhotoTitle').textContent = title;
+            document.getElementById('photoModal').classList.remove('hidden');
+        }
+        function closePhotoModal() {
+            document.getElementById('photoModal').classList.add('hidden');
+            document.getElementById('modalPhotoImg').src = '';
         }
 
         function loadAbsensiData() {
