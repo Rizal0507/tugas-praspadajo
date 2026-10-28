@@ -15,7 +15,7 @@
                 const sessionRaw = localStorage.getItem('userSession') || sessionStorage.getItem('userSession');
                 if (!sessionRaw) { window.location.href = 'index.html'; return; }
                 const session = JSON.parse(sessionRaw);
-                if (!session || (session.role !== 'Anggota' && session.role !== 'Pengurus')) window.location.href = 'index.html';
+                if (!session || session.role !== 'Anggota') window.location.href = 'index.html';
             } catch (e) { window.location.href = 'index.html'; }
         })();
     </script>
@@ -78,8 +78,6 @@
 
         <!-- VIEW 2: RIWAYAT & GRAFIK (GABUNGAN) -->
         <main id="viewRiwayat" class="hidden flex-grow bg-gray-50 flex-col relative z-10 overflow-y-auto custom-scroll p-5 gap-5">
-            
-            <!-- SEKSI 1: NILAI TUGAS (BARU) -->
             <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                 <h3 class="font-bold text-gray-800 text-sm p-4 border-b flex items-center gap-2"><i class="fa-solid fa-medal text-amber-500"></i> Riwayat & Nilai Tugas</h3>
                 <div id="riwayatNilaiContainer" class="flex flex-col divide-y divide-gray-100 max-h-60 overflow-y-auto custom-scroll">
@@ -87,7 +85,6 @@
                 </div>
             </div>
 
-            <!-- SEKSI 2: GRAFIK & ABSENSI (LAMA) -->
             <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3">
                 <h3 class="font-bold text-gray-800 text-sm border-b pb-2 flex items-center gap-2"><i class="fa-solid fa-chart-pie text-blue-500"></i> Statistik Kehadiran</h3>
                 <div class="flex justify-between text-[10px] font-bold text-gray-500 text-center mt-2">
@@ -112,7 +109,7 @@
             </div>
         </main>
 
-        <!-- VIEW 3: ABSENSI PENGURUS -->
+        <!-- VIEW 3: ABSENSI (HANYA BAGI YANG PUNYA HAK) -->
         <main id="viewAbsensi" class="hidden flex-grow bg-gray-50 flex-col relative z-10 overflow-y-auto custom-scroll p-5">
             <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-4">
                 <div class="flex justify-between items-center border-b pb-3">
@@ -138,7 +135,6 @@
                     </div>
                     <button type="button" onclick="loadAbsensiData()" class="text-[11px] text-blue-600 font-bold bg-blue-50 py-2 rounded-lg border border-blue-100"><i class="fa-solid fa-cloud-arrow-down mr-1"></i> Load Data Anggota</button>
 
-                    <!-- Foto Datang & Pulang -->
                     <div class="grid grid-cols-2 gap-2">
                         <div class="bg-gray-50 border border-dashed border-gray-300 p-2 rounded-xl text-center relative group">
                             <div id="fotoDatangPreviewContainer" class="hidden mb-2 relative aspect-video w-full bg-black rounded-lg overflow-hidden">
@@ -168,7 +164,7 @@
             </div>
         </main>
 
-        <!-- VIEW SETUP & SUB-TUGAS BERTUMPUK -->
+        <!-- VIEW SETUP & SUB-TUGAS -->
         <div id="viewSetup" class="fixed inset-0 sm:absolute bg-black/80 backdrop-blur-sm z-40 hidden flex-col justify-end pointer-events-auto">
             <div class="bg-white w-full rounded-t-[2.5rem] p-6 pt-8 pb-10 flex flex-col">
                 <div class="flex justify-between items-start mb-4">
@@ -180,19 +176,13 @@
                 </div>
                 
                 <p id="setupTaskDesc" class="text-xs text-gray-500 mb-4 bg-gray-50 p-3 rounded-xl border border-gray-100 max-h-24 overflow-y-auto custom-scroll"></p>
-
                 <label class="text-xs font-bold text-gray-600 uppercase mb-2">Pilih Tanggal / Waktu Pengumpulan</label>
-                <select id="selectHariKe" onchange="renderSubTasks()" class="w-full px-4 py-3 bg-gray-50 text-sm font-semibold rounded-2xl border border-gray-200 outline-none focus:border-blue-500 mb-4 shadow-inner">
-                    <!-- Otomatis diisi oleh JS sesuai Tipe Tugas -->
-                </select>
-
-                <div id="subTasksContainer" class="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scroll">
-                    <!-- Tombol Sub-Tugas Dirender Disini -->
-                </div>
+                <select id="selectHariKe" onchange="renderSubTasks()" class="w-full px-4 py-3 bg-gray-50 text-sm font-semibold rounded-2xl border border-gray-200 outline-none focus:border-blue-500 mb-4 shadow-inner"></select>
+                <div id="subTasksContainer" class="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scroll"></div>
             </div>
         </div>
 
-        <!-- VIEW KAMERA (Perekaman) -->
+        <!-- VIEW KAMERA DENGAN TOMBOL PAUSE -->
         <div id="viewCamera" class="fixed inset-0 sm:absolute bg-black z-50 hidden flex-col pointer-events-auto">
             <div class="absolute top-0 left-0 w-full h-1.5 bg-gray-800 z-30">
                 <div id="videoProgressBar" class="h-full bg-rose-500 transition-all duration-1000" style="width: 0%;"></div>
@@ -202,6 +192,7 @@
                 <div class="bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 flex items-center gap-2 shadow-lg">
                     <div id="recIndicator" class="w-2.5 h-2.5 rounded-full bg-rose-500 hidden animate-pulse"></div>
                     <span id="timerDisplay" class="text-white font-mono font-bold text-sm tracking-wider">00:00</span>
+                    <span id="pauseStatusBadge" class="text-[9px] font-bold text-yellow-300 uppercase hidden ml-1 bg-yellow-900/50 px-1.5 py-0.5 rounded">PAUSED</span>
                 </div>
             </div>
             
@@ -209,10 +200,17 @@
             
             <div class="absolute top-20 left-4 right-4 bg-yellow-500/90 backdrop-blur text-black text-[10px] font-bold px-3 py-2 rounded-xl text-center shadow-lg border border-yellow-300">
                 <span class="block text-[9px] uppercase text-yellow-800">Target Waktu: <span id="kameraTarget" class="font-black"></span></span>
-                <i class="fa-solid fa-triangle-exclamation mr-1 mt-1"></i> <span id="kameraSubName" class="font-extrabold"></span>. Jangan keluar aplikasi saat merekam!
+                <i class="fa-solid fa-triangle-exclamation mr-1 mt-1"></i> <span id="kameraSubName" class="font-extrabold"></span>.
             </div>
             
-            <div class="absolute bottom-0 left-0 w-full pb-10 pt-16 flex items-center justify-center gap-8 bg-gradient-to-t from-black/80 to-transparent z-20">
+            <!-- KONTROL REKAM & PAUSE -->
+            <div class="absolute bottom-0 left-0 w-full pb-10 pt-16 flex items-center justify-center gap-6 bg-gradient-to-t from-black/80 to-transparent z-20">
+                <!-- Tombol Pause -->
+                <button id="btnPause" onclick="togglePauseRecording()" disabled class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white text-sm opacity-40 cursor-not-allowed active:scale-95 transition-all" title="Jeda Perekaman">
+                    <i id="pauseIcon" class="fa-solid fa-pause"></i>
+                </button>
+
+                <!-- Tombol Rekam / Stop -->
                 <button id="btnRecord" onclick="toggleRecording()" class="relative w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-[0_0_0_4px_rgba(255,255,255,0.3)] transition-all">
                     <div id="btnRecordInner" class="w-14 h-14 bg-rose-500 rounded-full transition-all duration-300"></div>
                 </button>
@@ -226,7 +224,7 @@
                 <div class="absolute inset-0 flex items-center justify-center"><i class="fa-solid fa-cloud-arrow-up text-4xl text-blue-600"></i></div>
             </div>
             <h2 class="text-xl font-bold text-gray-800 mb-2">Mengirim Video...</h2>
-            <p class="text-[11px] text-gray-500 font-medium text-center px-8">Sedang memproses dan membersihkan format agar aman di server...</p>
+            <p id="uploadStatusText" class="text-[11px] text-gray-500 font-medium text-center px-8">Sedang memproses dan membersihkan format agar aman di server...</p>
         </div>
 
         <!-- MODAL GANTI PASSWORD -->
@@ -252,20 +250,21 @@
         let selectedTask = null, currentSubTugas = "Utama", selectedDay = "1";
         let currentMinSec = 60, currentMaxSec = 300;
         
-        // Perekaman
+        // Perekaman & Pause
         let mediaStream = null, mediaRecorder = null, recordedChunks = [];
-        let isRecording = false, timerInterval, secondsRecorded = 0;
+        let isRecording = false, isPaused = false, timerInterval, secondsRecorded = 0;
         
-        // Absensi Pengurus
+        // Absensi Anggota yang punya Hak
         let fotoDatangBase64 = null, fotoPulangBase64 = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('userNameDisplay').textContent = user.nama;
             document.getElementById('userClassDisplay').textContent = `Kelas ${user.kelas}`;
             
-            if(user.role === 'Pengurus') {
-                document.getElementById('roleBadge').textContent = "PENGURUS AKTIF";
-                document.getElementById('roleBadge').className = "bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200 w-max";
+            // Cek Hak Absen dari Session yang disimpan Backend saat Login
+            if(user.hakAbsen) {
+                document.getElementById('roleBadge').textContent = "ANGGOTA (HAK ABSEN AKTIF)";
+                document.getElementById('roleBadge').className = "bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200 w-max";
                 document.getElementById('tabBtnAbsensi').classList.remove('hidden');
                 document.getElementById('absensiDate').value = new Date().toISOString().split('T')[0];
             }
@@ -294,7 +293,6 @@
             });
         }
 
-        // --- TUGAS & TUGAS BERTUMPUK (MENDUKUNG FORMAT BARU) ---
         function fetchTasks() {
             const container = document.getElementById('taskListContainer');
             container.innerHTML = `<div class="py-10 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-spinner animate-spin text-3xl text-blue-600 mb-3"></i><p class="text-xs font-semibold text-gray-500">Memuat tugas...</p></div>`;
@@ -316,7 +314,6 @@
                 const isBertumpuk = t.subTugas && t.subTugas.length > 1;
                 const subTeks = isBertumpuk ? `<p class="text-[9px] font-bold text-amber-600 mt-1"><i class="fa-solid fa-layer-group mr-1"></i>Multitask (${t.subTugas.length} Gerakan)</p>` : '';
                 
-                // Tampilan Label Tanggal
                 let labelTanggal = "";
                 if(isLama) labelTanggal = "Sistem Lama";
                 else if (t.tipePengumpulan === "Satu Kali") labelTanggal = `Deadline: ${t.tanggalPengerjaan.replace(' to ', ' s/d ')}`;
@@ -345,7 +342,6 @@
             document.getElementById('setupTaskTitle').textContent = selectedTask.judulTugas;
             document.getElementById('setupTaskDesc').textContent = selectedTask.instruksi;
             
-            // Logika Penentuan Isi Dropdown (Hari / Tanggal)
             const sel = document.getElementById('selectHariKe');
             sel.innerHTML = '';
             
@@ -369,9 +365,7 @@
             const container = document.getElementById('subTasksContainer');
             container.innerHTML = '';
 
-            const subTugasArr = selectedTask.subTugas;
-            
-            subTugasArr.forEach(sub => {
+            selectedTask.subTugas.forEach(sub => {
                 const key = `${selectedTask.taskId}_${selectedDay}_${sub.nama}`;
                 const isDone = userSubs[key]; 
                 
@@ -394,7 +388,7 @@
             });
         }
 
-        // --- CAMERA DENGAN DURASI DINAMIS & BYPASS CORS ---
+        // --- CAMERA DENGAN FITUR PAUSE ---
         async function prepareCamera(subName, minMnt, maxMnt) {
             currentSubTugas = subName;
             currentMinSec = minMnt * 60;
@@ -407,13 +401,20 @@
             document.getElementById('viewCamera').classList.remove('hidden'); document.getElementById('viewCamera').classList.add('flex');
             
             try {
-                // Turunkan resolusi agar ringan
                 const constraints = { audio: true, video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "environment" } };
                 mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
                 const videoEl = document.getElementById('videoPreview'); videoEl.srcObject = mediaStream; videoEl.muted = true;
                 
                 document.getElementById('videoProgressBar').style.width = '0%'; 
                 document.getElementById('videoProgressBar').className = "h-full bg-rose-500 transition-all duration-1000";
+                
+                // Reset Tombol Pause
+                isPaused = false;
+                const btnP = document.getElementById('btnPause');
+                btnP.disabled = true;
+                btnP.className = "w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white text-sm opacity-40 cursor-not-allowed active:scale-95 transition-all";
+                document.getElementById('pauseIcon').className = "fa-solid fa-pause";
+                document.getElementById('pauseStatusBadge').classList.add('hidden');
             } catch (err) { abortRecording(); showToast("Gagal akses kamera", "error"); }
         }
 
@@ -422,27 +423,58 @@
         function startRecording() {
             if (!mediaStream) return; recordedChunks = [];
             try {
-                // Kompresi Bitrate VP8 agar ukuran Base64 masuk akal
                 let options = { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 500000 };
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/mp4' }; // Fallback iOS
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/mp4' };
                 
                 mediaRecorder = new MediaRecorder(mediaStream, options);
                 mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
                 mediaRecorder.onstop = processUploadBase64;
                 
-                mediaRecorder.start(); isRecording = true;
+                mediaRecorder.start(); isRecording = true; isPaused = false;
                 
                 document.getElementById('btnRecordInner').className = "w-8 h-8 bg-rose-500 rounded-xl transition-all duration-300";
                 document.getElementById('btnRecord').classList.add('recording-pulse');
                 document.getElementById('recIndicator').classList.remove('hidden');
                 document.getElementById('btnCancelCamera').classList.add('hidden');
+                
+                // Aktifkan Tombol Pause
+                const btnP = document.getElementById('btnPause');
+                btnP.disabled = false;
+                btnP.className = "w-12 h-12 bg-white text-gray-800 rounded-full flex items-center justify-center text-sm shadow-lg active:scale-95 transition-all";
+
                 startTimer();
             } catch (e) { abortRecording(); showToast("Error Perekaman", "error"); }
         }
 
+        // FITUR BARU: Pause / Resume Rekaman
+        function togglePauseRecording() {
+            if (!mediaRecorder || !isRecording) return;
+            const btnP = document.getElementById('btnPause');
+            const pIcon = document.getElementById('pauseIcon');
+            const pBadge = document.getElementById('pauseStatusBadge');
+
+            if (!isPaused) {
+                mediaRecorder.pause();
+                isPaused = true;
+                clearInterval(timerInterval);
+                pIcon.className = "fa-solid fa-play";
+                btnP.className = "w-12 h-12 bg-yellow-500 text-black rounded-full flex items-center justify-center text-sm shadow-lg active:scale-95 transition-all animate-pulse";
+                pBadge.classList.remove('hidden');
+                showToast("Perekaman dijeda", "info");
+            } else {
+                mediaRecorder.resume();
+                isPaused = false;
+                startTimer();
+                pIcon.className = "fa-solid fa-pause";
+                btnP.className = "w-12 h-12 bg-white text-gray-800 rounded-full flex items-center justify-center text-sm shadow-lg active:scale-95 transition-all";
+                pBadge.classList.add('hidden');
+                showToast("Perekaman dilanjutkan", "info");
+            }
+        }
+
         function stopRecording(isAborted = false) {
             if (mediaRecorder && mediaRecorder.state !== 'inactive') { if (isAborted) { mediaRecorder.onstop = null; recordedChunks = []; } mediaRecorder.stop(); }
-            isRecording = false; stopTimer(); 
+            isRecording = false; isPaused = false; stopTimer(); 
             if(mediaStream) { mediaStream.getTracks().forEach(t=>t.stop()); mediaStream = null; document.getElementById('videoPreview').srcObject = null; }
             
             document.getElementById('viewCamera').classList.add('hidden'); document.getElementById('viewCamera').classList.remove('flex');
@@ -450,13 +482,20 @@
             document.getElementById('btnRecord').classList.remove('recording-pulse');
             document.getElementById('recIndicator').classList.add('hidden');
             document.getElementById('btnCancelCamera').classList.remove('hidden');
+            document.getElementById('pauseStatusBadge').classList.add('hidden');
         }
 
         function abortRecording() { stopRecording(true); showToast("Dibatalkan", "info"); }
 
         function startTimer() {
-            secondsRecorded = 0; updateTimerDisplay();
-            timerInterval = setInterval(() => { secondsRecorded++; updateTimerDisplay(); }, 1000);
+            secondsRecorded = secondsRecorded || 0; 
+            updateTimerDisplay();
+            timerInterval = setInterval(() => { 
+                if(!isPaused) {
+                    secondsRecorded++; 
+                    updateTimerDisplay(); 
+                }
+            }, 1000);
         }
         function stopTimer() { clearInterval(timerInterval); document.getElementById('timerDisplay').textContent = "00:00"; }
         
@@ -473,7 +512,6 @@
             if(secondsRecorded < currentMinSec) { pb.classList.remove('bg-emerald-500'); pb.classList.add('bg-rose-500'); } 
             else { pb.classList.remove('bg-rose-500'); pb.classList.add('bg-emerald-500'); }
             
-            // Paksa berhenti jika sudah lewat batas max
             if(secondsRecorded >= currentMaxSec && isRecording) { 
                 stopRecording(false); 
                 showToast("Batas maksimal tercapai.", "info"); 
@@ -494,6 +532,7 @@
             const filename = `Tugas_${cleanName}_${cleanSub}_${Date.now()}${ext}`;
 
             const viewUp = document.getElementById('viewUploading');
+            document.getElementById('uploadStatusText').textContent = "Sedang memproses dan membersihkan format agar aman di server...";
             viewUp.classList.remove('hidden'); viewUp.classList.add('flex');
 
             const reader = new FileReader();
@@ -509,8 +548,8 @@
                         taskId: selectedTask.taskId,
                         subId: 'SUB_' + Date.now(),
                         namaAnggota: user.nama,
-                        tanggal: selectedDay,      // Dikirim sbg tanggal (baru)
-                        hariKe: selectedDay,       // Dikirim juga sbg fallback (lama)
+                        tanggal: selectedDay,
+                        hariKe: selectedDay,
                         subTugasName: currentSubTugas,
                         filename: filename,
                         mimeType: blob.type,
@@ -521,22 +560,23 @@
                     if (d.success) { 
                         showToast("Video Terkirim!", "success");
                         userSubs[`${selectedTask.taskId}_${selectedDay}_${currentSubTugas}`] = true;
-                        fetchRiwayatSemua(); // Refresh nilai/riwayat
-                    } else showToast(d.message, "error");
+                        fetchRiwayatSemua();
+                    } else {
+                        // Tampilkan pesan error detail dari backend jika gagal
+                        showToast("Gagal: " + d.message, "error");
+                    }
                 }).catch(err => {
                     viewUp.classList.add('hidden'); viewUp.classList.remove('flex');
-                    showToast("Gagal mengirim data.", "error");
+                    showToast("Gagal mengirim data (Koneksi Terputus/File Terlalu Besar).", "error");
                 });
             }
         }
 
-        // --- RIWAYAT GABUNGAN (ABSENSI & NILAI TUGAS) ---
+        // --- RIWAYAT & ABSENSI ---
         function fetchRiwayatSemua() {
-            // 1. Ambil History Absensi (Fitur Lama)
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAbsensiHistory' }) })
             .then(r=>r.json()).then(d => { if(d.success && d.data.length > 0) renderRiwayatAbsen(d.data); }).catch(e=>console.error("Gagal load absen"));
 
-            // 2. Ambil Nilai Tugas (A-E) dengan pinjam fungsi getDashboardData (Hanya filter nama kita)
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getDashboardData' }) })
             .then(r=>r.json()).then(d => { 
                 if(d.success) {
@@ -572,7 +612,7 @@
         }
 
         function renderRiwayatAbsen(data) {
-            const dates = data[0].slice(3); // Tanggal dari index 3
+            const dates = data[0].slice(3);
             let stat = { Hadir: 0, Izin: 0, Sakit: 0, Alpa: 0 };
             const myHistory = [];
 
@@ -637,7 +677,6 @@
             }).join('');
         }
 
-        // --- ABSENSI PENGURUS (TETAP UTUH) ---
         function loadAbsensiData() {
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAbsensiData' }) }).then(r=>r.json()).then(d=>{
                 if(d.success) {
@@ -682,7 +721,6 @@
             .then(r=>r.json()).then(d=>{ showLoading(false); if(d.success){ showToast(d.message, "success"); removePhoto('Datang'); removePhoto('Pulang'); document.getElementById('materiLatihan').value=''; } else showToast(d.message, "error"); }).catch(e=>{showLoading(false); showToast("Error koneksi", "error");});
         });
 
-        // --- GANTI PASSWORD & TOAST ---
         function openPasswordModal() { document.getElementById('passwordModal').classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.remove('scale-95'); }
         function closePasswordModal() { document.getElementById('passwordModal').classList.add('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.add('scale-95'); }
         document.getElementById('formGantiPassword').addEventListener('submit', (e) => { e.preventDefault(); showLoading(true, "Verifikasi..."); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'gantiPassword', username: user.username, oldPassword: document.getElementById('oldPass').value, newPassword: document.getElementById('newPass').value })}).then(r=>r.json()).then(d=>{ showLoading(false); if(d.success) { showToast("Password diganti", "success"); closePasswordModal(); } else showToast(d.message, "error"); }).catch(e=>showLoading(false)); });
