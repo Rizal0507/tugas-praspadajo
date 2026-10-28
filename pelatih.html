@@ -8,15 +8,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Flatpickr (Kalender Multi-Tanggal) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script>
-
-    <!-- SortableJS untuk Fitur Drag & Drop -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-
     <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }</script>
     <script>
         (function checkAuth() {
@@ -34,32 +29,22 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        
         .comment-box-anim { transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, margin 0.3s ease-in-out; max-height: 0; opacity: 0; overflow: hidden; }
         .comment-box-anim.open { max-height: 150px; opacity: 1; margin-top: 0.5rem; overflow: visible; }
-        
         .drag-handle { cursor: grab; }
         .drag-handle:active { cursor: grabbing; }
         .sortable-ghost { opacity: 0.4; background-color: #eff6ff !important; border: 2px dashed #3b82f6 !important; }
-        
         .form-locked { opacity: 0.6; pointer-events: none; }
-
-        /* Sidebar Animation */
         .sidebar-open { transform: translateX(0) !important; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans text-gray-800 antialiased flex flex-col items-center relative">
 
-    <!-- Backdrop untuk Mobile Sidebar -->
     <div id="sidebarBackdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] hidden md:hidden transition-opacity"></div>
 
-    <!-- Main Wrapper -->
     <div class="w-full max-w-6xl mx-auto bg-white min-h-screen sm:min-h-[850px] sm:my-6 sm:rounded-[2.5rem] sm:shadow-2xl flex flex-col md:flex-row overflow-hidden relative">
-        
-        <!-- SIDEBAR (Off-canvas di Mobile) -->
+
         <aside id="sidebar" class="fixed md:relative inset-y-0 left-0 z-[90] w-64 bg-white border-r border-gray-100 flex-shrink-0 flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out h-full md:h-auto">
-            
-            <!-- HEADER -->
             <header class="bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 text-white px-5 pt-5 pb-6 relative overflow-hidden flex-none md:rounded-tr-[2.5rem]">
                 <div class="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
                 <div class="relative z-10 flex items-center gap-3">
@@ -71,7 +56,6 @@
                         <h1 class="text-base font-extrabold tracking-tight leading-tight">PRASPADAJO</h1>
                     </div>
                 </div>
-                
                 <div class="mt-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 relative z-10 shadow-inner flex items-center justify-between">
                     <div>
                         <p class="text-[9px] text-blue-100 font-medium uppercase tracking-wider mb-0.5">Login Sebagai,</p>
@@ -84,7 +68,6 @@
                 </div>
             </header>
 
-            <!-- MENU NAVIGATION -->
             <nav class="flex flex-col p-3 gap-1 overflow-y-auto custom-scroll bg-gray-50 md:bg-white flex-grow">
                 <button onclick="switchTab('monitoring')" id="tabBtnMonitoring" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold bg-blue-600 text-white flex items-center gap-2 transition-colors">
                     <i class="fa-solid fa-chart-pie w-4 text-center"></i> <span>Monitoring</span>
@@ -97,10 +80,8 @@
             </nav>
         </aside>
 
-        <!-- MAIN CONTENT -->
         <main class="flex-grow p-4 sm:p-6 bg-gray-50 flex flex-col h-screen md:h-[850px] overflow-y-auto custom-scroll relative w-full">
-            
-            <!-- MOBILE HEADER (Hanya muncul di HP) -->
+
             <div class="md:hidden flex items-center justify-between bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100 flex-none">
                 <div class="flex items-center gap-2">
                     <button onclick="toggleSidebar()" class="bg-blue-50 text-blue-600 p-2 rounded-lg"><i class="fa-solid fa-bars"></i></button>
@@ -109,9 +90,7 @@
                 <img src="./logo.png" alt="Logo" class="h-6 w-auto object-contain" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-blue-600\'></i>';">
             </div>
 
-            <!-- TAB: MONITORING -->
             <section id="viewMonitoring" class="tab-view flex flex-col gap-5">
-                <!-- FILTER CERDAS -->
                 <div class="bg-white p-4 sm:p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3">
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
@@ -136,7 +115,6 @@
                     </div>
                 </div>
 
-                <!-- NOTIFIKASI BELUM DINILAI -->
                 <div id="notifUngraded" class="hidden bg-amber-50 border border-amber-200 p-3 rounded-2xl flex items-center justify-between gap-3">
                     <div class="flex items-center gap-2 text-xs font-bold text-amber-800">
                         <span class="w-7 h-7 bg-amber-100 rounded-full flex items-center justify-center flex-none"><i class="fa-solid fa-bell animate-pulse"></i></span>
@@ -149,7 +127,6 @@
                     <div class="p-4 border-b flex justify-between items-center gap-3">
                         <h3 class="font-bold text-gray-800 text-sm">Status Pengumpulan & Penilaian</h3>
                     </div>
-                    
                     <div class="overflow-x-auto overflow-y-auto max-h-[500px] custom-scroll">
                         <table class="w-full text-left border-collapse min-w-[760px]">
                             <thead class="bg-gray-50 text-gray-400 uppercase text-[10px] font-bold border-b sticky top-0 z-10 shadow-sm">
@@ -167,7 +144,6 @@
                 </div>
             </section>
 
-            <!-- TAB: BUAT / EDIT TUGAS -->
             <section id="viewBuatTugas" class="tab-view hidden flex-col gap-5 w-full">
                 <div class="bg-white p-5 sm:p-6 rounded-3xl border border-gray-100 shadow-sm relative">
                     <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
@@ -185,7 +161,7 @@
                             <label class="text-xs font-bold text-gray-600 uppercase mb-1 block">Instruksi</label>
                             <textarea id="taskDesc" rows="2" required class="w-full px-4 py-2 bg-gray-50 border rounded-xl text-sm outline-none focus:border-blue-500"></textarea>
                         </div>
-                        
+
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-blue-50 p-4 rounded-xl border border-blue-100">
                             <div>
                                 <label class="text-xs font-bold text-blue-800 uppercase mb-1 block">Tipe Pengumpulan</label>
@@ -201,20 +177,17 @@
                             </div>
                         </div>
 
-                        <!-- SUB TUGAS DENGAN DRAG & DROP -->
                         <div class="border border-gray-200 rounded-xl overflow-hidden">
                             <div class="bg-gray-50 p-3 border-b flex justify-between items-center">
                                 <label class="text-xs font-bold text-gray-600 uppercase flex items-center gap-2">
-                                    Daftar Gerakan 
-                                    <span class="text-[9px] font-normal text-gray-400 normal-case hidden sm:inline">(Geser ikon untuk ubah urutan)</span>
+                                    Daftar Gerakan
+                                    <span class="text-[9px] font-normal text-gray-400 normal-case hidden sm:inline">(Geser ikon untuk ubah urutan · Ikon 🥁 = metronome)</span>
                                 </label>
                                 <button type="button" onclick="addSubTaskRow()" class="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-blue-200">+ Tambah</button>
                             </div>
-                            <div id="subTaskDynamicContainer" class="p-3 flex flex-col gap-2 bg-white">
-                                <!-- Baris Sub Tugas -->
-                            </div>
+                            <div id="subTaskDynamicContainer" class="p-3 flex flex-col gap-2 bg-white"></div>
                         </div>
-                        
+
                         <div class="bg-gray-50 p-3 rounded-xl border border-gray-200">
                             <label class="text-xs font-bold text-gray-600 uppercase mb-2 block flex justify-between">Target Anggota <span class="text-[10px] text-blue-600 font-normal cursor-pointer" onclick="toggleAllTarget(true)">Pilih Semua</span></label>
                             <div id="targetAnggotaCheckboxes" class="custom-scroll max-h-24 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] font-semibold text-gray-700"></div>
@@ -224,7 +197,6 @@
                     </form>
                 </div>
 
-                <!-- DAFTAR TUGAS AKTIF -->
                 <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
                     <h3 class="p-4 border-b font-bold text-gray-800 text-sm">Daftar Tugas Aktif</h3>
                     <div class="overflow-x-auto max-h-60 overflow-y-auto custom-scroll">
@@ -238,14 +210,12 @@
                 </div>
             </section>
 
-            <!-- TAB: ABSENSI HARIAN (INPUT) -->
             <section id="viewAbsensi" class="tab-view hidden flex-col gap-5">
                 <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-4">
                     <div class="flex justify-between items-center border-b pb-3">
                         <h2 class="font-bold text-gray-800 text-sm">Input Absensi Harian</h2>
                         <input type="date" id="absensiDate" onchange="checkTodayAbsensiStatus()" class="px-2 py-1 bg-gray-50 border rounded-lg text-xs font-bold text-blue-600 outline-none disabled:opacity-50">
                     </div>
-                    
                     <form id="formAbsensi" class="flex flex-col gap-4">
                         <div class="overflow-x-auto max-h-[300px] overflow-y-auto custom-scroll border rounded-xl">
                             <table class="w-full text-left border-collapse">
@@ -259,7 +229,6 @@
                         </div>
                         <button type="button" onclick="renderAbsensiTable()" class="text-[11px] text-blue-600 font-bold bg-blue-50 py-2 rounded-lg border border-blue-100"><i class="fa-solid fa-cloud-arrow-down mr-1"></i> Load Data Anggota</button>
 
-                        <!-- FORM MATERI & EVALUASI -->
                         <div id="formMateriEval" class="hidden flex-col gap-3 bg-blue-50/50 p-3 rounded-xl border border-blue-100">
                             <div>
                                 <label class="text-[10px] font-bold text-gray-600 uppercase mb-1 block">Materi Latihan</label>
@@ -271,9 +240,7 @@
                             </div>
                         </div>
 
-                        <!-- KOTAK FOTO DATANG & PULANG -->
                         <div class="grid grid-cols-2 gap-2 mt-2">
-                            <!-- Foto Datang -->
                             <div id="boxDatang" class="bg-gray-50 border border-dashed border-gray-300 p-2 rounded-xl text-center relative h-full flex flex-col justify-center transition-all">
                                 <div id="fotoDatangPreviewContainer" class="hidden mb-2 relative aspect-video w-full bg-black rounded-lg overflow-hidden">
                                     <img id="fotoDatangPreview" src="" class="w-full h-full object-cover">
@@ -288,8 +255,6 @@
                                     <span class="text-[8px] text-gray-400 font-normal mt-1">(Bisa diperbarui sebelum pulang)</span>
                                 </div>
                             </div>
-
-                            <!-- Foto Pulang -->
                             <div id="boxPulang" class="bg-gray-50 border border-dashed border-gray-300 p-2 rounded-xl text-center relative h-full flex flex-col justify-center opacity-50 cursor-not-allowed transition-all">
                                 <div id="fotoPulangPreviewContainer" class="hidden mb-2 relative aspect-video w-full bg-black rounded-lg overflow-hidden">
                                     <img id="fotoPulangPreview" src="" class="w-full h-full object-cover">
@@ -304,20 +269,18 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <button type="submit" id="btnSimpanAbsen" class="hidden w-full bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 text-sm mt-2"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Absensi</button>
                     </form>
                 </div>
             </section>
 
-            <!-- TAB: RIWAYAT ABSENSI -->
             <section id="viewRiwayatAbsensi" class="tab-view hidden flex-col gap-5">
                 <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-4">
                     <div class="flex justify-between items-center border-b pb-3">
                         <h2 class="font-bold text-gray-800 text-base">Riwayat Latihan & Absensi</h2>
                         <select id="riwayatDateSelect" onchange="showRiwayatDetail()" class="px-3 py-1.5 bg-gray-50 border rounded-xl text-xs font-bold text-blue-600 outline-none"></select>
                     </div>
-                    
                     <div id="riwayatDetailContainer" class="hidden flex-col gap-4">
                         <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl">
                             <span class="text-[10px] font-bold text-blue-500 uppercase tracking-wider block mb-1">Materi Latihan</span>
@@ -325,7 +288,6 @@
                             <span class="text-[10px] font-bold text-amber-600 uppercase tracking-wider block mt-3 mb-1">Evaluasi Latihan</span>
                             <p id="riwayatEvaluasi" class="text-xs font-semibold text-gray-800"></p>
                         </div>
-                        
                         <div class="grid grid-cols-2 gap-4">
                             <div class="bg-gray-100 p-2 rounded-xl text-center border">
                                 <span class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Foto Datang</span>
@@ -336,7 +298,6 @@
                                 <img id="riwayatFotoPulang" src="" alt="Tidak ada" class="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 bg-gray-200" onclick="window.open(this.src, '_blank')">
                             </div>
                         </div>
-
                         <div class="overflow-x-auto max-h-64 overflow-y-auto custom-scroll border rounded-xl">
                             <table class="w-full text-left border-collapse text-xs">
                                 <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold sticky top-0">
@@ -350,7 +311,6 @@
                 </div>
             </section>
 
-            <!-- TAB: KELOLA ANGGOTA -->
             <section id="viewAnggota" class="tab-view hidden flex-col lg:flex-row gap-5">
                 <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm w-full lg:w-1/3 flex flex-col">
                     <h3 class="font-bold text-gray-800 text-base mb-4 border-b pb-2">Tambah Akun</h3>
@@ -368,7 +328,6 @@
                         <button type="submit" class="mt-2 bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs active:scale-95">Simpan Akun</button>
                     </form>
                 </div>
-
                 <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm w-full lg:w-2/3 flex flex-col">
                     <h3 class="font-bold text-gray-800 text-sm mb-3">Daftar Pengguna (<span id="memberCountBadge">0</span>)</h3>
                     <div class="overflow-y-auto max-h-[400px] custom-scroll">
@@ -390,7 +349,38 @@
         </main>
     </div>
 
-    <!-- MODAL & LOADING -->
+    <!-- ================= MODAL METRONOME ================= -->
+    <div id="metroModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2"><i class="fa-solid fa-drum text-blue-600"></i> Pengaturan Metronome</h3>
+                <button onclick="closeMetroModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <label class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer">
+                    <span class="text-xs font-bold text-gray-700">Aktifkan Metronome</span>
+                    <input type="checkbox" id="metroOnToggle" class="w-5 h-5 accent-blue-600 cursor-pointer">
+                </label>
+
+                <div>
+                    <label class="text-[10px] font-bold text-gray-600 uppercase block mb-1">BPM (Tempo)</label>
+                    <input type="number" id="metroBpmInput" value="96" min="40" max="240" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold outline-none focus:border-blue-500 text-center">
+                    <p class="text-[9px] text-gray-400 mt-1 text-center">Default 96 BPM · 4/4 · Woodblock (ketukan 1 aksen)</p>
+                </div>
+
+                <button type="button" onclick="testMetroSound()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 rounded-xl text-xs active:scale-95 border border-gray-200">
+                    <i class="fa-solid fa-volume-high mr-1"></i> Test Suara (4 Ketukan)
+                </button>
+
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <button type="button" onclick="closeMetroModal()" class="bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs active:scale-95">Batal</button>
+                    <button type="button" onclick="saveMetroModal()" class="bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs active:scale-95">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="passwordModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all">
         <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl scale-95 transition-transform duration-300 transform" id="passwordModalContent">
             <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-gray-800 text-lg">Ganti Password</h3><button onclick="closePasswordModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button></div>
@@ -402,7 +392,6 @@
         </div>
     </div>
 
-    <!-- MODAL LAPORAN PENGUMPULAN TUGAS -->
     <div id="reportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all">
         <div class="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl scale-95 transition-transform duration-300 transform" id="reportModalContent">
             <div class="flex justify-between items-center mb-4">
@@ -432,7 +421,6 @@
         </div>
     </div>
 
-    <!-- KAMERA ABSEN (FOTO) -->
     <div id="viewAbsenCamera" class="fixed inset-0 bg-black z-[120] hidden flex-col pointer-events-auto">
         <div class="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-20 bg-gradient-to-b from-black/60 to-transparent pt-6">
             <button onclick="closeAbsenCamera()" class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white active:scale-95"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -448,8 +436,7 @@
             </button>
         </div>
     </div>
-    
-    <!-- LOADING OVERLAY (TEMA ANGGOTA) -->
+
     <div id="loadingOverlay" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-[100] flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity">
         <div class="w-24 h-24 mb-4 flex items-center justify-center">
             <img src="./logo.png" alt="Loading" class="max-h-full max-w-full object-contain animate-pulse drop-shadow-xl" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-blue-600 text-5xl animate-pulse\'></i>';">
@@ -460,29 +447,31 @@
 
     <script>
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbwYTFRirtCpDT1vXJ0hSeFtElQR44rdoMPKskHgRPO3OlCr5_D_cXvLQOFzkDt4lY_IYw/exec';
-        
+
         let state = { user: null, tasks: [], members: [], submissions: [], absensiHistory: [], showUngradedOnly: false, _notifiedUngraded: false };
-        let fpInstance = null; 
+        let fpInstance = null;
         let sortableInstance = null;
 
         // State Absensi
         let absenStream = null, currentPhotoType = "Datang";
         let absenFacingMode = "user";
         let fotoDatangBase64 = null, fotoPulangBase64 = null;
-        let absenLocked = false; 
-        let localHasDatang = false; 
+        let absenLocked = false;
+        let localHasDatang = false;
+
+        // State Metronome
+        let currentMetroRow = null;
+        let metroAudioCtx = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             const raw = localStorage.getItem('userSession') || sessionStorage.getItem('userSession');
-            if (raw) { 
-                state.user = JSON.parse(raw); 
+            if (raw) {
+                state.user = JSON.parse(raw);
                 document.getElementById('pelatihNameDisplay').textContent = state.user.nama;
             }
-            
-            setupFlatpickr(); 
-            addSubTaskRow('Tugas Utama', '01:00', '05:00'); 
-            initSortable(); 
-            
+            setupFlatpickr();
+            addSubTaskRow('Tugas Utama', '01:00', '05:00');
+            initSortable();
             document.getElementById('absensiDate').value = getLocalToday();
             loadDashboardData();
         });
@@ -514,8 +503,7 @@
         function switchTab(tabKey) {
             const tabs = ['monitoring', 'buatTugas', 'absensi', 'riwayatAbsensi', 'anggota'];
             const tabNames = { 'monitoring': 'Monitoring', 'buatTugas': 'Buat Tugas', 'absensi': 'Absensi', 'riwayatAbsensi': 'Riwayat Absen', 'anggota': 'Kelola Anggota' };
-            
-            // Tutup sidebar di mobile
+
             if (window.innerWidth < 768) {
                 const sidebar = document.getElementById('sidebar');
                 if (!sidebar.classList.contains('-translate-x-full')) toggleSidebar();
@@ -524,22 +512,15 @@
             tabs.forEach(t => {
                 const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
                 const view = document.getElementById(`view${t.charAt(0).toUpperCase() + t.slice(1)}`);
-                
                 if (t === tabKey) {
-                    btn.classList.add('bg-blue-600', 'text-white'); 
+                    btn.classList.add('bg-blue-600', 'text-white');
                     btn.classList.remove('text-gray-600', 'hover:bg-gray-100');
                     view.classList.remove('hidden'); view.classList.add('flex');
-                    
-                    // Update judul di header HP
                     document.getElementById('mobileTitle').textContent = tabNames[t];
-
-                    if (t === 'absensi') {
-                        renderAbsensiTable(); 
-                        checkTodayAbsensiStatus();
-                    }
+                    if (t === 'absensi') { renderAbsensiTable(); checkTodayAbsensiStatus(); }
                     if (t === 'riwayatAbsensi') loadRiwayatAbsensi();
                 } else {
-                    btn.classList.remove('bg-blue-600', 'text-white'); 
+                    btn.classList.remove('bg-blue-600', 'text-white');
                     btn.classList.add('text-gray-600', 'hover:bg-gray-100');
                     view.classList.add('hidden'); view.classList.remove('flex');
                 }
@@ -555,15 +536,13 @@
         function setupFlatpickr() {
             const type = document.getElementById('tipePengumpulan').value;
             const inputEl = document.getElementById('tanggalPengerjaan');
-            inputEl.value = ""; 
-            
+            inputEl.value = "";
             if(fpInstance) fpInstance.destroy();
-            
             fpInstance = flatpickr(inputEl, {
                 mode: type === 'Satu Kali' ? 'range' : 'multiple',
-                dateFormat: "Y-m-d", 
-                altInput: true,      
-                altFormat: "d/m/Y",  
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
                 locale: "id",
                 placeholder: type === 'Satu Kali' ? "Pilih Tgl Mulai s/d Deadline" : "Klik tanggal-tanggal latihan"
             });
@@ -584,21 +563,122 @@
             }
         }
 
-        function addSubTaskRow(name = '', min = '01:00', max = '05:00') {
+        // ============ SUB TASK ROW (dengan metronome) ============
+        function addSubTaskRow(name = '', min = '01:00', max = '05:00', metro = null) {
             const container = document.getElementById('subTaskDynamicContainer');
             const row = document.createElement('div');
             row.className = "flex gap-2 items-center bg-gray-50 p-2 rounded-lg border subtask-row group";
+
+            const isMetroOn = !!(metro && metro.on);
+            const bpmVal = (metro && metro.bpm) ? parseInt(metro.bpm) || 96 : 96;
+            row.dataset.metroOn = isMetroOn ? 'true' : 'false';
+            row.dataset.metroBpm = bpmVal;
+
+            const metroBtnClass = isMetroOn
+                ? 'metro-btn w-7 h-7 bg-blue-600 text-white rounded flex items-center justify-center hover:bg-blue-700 transition-colors flex-none'
+                : 'metro-btn w-7 h-7 bg-gray-200 text-gray-500 rounded flex items-center justify-center hover:bg-gray-300 transition-colors flex-none';
+
             row.innerHTML = `
-                <div class="drag-handle px-1 text-gray-400 hover:text-blue-600 flex items-center justify-center transition-colors">
+                <div class="drag-handle px-1 text-gray-400 hover:text-blue-600 flex items-center justify-center transition-colors flex-none">
                     <i class="fa-solid fa-grip-vertical text-lg"></i>
                 </div>
-                <div class="flex-grow"><input type="text" class="sub-name w-full px-2 py-1.5 border rounded text-xs focus:border-blue-500 outline-none" placeholder="Nama Gerakan" value="${name}" required></div>
-                <div class="w-20"><input type="text" class="sub-min w-full px-2 py-1.5 border rounded text-xs text-center focus:border-blue-500 outline-none" placeholder="mm:ss" value="${min}" pattern="^[0-9]{1,2}:[0-5][0-9]$" title="Format mm:ss" onblur="formatTimeInput(this)" required></div>
-                <span class="text-xs font-bold text-gray-400">-</span>
-                <div class="w-20"><input type="text" class="sub-max w-full px-2 py-1.5 border rounded text-xs text-center focus:border-blue-500 outline-none" placeholder="mm:ss" value="${max}" pattern="^[0-9]{1,2}:[0-5][0-9]$" title="Format mm:ss" onblur="formatTimeInput(this)" required></div>
-                <button type="button" onclick="this.parentElement.remove()" class="w-8 h-8 bg-rose-100 text-rose-600 rounded flex items-center justify-center hover:bg-rose-200 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                <div class="flex-grow min-w-0"><input type="text" class="sub-name w-full px-2 py-1.5 border rounded text-xs focus:border-blue-500 outline-none" placeholder="Nama Gerakan" value="${name}" required></div>
+                <div class="w-16 sm:w-20 flex-none"><input type="text" class="sub-min w-full px-1.5 sm:px-2 py-1.5 border rounded text-xs text-center focus:border-blue-500 outline-none" placeholder="mm:ss" value="${min}" pattern="^[0-9]{1,2}:[0-5][0-9]$" title="Format mm:ss" onblur="formatTimeInput(this)" required></div>
+                <span class="text-xs font-bold text-gray-400 flex-none">-</span>
+                <div class="w-16 sm:w-20 flex-none"><input type="text" class="sub-max w-full px-1.5 sm:px-2 py-1.5 border rounded text-xs text-center focus:border-blue-500 outline-none" placeholder="mm:ss" value="${max}" pattern="^[0-9]{1,2}:[0-5][0-9]$" title="Format mm:ss" onblur="formatTimeInput(this)" required></div>
+                <button type="button" class="${metroBtnClass}" onclick="openMetroModal(this)" title="Pengaturan Metronome">
+                    <i class="fa-solid fa-drum text-xs"></i>
+                </button>
+                <button type="button" onclick="this.parentElement.remove()" class="w-7 h-7 bg-rose-100 text-rose-600 rounded flex items-center justify-center hover:bg-rose-200 transition-colors flex-none"><i class="fa-solid fa-xmark text-xs"></i></button>
             `;
             container.appendChild(row);
+        }
+
+        function updateMetroBtnStyle(row) {
+            const btn = row.querySelector('.metro-btn');
+            if (!btn) return;
+            const isOn = row.dataset.metroOn === 'true';
+            if (isOn) {
+                btn.className = 'metro-btn w-7 h-7 bg-blue-600 text-white rounded flex items-center justify-center hover:bg-blue-700 transition-colors flex-none';
+            } else {
+                btn.className = 'metro-btn w-7 h-7 bg-gray-200 text-gray-500 rounded flex items-center justify-center hover:bg-gray-300 transition-colors flex-none';
+            }
+        }
+
+        // ============ MODAL METRONOME ============
+        function openMetroModal(btn) {
+            currentMetroRow = btn.closest('.subtask-row');
+            if (!currentMetroRow) return;
+            const isOn = currentMetroRow.dataset.metroOn === 'true';
+            const bpm = currentMetroRow.dataset.metroBpm || '96';
+
+            document.getElementById('metroOnToggle').checked = isOn;
+            document.getElementById('metroBpmInput').value = bpm;
+
+            const modal = document.getElementById('metroModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeMetroModal() {
+            const modal = document.getElementById('metroModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            currentMetroRow = null;
+        }
+
+        function saveMetroModal() {
+            if (!currentMetroRow) return;
+            const isOn = document.getElementById('metroOnToggle').checked;
+            let bpm = parseInt(document.getElementById('metroBpmInput').value) || 96;
+            if (bpm < 40) bpm = 40;
+            if (bpm > 240) bpm = 240;
+
+            currentMetroRow.dataset.metroOn = isOn ? 'true' : 'false';
+            currentMetroRow.dataset.metroBpm = bpm;
+
+            updateMetroBtnStyle(currentMetroRow);
+            closeMetroModal();
+            showToast(isOn ? `Metronome ON · ${bpm} BPM` : 'Metronome OFF', 'success');
+        }
+
+        // ============ WOODBLOCK SYNTH (Web Audio API) ============
+        function playWoodblock(isAccent) {
+            try {
+                const Ctx = window.AudioContext || window.webkitAudioContext;
+                if (!metroAudioCtx) metroAudioCtx = new Ctx();
+                if (metroAudioCtx.state === 'suspended') metroAudioCtx.resume();
+
+                const ctx = metroAudioCtx;
+                const now = ctx.currentTime;
+
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(isAccent ? 1200 : 800, now);
+                osc.frequency.exponentialRampToValueAtTime(isAccent ? 600 : 400, now + 0.05);
+
+                gain.gain.setValueAtTime(isAccent ? 0.6 : 0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } catch (e) { console.error('Woodblock error:', e); }
+        }
+
+        function testMetroSound() {
+            const bpm = parseInt(document.getElementById('metroBpmInput').value) || 96;
+            const interval = 60000 / bpm;
+            let beat = 0;
+            const playBeat = () => {
+                if (beat >= 4) return;
+                playWoodblock(beat === 0);
+                beat++;
+                if (beat < 4) setTimeout(playBeat, interval);
+            };
+            playBeat();
         }
 
         function getSubTasksJSON() {
@@ -608,7 +688,11 @@
                 result.push({
                     nama: r.querySelector('.sub-name').value,
                     min: r.querySelector('.sub-min').value.trim(),
-                    max: r.querySelector('.sub-max').value.trim()
+                    max: r.querySelector('.sub-max').value.trim(),
+                    metro: {
+                        on: r.dataset.metroOn === 'true',
+                        bpm: parseInt(r.dataset.metroBpm) || 96
+                    }
                 });
             });
             return JSON.stringify(result);
@@ -649,7 +733,7 @@
                     const pad = (n) => String(n).padStart(2, '0');
                     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
                 }
-                return str.split('T')[0]; 
+                return str.split('T')[0];
             }
             return str;
         }
@@ -658,17 +742,12 @@
             if (!dateVal) return true;
             if (s.tanggal) {
                 const d1 = new Date(s.tanggal);
-                if (!isNaN(d1.getTime())) {
-                    if (getLocalDateString(d1) === dateVal) return true;
-                } else if (s.tanggal.startsWith(dateVal)) {
-                    return true;
-                }
+                if (!isNaN(d1.getTime())) { if (getLocalDateString(d1) === dateVal) return true; }
+                else if (s.tanggal.startsWith(dateVal)) { return true; }
             }
             if (s.waktuKumpul) {
                 const d2 = new Date(s.waktuKumpul);
-                if (!isNaN(d2.getTime())) {
-                    if (getLocalDateString(d2) === dateVal) return true;
-                }
+                if (!isNaN(d2.getTime())) { if (getLocalDateString(d2) === dateVal) return true; }
             }
             const parts = dateVal.split('-');
             if (parts.length === 3) {
@@ -683,9 +762,8 @@
             if (!val) return '-';
             try {
                 let d;
-                if (val.includes('T') || val.includes('Z')) {
-                    d = new Date(val);
-                } else if (val.includes('/')) {
+                if (val.includes('T') || val.includes('Z')) { d = new Date(val); }
+                else if (val.includes('/')) {
                     let parts = val.split(' ');
                     let dateParts = parts[0].split('/');
                     let timeParts = (parts[1] || '00:00:00').split(':');
@@ -695,7 +773,6 @@
                     if (parts.length === 3) d = new Date(parts[0], parts[1]-1, parts[2]);
                     else d = new Date(val);
                 }
-                
                 if (isNaN(d.getTime())) return val;
                 const pad = (n) => n.toString().padStart(2, '0');
                 return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -755,8 +832,8 @@
             const dateVal = document.getElementById('inputFilterDate').value;
             const memberVal = document.getElementById('selectFilterMember').value;
             const tbody = document.getElementById('tableSubmissionsBody');
-            
-            let filteredSubs = state.submissions.slice().reverse(); 
+
+            let filteredSubs = state.submissions.slice().reverse();
             if(taskId) filteredSubs = filteredSubs.filter(s => s.taskId === taskId);
             if(dateVal) filteredSubs = filteredSubs.filter(s => matchesSubmissionDate(s, dateVal));
             if(memberVal) filteredSubs = filteredSubs.filter(s => s.namaAnggota === memberVal);
@@ -770,9 +847,7 @@
                 const judul = taskRef ? taskRef.judulTugas : "Tugas Latihan";
                 const nilaiVal = (s.nilai && s.nilai !== '-') ? s.nilai : '';
                 const komentarVal = s.komentar || '';
-                
                 const colorClass = nilaiVal==='A'?'text-emerald-600 bg-emerald-50 border-emerald-300':nilaiVal==='B'?'text-blue-600 bg-blue-50 border-blue-300':nilaiVal==='C'?'text-amber-600 bg-amber-50 border-amber-300':nilaiVal==='D'?'text-orange-600 bg-orange-50 border-orange-300':nilaiVal==='E'?'text-rose-600 bg-rose-50 border-rose-300':'text-gray-600 bg-white border-gray-300';
-                
                 return `<tr class="hover:bg-gray-50 border-b group">
                     <td class="py-3 px-4 text-center text-gray-400 align-top">${idx + 1}</td>
                     <td class="py-3 px-4 align-top">
@@ -780,9 +855,7 @@
                         <div class="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded inline-block mb-1">${s.subTugasName}</div>
                         <div class="text-[9px] text-gray-500 italic mt-1 line-clamp-1">${judul}</div>
                     </td>
-                    <td class="py-3 px-4 text-center align-top">
-                        <div class="text-[10px] font-bold text-gray-600">${formatDisplayTime(s.waktuKumpul || s.tanggal)}</div>
-                    </td>
+                    <td class="py-3 px-4 text-center align-top"><div class="text-[10px] font-bold text-gray-600">${formatDisplayTime(s.waktuKumpul || s.tanggal)}</div></td>
                     <td class="py-3 px-4 text-center align-top pt-5">${btnLink}</td>
                     <td class="py-3 px-4 align-top">
                         <div class="bg-gray-100/50 p-2.5 rounded-xl border border-gray-200">
@@ -795,12 +868,8 @@
                                     <option value="D" ${nilaiVal==='D'?'selected':''}>D (Kurang)</option>
                                     <option value="E" ${nilaiVal==='E'?'selected':''}>E (Buruk)</option>
                                 </select>
-                                <button type="button" onclick="toggleKomentarBox('${s.subId}')" class="px-2.5 py-2 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 text-[10px] font-bold" title="Tulis Komentar/Catatan">
-                                    <i class="fa-solid fa-comment-dots"></i>
-                                </button>
-                                <button type="button" onclick="executeSubmitNilai('${s.subId}')" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs font-bold active:scale-95 transition-transform" title="Simpan Evaluasi">
-                                    Simpan
-                                </button>
+                                <button type="button" onclick="toggleKomentarBox('${s.subId}')" class="px-2.5 py-2 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 text-[10px] font-bold" title="Tulis Komentar/Catatan"><i class="fa-solid fa-comment-dots"></i></button>
+                                <button type="button" onclick="executeSubmitNilai('${s.subId}')" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs font-bold active:scale-95 transition-transform" title="Simpan Evaluasi">Simpan</button>
                             </div>
                             <div id="boxKomentar_${s.subId}" class="comment-box-anim ${komentarVal ? 'open' : ''}">
                                 <textarea id="inputKomentar_${s.subId}" rows="2" placeholder="Tulis catatan perbaikan untuk anggota ini..." class="w-full p-2 border border-blue-200 rounded-lg text-[10px] bg-blue-50/30 outline-none focus:border-blue-500">${komentarVal}</textarea>
@@ -813,66 +882,30 @@
 
         function toggleKomentarBox(subId) {
             const box = document.getElementById(`boxKomentar_${subId}`);
-            if (box.classList.contains('open')) {
-                box.classList.remove('open');
-            } else {
-                box.classList.add('open');
-                document.getElementById(`inputKomentar_${subId}`).focus();
-            }
+            if (box.classList.contains('open')) box.classList.remove('open');
+            else { box.classList.add('open'); document.getElementById(`inputKomentar_${subId}`).focus(); }
         }
 
         function executeSubmitNilai(subId) {
             const selectEl = document.getElementById(`selNilai_${subId}`);
             const komentarEl = document.getElementById(`inputKomentar_${subId}`);
-            
             const nilaiVal = selectEl.value;
             const komentarVal = komentarEl.value.trim();
-            
-            if(!nilaiVal) {
-                showToast("Pilih nilai (A-E) terlebih dahulu!", "error");
-                return;
-            }
-
-            selectEl.disabled = true;
-            komentarEl.disabled = true;
+            if(!nilaiVal) { showToast("Pilih nilai (A-E) terlebih dahulu!", "error"); return; }
+            selectEl.disabled = true; komentarEl.disabled = true;
             showLoading(true, "Menyimpan Evaluasi...");
-
-            fetch(GAS_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({ 
-                    action: 'nilaiTugas', 
-                    subId: subId, 
-                    nilai: nilaiVal,
-                    komentar: komentarVal 
-                }) 
-            })
-            .then(r => r.json())
-            .then(d => {
-                selectEl.disabled = false;
-                komentarEl.disabled = false;
-                showLoading(false);
-                
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'nilaiTugas', subId: subId, nilai: nilaiVal, komentar: komentarVal }) })
+            .then(r => r.json()).then(d => {
+                selectEl.disabled = false; komentarEl.disabled = false; showLoading(false);
                 if(d.success) {
                     showToast("Evaluasi Nilai & Catatan berhasil disimpan!", "success");
                     let sub = state.submissions.find(s => s.subId === subId);
-                    if(sub) {
-                        sub.nilai = nilaiVal;
-                        sub.komentar = komentarVal;
-                    }
+                    if(sub) { sub.nilai = nilaiVal; sub.komentar = komentarVal; }
                     updateUngradedNotification();
                     if (state.showUngradedOnly) filterSubmissions();
-                    
                     selectEl.className = `flex-1 p-2 border rounded-lg text-xs font-bold outline-none cursor-pointer ${nilaiVal==='A'?'text-emerald-600 bg-emerald-50 border-emerald-300':nilaiVal==='B'?'text-blue-600 bg-blue-50 border-blue-300':nilaiVal==='C'?'text-amber-600 bg-amber-50 border-amber-300':nilaiVal==='D'?'text-orange-600 bg-orange-50 border-orange-300':'text-rose-600 bg-rose-50 border-rose-300'}`;
-                } else {
-                    showToast(d.message, "error");
-                }
-            })
-            .catch(e => { 
-                selectEl.disabled = false;
-                komentarEl.disabled = false;
-                showLoading(false);
-                showToast("Gagal terhubung ke server", "error"); 
-            });
+                } else { showToast(d.message, "error"); }
+            }).catch(e => { selectEl.disabled = false; komentarEl.disabled = false; showLoading(false); showToast("Gagal terhubung ke server", "error"); });
         }
 
         function renderCheckboxesAnggota() {
@@ -893,7 +926,7 @@
         }
         function setFormSelectedTargets(strTarget) {
             const boxes = document.querySelectorAll('.chk-target');
-            if(strTarget === "Semua") { boxes.forEach(b => b.checked = true); } 
+            if(strTarget === "Semua") { boxes.forEach(b => b.checked = true); }
             else { const arr = strTarget.split(','); boxes.forEach(b => { b.checked = arr.includes(b.value); }); }
         }
 
@@ -901,29 +934,23 @@
             e.preventDefault();
             const action = document.getElementById('editTaskId').value ? 'editTask' : 'createTask';
             const taskId = document.getElementById('editTaskId').value || ('TASK_' + Date.now());
-            
             const targets = getSelectedTargets();
             if(!targets) { showToast("Pilih minimal 1 target anggota!", "error"); return; }
             const dates = document.getElementById('tanggalPengerjaan').value;
             if(!dates) { showToast("Tanggal pengerjaan wajib diisi!", "error"); return; }
-
             const subTugasJSON = getSubTasksJSON();
             if(subTugasJSON === "[]") { showToast("Tambahkan minimal 1 Gerakan/Sub-Tugas!", "error"); return; }
-            
             showLoading(true, "Menyimpan Tugas...");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({
-                action: action, 
-                taskId: taskId,
-                judulTugas: document.getElementById('taskTitle').value, 
+                action: action, taskId: taskId,
+                judulTugas: document.getElementById('taskTitle').value,
                 instruksi: document.getElementById('taskDesc').value,
                 tipePengumpulan: document.getElementById('tipePengumpulan').value,
-                tanggalPengerjaan: dates,
-                targetMember: targets,
-                jenisTugas: "video",
+                tanggalPengerjaan: dates, targetMember: targets, jenisTugas: "video",
                 subTugas: subTugasJSON
             })}).then(r=>r.json()).then(d=>{
-                showLoading(false); 
-                if(d.success) { showToast(d.message, "success"); resetTaskForm(); loadDashboardData(); } 
+                showLoading(false);
+                if(d.success) { showToast(d.message, "success"); resetTaskForm(); loadDashboardData(); }
                 else showToast(d.message, "error");
             }).catch(e=>{showLoading(false); showToast("Koneksi gagal", "error");});
         });
@@ -948,10 +975,8 @@
             document.getElementById('editTaskId').value = t.taskId;
             document.getElementById('taskTitle').value = t.judulTugas;
             document.getElementById('taskDesc').value = t.instruksi;
-            
             document.getElementById('tipePengumpulan').value = t.tipePengumpulan;
             setupFlatpickr();
-            
             let rawDate = (t.tanggalPengerjaan || "").toString().trim();
             let cleanedDates = [];
             if (rawDate.includes(' to ')) {
@@ -961,19 +986,15 @@
                 cleanedDates = rawDate.split(',').map(x => extractLocalDate(x));
                 rawDate = cleanedDates.join(', ');
             }
-            
             fpInstance.setDate(rawDate.includes(' to ') ? rawDate.split(' to ') : rawDate.split(', '));
             document.getElementById('tanggalPengerjaan').value = rawDate;
-            
             setFormSelectedTargets(t.targetMember);
-            
             document.getElementById('subTaskDynamicContainer').innerHTML = '';
             let subs = [];
             try { subs = JSON.parse(t.subTugasRaw); } catch(e) {}
             if(subs.length === 0) addSubTaskRow('Tugas Utama', '01:00', '05:00');
             else subs.forEach(s => {
-                let minVal = s.min;
-                let maxVal = s.max;
+                let minVal = s.min, maxVal = s.max;
                 if (typeof minVal === 'number' || (!isNaN(parseInt(minVal)) && !minVal.includes(':'))) {
                     let m = parseInt(minVal) || 0;
                     minVal = `${m.toString().padStart(2, '0')}:00`;
@@ -982,9 +1003,10 @@
                     let m = parseInt(maxVal) || 5;
                     maxVal = `${m.toString().padStart(2, '0')}:00`;
                 }
-                addSubTaskRow(s.nama, minVal || '01:00', maxVal || '05:00');
+                // Normalisasi state metro (tugas lama tanpa field → OFF)
+                const metroState = s.metro ? { on: !!s.metro.on, bpm: parseInt(s.metro.bpm) || 96 } : null;
+                addSubTaskRow(s.nama, minVal || '01:00', maxVal || '05:00', metroState);
             });
-
             document.getElementById('btnCancelEdit').classList.remove('hidden');
             document.getElementById('btnSubmitTask').innerHTML = `<i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Perubahan`;
             window.scrollTo({top: 0, behavior: 'smooth'});
@@ -998,7 +1020,6 @@
             addSubTaskRow('Tugas Utama', '01:00', '05:00');
             setupFlatpickr();
             toggleAllTarget(false);
-            
             document.getElementById('btnCancelEdit').classList.add('hidden');
             document.getElementById('btnSubmitTask').innerHTML = `<i class="fa-solid fa-cloud-arrow-up mr-1"></i> Terbitkan Tugas Baru`;
         }
@@ -1010,7 +1031,7 @@
             .then(r=>r.json()).then(d=>{ showLoading(false); if(d.success){ showToast(d.message,"success"); loadDashboardData(); } else showToast(d.message,"error"); }).catch(e=>{showLoading(false); showToast("Koneksi Error","error")});
         }
 
-        // --- SISTEM ABSENSI PELATIH ---
+        // --- ABSENSI ---
         function renderAbsensiTable() {
             const tbody = document.getElementById('tableAbsensiBody');
             const targets = state.members.filter(m => m.role === 'Anggota');
@@ -1023,7 +1044,6 @@
                     </td>
                 </tr>
             `).join('');
-            
             document.querySelectorAll('.absensi-select').forEach(sel => {
                 sel.addEventListener('change', function() { this.className = "absensi-select w-full px-1 py-1.5 border rounded-lg text-[10px] font-bold cursor-pointer " + (this.value==='Hadir'?'bg-emerald-50 text-emerald-700':this.value==='Izin'?'bg-blue-50 text-blue-700':this.value==='Sakit'?'bg-amber-50 text-amber-700':'bg-rose-50 text-rose-700'); });
                 sel.dispatchEvent(new Event('change'));
@@ -1041,8 +1061,8 @@
             try {
                 if (absenStream) absenStream.getTracks().forEach(t => t.stop());
                 absenStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: absenFacingMode } });
-                const videoEl = document.getElementById('absenVideoPreview'); 
-                videoEl.srcObject = absenStream; 
+                const videoEl = document.getElementById('absenVideoPreview');
+                videoEl.srcObject = absenStream;
                 videoEl.muted = true;
             } catch (err) { showToast("Gagal akses kamera", "error"); }
         }
@@ -1063,9 +1083,7 @@
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.8); 
-            
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
             if (currentPhotoType === 'Datang') {
                 fotoDatangBase64 = dataUrl;
                 document.getElementById('fotoDatangPreview').src = dataUrl;
@@ -1077,21 +1095,18 @@
                 document.getElementById('fotoPulangPreviewContainer').classList.remove('hidden');
                 document.getElementById('btnTakePulang').classList.add('hidden');
             }
-            
             document.getElementById('btnSimpanAbsen').classList.remove('hidden');
             closeAbsenCamera();
         }
 
         function checkTodayAbsensiStatus() {
             const today = document.getElementById('absensiDate').value;
-            let hasDatang = localHasDatang; 
+            let hasDatang = localHasDatang;
             let hasPulang = false;
             let savedMateri = "", savedEvaluasi = "";
-            
             if(state.absensiHistory && state.absensiHistory.length > 0) {
                 const headers = state.absensiHistory[0];
                 const colIdx = headers.indexOf(today);
-                
                 if(colIdx !== -1) {
                     let fdRow = -1, fpRow = -1, matRow = -1, evalRow = -1;
                     for(let i=1; i<state.absensiHistory.length; i++) {
@@ -1106,7 +1121,6 @@
                     if(evalRow !== -1) savedEvaluasi = state.absensiHistory[evalRow][colIdx] || "";
                 }
             }
-
             const boxDatang = document.getElementById('boxDatang');
             const btnDatang = document.getElementById('btnTakeDatang');
             const statusDatang = document.getElementById('statusDatangDone');
@@ -1125,104 +1139,87 @@
             statusPulang.classList.add('hidden'); statusPulang.classList.remove('flex');
             boxDatang.classList.remove('opacity-50', 'cursor-not-allowed');
             boxPulang.classList.remove('opacity-50', 'cursor-not-allowed');
-            
+
             if (hasPulang) {
                 absenLocked = true;
-                btnDatang.classList.add('hidden');
-                btnPulang.classList.add('hidden');
+                btnDatang.classList.add('hidden'); btnPulang.classList.add('hidden');
                 statusDatang.classList.remove('hidden'); statusDatang.classList.add('flex');
                 statusPulang.classList.remove('hidden'); statusPulang.classList.add('flex');
                 formMateriEval.classList.remove('hidden'); formMateriEval.classList.add('flex');
-                dateInput.disabled = true; 
+                dateInput.disabled = true;
                 formAbsensi.classList.add('form-locked');
                 btnSimpan.classList.add('hidden');
                 boxDatang.classList.add('opacity-50');
                 boxPulang.classList.add('opacity-50');
-            } 
-            else if (hasDatang) {
+            } else if (hasDatang) {
                 absenLocked = false;
                 btnDatang.classList.add('hidden');
                 statusDatang.classList.remove('hidden'); statusDatang.classList.add('flex');
-                statusDatang.onclick = function() { openAbsenCamera('Datang'); }; 
+                statusDatang.onclick = function() { openAbsenCamera('Datang'); };
                 statusDatang.classList.add('cursor-pointer', 'hover:bg-emerald-100');
-                
                 boxPulang.classList.remove('opacity-50', 'cursor-not-allowed');
                 btnPulang.disabled = false;
                 btnPulang.classList.remove('hidden');
                 formMateriEval.classList.remove('hidden'); formMateriEval.classList.add('flex');
-                
                 if (savedMateri && !document.getElementById('materiLatihan').value) document.getElementById('materiLatihan').value = savedMateri;
                 if (savedEvaluasi && !document.getElementById('evaluasiLatihan').value) document.getElementById('evaluasiLatihan').value = savedEvaluasi;
-
-                dateInput.disabled = true; 
-            } 
-            else {
+                dateInput.disabled = true;
+            } else {
                 absenLocked = false;
                 btnDatang.classList.remove('hidden');
                 statusDatang.classList.remove('flex'); statusDatang.classList.add('hidden');
                 statusDatang.onclick = null;
                 statusDatang.classList.remove('cursor-pointer', 'hover:bg-emerald-100');
-                
                 btnPulang.classList.add('hidden');
                 boxPulang.classList.add('opacity-50', 'cursor-not-allowed');
                 btnPulang.disabled = true;
-                dateInput.disabled = false; 
+                dateInput.disabled = false;
             }
         }
 
         document.getElementById('formAbsensi').addEventListener('submit', (e) => {
             e.preventDefault();
             if(absenLocked) { showToast("Absensi hari ini sudah selesai dan terkunci.", "error"); return; }
-            
-            let typeToSubmit = "";
-            let b64ToSubmit = "";
+            let typeToSubmit = "", b64ToSubmit = "";
             if (fotoDatangBase64) { typeToSubmit = "Datang"; b64ToSubmit = fotoDatangBase64; }
-            else if (fotoPulangBase64) { 
-                typeToSubmit = "Pulang"; b64ToSubmit = fotoPulangBase64; 
+            else if (fotoPulangBase64) {
+                typeToSubmit = "Pulang"; b64ToSubmit = fotoPulangBase64;
                 if(!document.getElementById('materiLatihan').value.trim() || !document.getElementById('evaluasiLatihan').value.trim()) {
                     showToast("Materi & Evaluasi Latihan wajib diisi sebelum pulang!", "error"); return;
                 }
             }
             else { showToast("Ambil foto terlebih dahulu!", "error"); return; }
-            
             if (document.getElementById('tableAbsensiBody').children.length <= 1 || !document.querySelector('#tableAbsensiBody tr[data-nama]')) {
                 showToast("Klik 'Load Data Anggota' terlebih dahulu!", "error"); return;
             }
-
             const absData = Array.from(document.querySelectorAll('#tableAbsensiBody tr[data-nama]')).map(row => ({ nama: row.getAttribute('data-nama'), kelas: row.getAttribute('data-kelas'), status: row.querySelector('select').value }));
-            
             showLoading(true, `Menyimpan Absen ${typeToSubmit}...`);
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ 
-                action: 'saveAbsensi', 
-                type: typeToSubmit, 
-                tanggal: document.getElementById('absensiDate').value, 
-                materi: document.getElementById('materiLatihan').value, 
-                evaluasi: document.getElementById('evaluasiLatihan').value, 
-                absensiData: absData, 
-                fotoBase64: b64ToSubmit 
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({
+                action: 'saveAbsensi', type: typeToSubmit,
+                tanggal: document.getElementById('absensiDate').value,
+                materi: document.getElementById('materiLatihan').value,
+                evaluasi: document.getElementById('evaluasiLatihan').value,
+                absensiData: absData, fotoBase64: b64ToSubmit
             })})
-            .then(r=>r.json()).then(d=>{ 
-                showLoading(false); 
-                if(d.success){ 
-                    showToast(d.message, "success"); 
-                    
+            .then(r=>r.json()).then(d=>{
+                showLoading(false);
+                if(d.success){
+                    showToast(d.message, "success");
                     if(typeToSubmit === 'Datang') {
                         localHasDatang = true;
                         fotoDatangBase64 = null;
                         document.getElementById('fotoDatangPreviewContainer').classList.add('hidden');
                         document.getElementById('btnSimpanAbsen').classList.add('hidden');
-                        checkTodayAbsensiStatus(); 
+                        checkTodayAbsensiStatus();
                     } else {
                         fotoPulangBase64 = null;
                         document.getElementById('fotoPulangPreviewContainer').classList.add('hidden');
-                        document.getElementById('materiLatihan').value=''; 
+                        document.getElementById('materiLatihan').value='';
                         document.getElementById('evaluasiLatihan').value='';
                         document.getElementById('btnSimpanAbsen').classList.add('hidden');
                     }
-                    
-                    // Background sync
-                    loadDashboardData(); 
-                } else showToast(d.message, "error"); 
+                    loadDashboardData();
+                } else showToast(d.message, "error");
             }).catch(e=>{showLoading(false); showToast("Error koneksi", "error");});
         });
 
@@ -1234,14 +1231,11 @@
                     state.absensiHistory = d.data;
                     const headers = d.data[0];
                     const rawDates = headers.slice(3);
-                    
                     const sel = document.getElementById('riwayatDateSelect');
                     sel.innerHTML = '<option value="">Pilih Tanggal</option>';
-                    
                     rawDates.forEach(dt => {
                         if(!dt) return;
                         let displayDate = dt;
-                        // Format Aneh ISO
                         if (typeof dt === 'object' || String(dt).includes('T')) {
                             const dateObj = new Date(dt);
                             if (!isNaN(dateObj.getTime())) {
@@ -1249,7 +1243,6 @@
                                 displayDate = `${pad(dateObj.getDate())}/${pad(dateObj.getMonth()+1)}/${dateObj.getFullYear()}`;
                             }
                         } else if (String(dt).includes('-')) {
-                            // Format YYYY-MM-DD
                             const parts = String(dt).split('-');
                             if (parts.length === 3) displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
                         }
@@ -1264,13 +1257,9 @@
             const container = document.getElementById('riwayatDetailContainer');
             const emptyState = document.getElementById('riwayatEmptyState');
             if(!date) { container.classList.add('hidden'); emptyState.classList.remove('hidden'); return; }
-            
             container.classList.remove('hidden'); container.classList.add('flex'); emptyState.classList.add('hidden');
-            
             const data = state.absensiHistory;
             const headers = data[0];
-            
-            // Cari SEMUA index kolom yang cocok dengan tanggal ini (untuk menghindari duplikasi data)
             let targetColIndices = [];
             headers.forEach((h, idx) => {
                 if (!h || idx < 3) return;
@@ -1282,16 +1271,11 @@
                     if (!isNaN(dObj.getTime()) && !isNaN(dSel.getTime())) {
                         if (dObj.getFullYear() === dSel.getFullYear() && dObj.getMonth() === dSel.getMonth() && dObj.getDate() === dSel.getDate()) isMatch = true;
                     }
-                } else if (hStr.trim() === date.trim()) {
-                    isMatch = true;
-                }
+                } else if (hStr.trim() === date.trim()) { isMatch = true; }
                 if (isMatch) targetColIndices.push(idx);
             });
-
-            // Merge data dari semua kolom yang cocok
             let materi = "-", evaluasi = "-", fDatang = "", fPulang = "";
             const absDataMap = new Map();
-
             targetColIndices.forEach(colIdx => {
                 for(let i=1; i<data.length; i++) {
                     const name = data[i][1];
@@ -1300,17 +1284,15 @@
                     else if(name === "EVALUASI LATIHAN:") { if(status !== "-" && status !== "") evaluasi = status; }
                     else if(name === "FOTO DATANG:") { if(status) fDatang = status; }
                     else if(name === "FOTO PULANG:") { if(status) fPulang = status; }
-                    else if(name && name !== "MATERI LATIHAN:" && name !== "EVALUASI LATIHAN:" && name !== "FOTO DATANG:" && name !== "FOTO PULANG:") { 
+                    else if(name && name !== "MATERI LATIHAN:" && name !== "EVALUASI LATIHAN:" && name !== "FOTO DATANG:" && name !== "FOTO PULANG:") {
                         if(status !== "-") absDataMap.set(name, { nama: name, status: status });
                     }
                 }
             });
-            
             document.getElementById('riwayatMateri').textContent = materi;
             document.getElementById('riwayatEvaluasi').textContent = evaluasi;
             document.getElementById('riwayatFotoDatang').src = getDirectImageLink(fDatang) || '';
             document.getElementById('riwayatFotoPulang').src = getDirectImageLink(fPulang) || '';
-            
             const absDataArray = Array.from(absDataMap.values());
             document.getElementById('tableRiwayatBody').innerHTML = absDataArray.map((m,i)=>`
                 <tr class="border-b"><td class="py-2 px-4">${i+1}</td><td class="py-2 px-4 font-bold text-gray-700">${m.nama}</td><td class="py-2 px-4 text-center font-bold text-xs ${m.status==='Hadir'?'text-emerald-600':m.status==='Alpa'?'text-rose-600':'text-blue-600'}">${m.status}</td></tr>
@@ -1319,7 +1301,7 @@
 
         function getDirectImageLink(url) {
             if(!url) return "";
-            const match = url.match(/[-\w]{25,}/); 
+            const match = url.match(/[-\w]{25,}/);
             return match ? `https://lh3.googleusercontent.com/d/${match[0]}` : url;
         }
 
@@ -1335,7 +1317,6 @@
                         hakAbsenBtn = `<button onclick="toggleHakAbsenStatus('${m.username}', false)" class="bg-gray-50 text-gray-400 border border-gray-200 px-2 py-1 rounded-lg text-[9px] font-bold active:scale-95 transition-transform hover:bg-gray-100 hover:text-gray-600"><i class="fa-solid fa-toggle-off text-gray-300 mr-1 text-sm align-middle"></i> Nonaktif</button>`;
                     }
                 }
-                
                 return `
                 <tr class="hover:bg-gray-50 border-b">
                     <td class="py-2 px-3 text-center text-gray-400">${i+1}</td>
@@ -1346,28 +1327,16 @@
                 </tr>`;
             }).join('');
         }
-        
+
         function toggleHakAbsenStatus(username, currentStatus) {
             const newStatus = !currentStatus;
             showLoading(true, "Memperbarui Hak Absen...");
-            fetch(GAS_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'toggleHakAbsen', username: username, hakAbsen: newStatus })
-            })
-            .then(r => r.json())
-            .then(d => {
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'toggleHakAbsen', username: username, hakAbsen: newStatus }) })
+            .then(r => r.json()).then(d => {
                 showLoading(false);
-                if(d.success) {
-                    showToast("Hak Akses diperbarui", "success");
-                    loadDashboardData(); 
-                } else {
-                    showToast(d.message, "error");
-                }
-            })
-            .catch(e => {
-                showLoading(false);
-                showToast("Gagal memperbarui hak akses", "error");
-            });
+                if(d.success) { showToast("Hak Akses diperbarui", "success"); loadDashboardData(); }
+                else { showToast(d.message, "error"); }
+            }).catch(e => { showLoading(false); showToast("Gagal memperbarui hak akses", "error"); });
         }
 
         document.getElementById('formAddMember').addEventListener('submit', (e) => {
@@ -1376,11 +1345,11 @@
             .then(r=>r.json()).then(d=>{ showLoading(false); if(d.success){ showToast("Tersimpan","success"); document.getElementById('formAddMember').reset(); loadDashboardData(); } else showToast(d.message,"error"); }).catch(e=>showLoading(false));
         });
 
-        // --- LAPORAN PENGUMPULAN TUGAS ---
+        // --- LAPORAN ---
         function openReportModal() {
             document.getElementById('reportDate').value = getLocalToday();
             document.getElementById('reportText').value = '';
-            updateReportTaskDropdown(); 
+            updateReportTaskDropdown();
             document.getElementById('reportModal').classList.remove('opacity-0', 'pointer-events-none');
             document.getElementById('reportModalContent').classList.remove('scale-95');
         }
@@ -1394,17 +1363,13 @@
             const sel = document.getElementById('reportTaskSelect');
             sel.innerHTML = '<option value="">Semua Tugas</option>';
             if (!dateVal) return;
-
             const activeTasks = state.tasks.filter(t => isTaskActiveOnDate(t, dateVal));
-            activeTasks.forEach(t => {
-                sel.innerHTML += `<option value="${t.taskId}">${t.judulTugas}</option>`;
-            });
+            activeTasks.forEach(t => { sel.innerHTML += `<option value="${t.taskId}">${t.judulTugas}</option>`; });
         }
 
         function isTaskActiveOnDate(t, dateVal) {
             let raw = (t.tanggalPengerjaan || '').toString().trim();
             if (!raw) return false;
-            
             if (raw.includes('T')) {
                 if (raw.includes(' to ')) {
                     const parts = raw.split(' to ').map(x => extractLocalDate(x));
@@ -1414,7 +1379,6 @@
                     return parts.includes(dateVal);
                 }
             }
-            
             if (t.tipePengumpulan === 'Harian') {
                 return raw.split(',').map(x => x.trim()).includes(dateVal);
             }
@@ -1429,89 +1393,51 @@
             const dateVal = document.getElementById('reportDate').value;
             const selectedTaskId = document.getElementById('reportTaskSelect').value;
             if (!dateVal) { showToast("Pilih tanggal terlebih dahulu!", "error"); return; }
-
             let activeTasks = state.tasks.filter(t => isTaskActiveOnDate(t, dateVal));
-            
-            if (selectedTaskId) {
-                activeTasks = activeTasks.filter(t => t.taskId === selectedTaskId);
-            }
-
-            const isMulti = activeTasks.length > 1;
-            const memberData = {}; // nama -> { total, submitted }
-
+            if (selectedTaskId) activeTasks = activeTasks.filter(t => t.taskId === selectedTaskId);
+            const memberData = {};
             activeTasks.forEach(t => {
                 let subs = [];
                 try { subs = JSON.parse(t.subTugasRaw); } catch(e) {}
                 if (!Array.isArray(subs)) subs = [];
-
                 let targets = state.members.filter(m => m.role === 'Anggota');
                 if (t.targetMember && t.targetMember !== 'Semua') {
                     const arr = t.targetMember.split(',').map(s => s.trim());
                     targets = targets.filter(m => arr.includes(m.username));
                 }
-
                 targets.forEach(m => {
                     if (!memberData[m.nama]) memberData[m.nama] = { total: 0, submitted: 0 };
-                    
                     const totalSubTasks = subs.length;
-                    const userSubmissionsForTask = state.submissions.filter(x => 
-                        x.taskId === t.taskId &&
-                        x.namaAnggota === m.nama &&
+                    const userSubmissionsForTask = state.submissions.filter(x =>
+                        x.taskId === t.taskId && x.namaAnggota === m.nama &&
                         (t.tipePengumpulan === 'Satu Kali' || matchesSubmissionDate(x, dateVal))
                     );
-                    
                     const submittedCount = userSubmissionsForTask.length;
-
                     memberData[m.nama].total += totalSubTasks;
-                    memberData[m.nama].submitted += Math.min(submittedCount, totalSubTasks); 
+                    memberData[m.nama].submitted += Math.min(submittedCount, totalSubTasks);
                 });
             });
-
             const processedNames = Object.keys(memberData).map(nama => {
                 const data = memberData[nama];
-                let statusStr = "";
-                let rank = 0; 
-
-                if (data.submitted === 0) {
-                    statusStr = "belum mengerjakan";
-                    rank = 2;
-                } else if (data.submitted >= data.total) {
-                    statusStr = "selesai";
-                    rank = 0;
-                } else {
-                    const missingCount = data.total - data.submitted;
-                    statusStr = `kurang (${missingCount} gerakan)`; 
-                    rank = 1;
-                }
+                let statusStr = "", rank = 0;
+                if (data.submitted === 0) { statusStr = "belum mengerjakan"; rank = 2; }
+                else if (data.submitted >= data.total) { statusStr = "selesai"; rank = 0; }
+                else { const missingCount = data.total - data.submitted; statusStr = `kurang (${missingCount} gerakan)`; rank = 1; }
                 return { nama, statusStr, rank };
             });
-
-            processedNames.sort((a, b) => {
-                if (a.rank !== b.rank) return a.rank - b.rank;
-                return a.nama.localeCompare(b.nama);
-            });
-
+            processedNames.sort((a, b) => { if (a.rank !== b.rank) return a.rank - b.rank; return a.nama.localeCompare(b.nama); });
             const d = new Date(dateVal + 'T00:00:00');
             const pad = (n) => n.toString().padStart(2, '0');
             const tglFmt = `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
             const jam = new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }).replace('.', ':');
-            
             let headerTask = "";
             if (selectedTaskId) {
                 const t = state.tasks.find(x => x.taskId === selectedTaskId);
                 if (t) headerTask = ` - ${t.judulTugas}`;
             }
-
             let text = `Pengumpulan Tugas${headerTask} (${tglFmt}, ${jam})\n`;
-            
-            if (processedNames.length === 0) {
-                text += 'Tidak ada tugas aktif pada tanggal ini.';
-            } else {
-                processedNames.forEach((m, i) => {
-                    text += `${i+1}. ${m.nama} — ${m.statusStr}\n`;
-                });
-            }
-
+            if (processedNames.length === 0) text += 'Tidak ada tugas aktif pada tanggal ini.';
+            else processedNames.forEach((m, i) => { text += `${i+1}. ${m.nama} — ${m.statusStr}\n`; });
             document.getElementById('reportText').value = text.trim();
             showToast("Laporan berhasil dibuat", "success");
         }
@@ -1520,12 +1446,8 @@
             const ta = document.getElementById('reportText');
             if (!ta.value.trim()) { showToast("Buat laporan terlebih dahulu!", "error"); return; }
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(ta.value)
-                    .then(() => showToast("Teks laporan disalin!", "success"))
-                    .catch(() => { ta.select(); document.execCommand('copy'); showToast("Teks laporan disalin!", "success"); });
-            } else {
-                ta.select(); document.execCommand('copy'); showToast("Teks laporan disalin!", "success");
-            }
+                navigator.clipboard.writeText(ta.value).then(() => showToast("Teks laporan disalin!", "success")).catch(() => { ta.select(); document.execCommand('copy'); showToast("Teks laporan disalin!", "success"); });
+            } else { ta.select(); document.execCommand('copy'); showToast("Teks laporan disalin!", "success"); }
         }
 
         function shareReportWA() {
@@ -1538,18 +1460,18 @@
         function openPasswordModal() { document.getElementById('passwordModal').classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.remove('scale-95'); }
         function closePasswordModal() { document.getElementById('passwordModal').classList.add('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.add('scale-95'); }
         document.getElementById('formGantiPassword').addEventListener('submit', (e) => { e.preventDefault(); showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'gantiPassword', username: state.user.username, oldPassword: document.getElementById('oldPass').value, newPassword: document.getElementById('newPass').value })}).then(r=>r.json()).then(d=>{ showLoading(false); if(d.success) { showToast("Berhasil", "success"); closePasswordModal(); } else showToast(d.message, "error"); }).catch(e=>showLoading(false)); });
-        
-        function showLoading(show, txt="Memproses...") { 
-            document.getElementById('loadingText').textContent = txt; 
-            document.getElementById('loadingOverlay').classList[show?'remove':'add']('opacity-0', 'pointer-events-none'); 
+
+        function showLoading(show, txt="Memproses...") {
+            document.getElementById('loadingText').textContent = txt;
+            document.getElementById('loadingOverlay').classList[show?'remove':'add']('opacity-0', 'pointer-events-none');
         }
-        
+
         function showToast(msg, type='info') {
-            const div = document.createElement('div'); 
+            const div = document.createElement('div');
             div.className = `p-3 rounded-xl shadow-xl text-xs font-bold text-white flex items-center gap-2 transition-all transform translate-y-4 opacity-0 mt-2 ${type==='success'?'bg-emerald-600':type==='error'?'bg-rose-600':'bg-gray-800'}`;
             div.innerHTML = `<i class="fa-solid ${type==='success'?'fa-check':type==='error'?'fa-xmark':'fa-info'}"></i> <span>${msg}</span>`;
-            document.getElementById('toastContainer').appendChild(div); 
-            setTimeout(() => div.classList.remove('translate-y-4', 'opacity-0'), 50); 
+            document.getElementById('toastContainer').appendChild(div);
+            setTimeout(() => div.classList.remove('translate-y-4', 'opacity-0'), 50);
             setTimeout(() => { div.classList.add('opacity-0'); setTimeout(()=>div.remove(), 300); }, 3000);
         }
     </script>
