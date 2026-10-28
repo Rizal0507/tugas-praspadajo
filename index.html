@@ -64,26 +64,26 @@
             <div class="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-white opacity-10 rounded-full blur-2xl"></div>
             <div class="absolute bottom-6 left-6 w-24 h-24 bg-blue-300 opacity-20 rounded-full blur-xl"></div>
 
-            <!-- REVISI 1: Logo Tanpa Border, Diperbesar, dan Animasi Float -->
+            <!-- Logo Tanpa Border, Diperbesar, dan Animasi Float -->
             <div class="w-32 h-32 flex items-center justify-center z-10 mb-2 animate-float">
                 <img src="./logo.png" id="appLogo" alt="Logo Paskibra SMPN 2 Jogoroto" class="max-h-full max-w-full object-contain drop-shadow-2xl" 
                      onerror="this.onerror=null; this.outerHTML='<i class=\'fa-solid fa-shield-halved text-white text-6xl drop-shadow-lg\'></i>';">
             </div>
             
-            <!-- REVISI 2: Judul Web App -->
-            <div class="z-10 text-center px-2">
-                <p class="text-blue-100 text-[11px] font-semibold tracking-[0.4em] uppercase mb-1">WEB APP</p>
-                <h2 class="text-white text-base sm:text-lg font-extrabold tracking-wide leading-snug">PASKIBRA SMPN 2 JOGOROTO</h2>
+            <!-- Judul Web App (diperbesar & diturunkan sedikit) -->
+            <div class="z-10 text-center px-2 mt-3">
+                <p class="text-blue-100 text-xs font-semibold tracking-[0.45em] uppercase mb-2">WEB APP</p>
+                <h2 class="text-white text-xl sm:text-2xl font-extrabold tracking-wide leading-tight">PASKIBRA SMPN 2 JOGOROTO</h2>
             </div>
         </div>
 
         <!-- Card Putih Melengkung (Form Login) -->
         <div class="bg-white rounded-t-[2.5rem] flex-grow -mt-12 px-8 pt-8 pb-10 flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.08)] relative z-10">
             
-            <!-- REVISI 3: Sapaan Dinamis -->
+            <!-- Sapaan Dinamis -->
             <h1 id="welcomeText" class="text-2xl font-bold text-gray-800 text-center mb-1">Memuat sapaan...</h1>
             
-            <!-- REVISI 4: Kalimat Motivasi Acak -->
+            <!-- Kalimat Motivasi Acak -->
             <p id="motivationText" class="text-gray-400 text-xs text-center mb-6 font-medium">Menyiapkan motivasi...</p>
 
             <!-- Role Selector Toggle (Kiri: Pelatih | Kanan: Anggota) - DEFAULT: ANGGOTA -->
@@ -133,7 +133,7 @@
             </form>
         </div>
 
-        <!-- REVISI 5: Loading Screen Disamakan dengan Halaman Lain -->
+        <!-- Loading Screen -->
         <div id="loadingOverlay" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-[100] flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity">
             <div class="w-24 h-24 mb-4 flex items-center justify-center">
                 <img src="./logo.png" alt="Loading" class="max-h-full max-w-full object-contain animate-pulse drop-shadow-xl" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-blue-600 text-5xl animate-pulse\'></i>';">
@@ -151,9 +151,8 @@
         // DEFAULT ROLE: ANGGOTA
         let currentRole = 'Anggota';
 
-        // REVISI 3 & 4: Logika Sapaan dan 30 Variasi Motivasi
+        // Logika Sapaan dan 30 Variasi Motivasi
         document.addEventListener('DOMContentLoaded', () => {
-            // Set Sapaan (Selamat Pagi/Siang/Sore/Malam)
             const hour = new Date().getHours();
             let greeting = "Selamat Malam!";
             if (hour >= 4 && hour < 11) greeting = "Selamat Pagi!";
@@ -163,7 +162,6 @@
             
             document.getElementById('welcomeText').textContent = greeting;
 
-            // Set Kalimat Motivasi Acak
             const quotes = [
                 "Disiplin adalah kunci utama kesuksesan.",
                 "Keringat hari ini adalah hasil manis esok hari.",
@@ -266,10 +264,8 @@
             .then(data => {
                 showLoading(false);
                 if (data.success) {
-                    // Simpan Sesi User di LocalStorage
                     localStorage.setItem('userSession', JSON.stringify(data.user));
 
-                    // Redirection ke file terpisah
                     if (data.user.role === 'Pelatih') {
                         window.location.href = 'pelatih.html';
                     } else {
