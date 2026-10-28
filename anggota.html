@@ -27,13 +27,16 @@
         /* Custom Scrollbar untuk Navbar agar tidak berantakan */
         .custom-scroll::-webkit-scrollbar { width: 0px; height: 0px; } 
         .custom-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Form Terkunci */
+        .form-locked { opacity: 0.6; pointer-events: none; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans text-gray-800 antialiased flex flex-col items-center">
 
     <div class="w-full max-w-md bg-white min-h-screen sm:min-h-[850px] sm:my-6 sm:rounded-[2.5rem] sm:shadow-2xl flex flex-col relative overflow-hidden">
         
-        <!-- HEADER (Dikecilkan agar tidak makan layar) -->
+        <!-- HEADER -->
         <header id="appHeader" class="bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 text-white px-5 pt-5 pb-6 relative overflow-hidden flex-none">
             <div class="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
             <div class="absolute bottom-0 left-1/3 w-28 h-28 bg-blue-300/20 rounded-full blur-xl"></div>
@@ -62,7 +65,7 @@
             </div>
         </header>
 
-        <!-- DYNAMIC NAVIGATION (Diperbaiki agar muat / bisa discroll) -->
+        <!-- NAVIGATION -->
         <nav class="bg-white border-b border-gray-100 flex shadow-sm z-20 sticky top-0 overflow-x-auto custom-scroll whitespace-nowrap">
             <button onclick="switchTab('dashboard')" id="tabBtnDashboard" class="flex-1 min-w-[85px] py-3 text-[11px] font-bold text-blue-600 border-b-2 border-blue-600 flex justify-center items-center gap-1.5 relative">
                 <i class="fa-solid fa-list-check"></i> Tugas
@@ -78,16 +81,13 @@
 
         <!-- VIEW 1: DASHBOARD TUGAS -->
         <main id="viewDashboard" class="flex-grow bg-gray-50 flex flex-col relative z-10 overflow-y-auto custom-scroll">
-            <!-- RINGKASAN TUGAS MENDATANG (UPCOMING) -->
             <div id="upcomingTasksSection" class="p-5 pb-0 hidden"></div>
 
-            <!-- TUGAS TERSEDIA HARI INI HEADER -->
             <div class="px-5 pt-4 pb-3 bg-gray-50 flex justify-between items-center sticky top-0 z-10 border-b border-gray-100">
                 <h3 class="font-bold text-gray-800 text-sm">Tugas Tersedia Hari Ini</h3>
                 <button onclick="fetchTasks()" class="text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg text-[11px] font-bold flex gap-1.5 active:scale-95 hover:bg-blue-100 transition-colors"><i class="fa-solid fa-rotate"></i> Refresh</button>
             </div>
 
-            <!-- LIST TUGAS HARI INI -->
             <div id="taskListContainer" class="p-5 flex flex-col gap-4">
                 <div class="py-10 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-spinner animate-spin text-3xl text-blue-600 mb-3"></i><p class="text-xs font-semibold text-gray-500">Memuat tugas...</p></div>
             </div>
@@ -134,20 +134,15 @@
             </div>
         </main>
 
-        <!-- VIEW 4: ABSENSI (DENGAN LOGIKA CHECK-IN / CHECK-OUT) -->
+        <!-- VIEW 4: ABSENSI (HANYA UNTUK PETUGAS) -->
         <main id="viewAbsensi" class="hidden flex-grow bg-gray-50 flex-col relative z-10 overflow-y-auto custom-scroll p-5">
             <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-4">
                 <div class="flex justify-between items-center border-b pb-3">
                     <h2 class="font-bold text-gray-800 text-sm">Input Absensi Harian</h2>
-                    <input type="date" id="absensiDate" class="px-2 py-1 bg-gray-50 border rounded-lg text-xs font-bold text-blue-600 outline-none">
+                    <input type="date" id="absensiDate" onchange="checkTodayAbsensiStatus()" class="px-2 py-1 bg-gray-50 border rounded-lg text-xs font-bold text-blue-600 outline-none">
                 </div>
                 
                 <form id="formAbsensi" class="flex flex-col gap-4">
-                    <div>
-                        <label class="text-[10px] font-bold text-gray-600 uppercase mb-1 block">Materi Latihan</label>
-                        <textarea id="materiLatihan" rows="2" required placeholder="Ringkasan materi..." class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none focus:border-blue-500"></textarea>
-                    </div>
-
                     <div class="overflow-x-auto max-h-[300px] overflow-y-auto custom-scroll border rounded-xl">
                         <table class="w-full text-left border-collapse">
                             <thead class="bg-gray-50 text-gray-500 uppercase text-[9px] font-bold sticky top-0 z-10">
@@ -160,19 +155,29 @@
                     </div>
                     <button type="button" onclick="loadAbsensiData()" class="text-[11px] text-blue-600 font-bold bg-blue-50 py-2 rounded-lg border border-blue-100"><i class="fa-solid fa-cloud-arrow-down mr-1"></i> Load Data Anggota</button>
 
+                    <!-- FORM MATERI & EVALUASI (MUNCUL SETELAH ABSEN DATANG) -->
+                    <div id="formMateriEval" class="hidden flex-col gap-3 bg-blue-50/50 p-3 rounded-xl border border-blue-100">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-600 uppercase mb-1 block">Materi Latihan</label>
+                            <textarea id="materiLatihan" rows="2" required placeholder="Ringkasan materi latihan hari ini..." class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs outline-none focus:border-blue-500"></textarea>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-600 uppercase mb-1 block">Evaluasi / Catatan Latihan</label>
+                            <textarea id="evaluasiLatihan" rows="2" required placeholder="Catatan evaluasi selama latihan..." class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs outline-none focus:border-blue-500"></textarea>
+                        </div>
+                    </div>
+
                     <!-- KOTAK FOTO DATANG & PULANG -->
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="grid grid-cols-2 gap-2 mt-2">
                         <!-- Foto Datang -->
                         <div id="boxDatang" class="bg-gray-50 border border-dashed border-gray-300 p-2 rounded-xl text-center relative group transition-all">
                             <div id="fotoDatangPreviewContainer" class="hidden mb-2 relative aspect-video w-full bg-black rounded-lg overflow-hidden">
                                 <img id="fotoDatangPreview" src="" class="w-full h-full object-cover">
                             </div>
-                            <!-- Tampilan awal (belum absen) -->
                             <button type="button" id="btnTakeDatang" onclick="openAbsenCamera('Datang')" class="w-full cursor-pointer flex flex-col items-center gap-1 text-blue-600 font-bold text-[10px]">
                                 <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm"><i class="fa-solid fa-camera"></i></div>
                                 <span>Foto Datang</span>
                             </button>
-                            <!-- Tampilan jika sudah absen (centang hijau) -->
                             <div id="statusDatangDone" class="hidden flex-col items-center gap-1 text-emerald-600 font-bold text-[10px] py-2">
                                 <i class="fa-solid fa-circle-check text-3xl"></i>
                                 <span>Datang Selesai</span>
@@ -188,10 +193,13 @@
                                 <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-sm"><i class="fa-solid fa-camera"></i></div>
                                 <span>Foto Pulang</span>
                             </button>
+                            <div id="statusPulangDone" class="hidden flex-col items-center gap-1 text-emerald-600 font-bold text-[10px] py-2">
+                                <i class="fa-solid fa-circle-check text-3xl"></i>
+                                <span>Pulang Selesai</span>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- Tombol Simpan Muncul Jika Ada Foto Baru -->
                     <button type="submit" id="btnSimpanAbsen" class="hidden w-full bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 text-sm mt-2"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Absensi</button>
                 </form>
             </div>
@@ -210,9 +218,6 @@
                 </div>
                 
                 <p id="setupTaskDesc" class="text-xs text-gray-500 mb-4 bg-gray-50 p-3 rounded-xl border border-gray-100 max-h-24 overflow-y-auto custom-scroll"></p>
-                <div id="selectHariKeContainer" class="hidden">
-                    <select id="selectHariKe" onchange="renderSubTasks()" class="w-full px-4 py-3 bg-gray-50 text-sm font-semibold rounded-2xl border border-gray-200 outline-none focus:border-blue-500 mb-4 shadow-inner"></select>
-                </div>
                 <div id="subTasksContainer" class="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scroll p-1"></div>
             </div>
         </div>
@@ -338,7 +343,7 @@
         // State Absensi
         let absenStream = null, currentPhotoType = "Datang";
         let fotoDatangBase64 = null, fotoPulangBase64 = null;
-        let todayAbsenData = { hasDatang: false, hasPulang: false };
+        let absenLocked = false; // Flag untuk mengunci seluruh form jika sudah pulang
 
         // --- HELPER ---
         function formatSecToText(secVal) {
@@ -347,6 +352,19 @@
             if (m > 0 && s > 0) return `${m} mnt ${s} dtk`;
             if (m > 0) return `${m} mnt`;
             return `${s} dtk`;
+        }
+
+        // Parser durasi yang bisa menerima format "05:00" atau angka "5"
+        function parseDuration(val) {
+            if (!val) return 0;
+            let str = String(val);
+            if (str.includes(':')) {
+                let parts = str.split(':');
+                let m = parseInt(parts[0]) || 0;
+                let s = parseInt(parts[1]) || 0;
+                return (m * 60) + s;
+            }
+            return (parseInt(val) || 0) * 60;
         }
         
         function formatDateTime(iso) {
@@ -392,14 +410,14 @@
 
         function getDirectImageLink(url) {
             if(!url) return "";
-            // Ambil ID Google Drive jika ada
             const match = url.match(/[-\w]{25,}/); 
             return match ? `https://lh3.googleusercontent.com/d/${match[0]}` : url;
         }
 
-        // Normalisasi Key untuk pencocokan tugas
+        // NORMALISASI EKSTREM: Hanya sisakan huruf dan angka. 
+        // Contoh: "Calve Raise 10x3" dan "CalveRaise10x3" akan dianggap SAMA.
         function normalizeKey(str) {
-            return String(str || "").trim().toLowerCase().replace(/\s+/g, ' ');
+            return String(str || "").replace(/[^a-z0-9]/gi, '').toLowerCase();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -424,7 +442,7 @@
             document.getElementById('motivationText').textContent = `"${quotes[Math.floor(Math.random() * quotes.length)]}"`;
 
             if(user.hakAbsen) {
-                document.getElementById('roleBadge').textContent = "ANGGOTA (HAK ABSEN)";
+                document.getElementById('roleBadge').textContent = "PETUGAS ABSEN";
                 document.getElementById('roleBadge').className = "bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200 w-max";
                 document.getElementById('tabBtnAbsensi').classList.remove('hidden');
                 document.getElementById('absensiDate').value = getLocalToday();
@@ -449,7 +467,7 @@
                     
                     if (t === 'absensi') {
                         if (document.getElementById('tableAbsensiBody').children.length <= 1) loadAbsensiData();
-                        checkTodayAbsensiStatus(); // Cek status datang/pulang
+                        checkTodayAbsensiStatus();
                     }
                     if (t === 'riwayatTugas') document.getElementById('badgeRiwayatDot').classList.add('hidden');
                 } else {
@@ -525,13 +543,13 @@
             // 2. Render Tugas Hari Ini
             const container = document.getElementById('taskListContainer');
             
-            // Cek keterselesaian tugas (Gunakan Normalisasi!)
+            // Cek keterselesaian tugas (Gunakan Normalisasi Ekstrem!)
             const todayTasksFiltered = todayTasks.filter(t => {
                 if(t.isLama) return true;
                 const pendingSubs = (t.subTugas || []).filter(sub => {
-                    const keyNormal = normalizeKey(`${t.taskId}_${todayStr}_${sub.nama}`);
+                    const keyTarget = normalizeKey(`${t.taskId}_${todayStr}_${sub.nama}`);
                     // Cari apakah ada key yang cocok di userSubs
-                    return !Object.keys(userSubs).some(k => normalizeKey(k) === keyNormal);
+                    return !Object.keys(userSubs).some(k => normalizeKey(k) === keyTarget);
                 });
                 return pendingSubs.length > 0; // Hanya tampilkan yang belum selesai
             });
@@ -547,8 +565,8 @@
                 const isBertumpuk = t.subTugas && t.subTugas.length > 1;
                 
                 const pendingSubs = (t.subTugas || []).filter(sub => {
-                    const keyNormal = normalizeKey(`${t.taskId}_${todayStr}_${sub.nama}`);
-                    return !Object.keys(userSubs).some(k => normalizeKey(k) === keyNormal);
+                    const keyTarget = normalizeKey(`${t.taskId}_${todayStr}_${sub.nama}`);
+                    return !Object.keys(userSubs).some(k => normalizeKey(k) === keyTarget);
                 });
                 totalUnfinishedToday += pendingSubs.length;
 
@@ -597,11 +615,8 @@
             document.getElementById('setupTaskTitle').textContent = selectedTask.judulTugas;
             document.getElementById('setupTaskDesc').textContent = selectedTask.instruksi;
             
-            const sel = document.getElementById('selectHariKe');
             const todayStr = getLocalToday();
             selectedDay = todayStr;
-            sel.innerHTML = `<option value="${todayStr}">${formatDateIndo(todayStr)} (Hari Ini)</option>`;
-            
             document.getElementById('setupTaskDate').innerHTML = `<i class="fa-regular fa-calendar-check mr-1"></i> Tugas untuk: ${formatDateIndo(todayStr)}`;
 
             renderSubTasks(); 
@@ -611,7 +626,7 @@
         function closeSetup() { document.getElementById('viewSetup').classList.add('hidden'); }
 
         function renderSubTasks() {
-            selectedDay = document.getElementById('selectHariKe').value || getLocalToday();
+            selectedDay = getLocalToday();
             const container = document.getElementById('subTasksContainer');
             container.innerHTML = '';
 
@@ -622,8 +637,8 @@
                 
                 if(!isDone) {
                     pendingCount++;
-                    const minSec = sub.minSec !== undefined ? sub.minSec : (sub.min * 60);
-                    const maxSec = sub.maxSec !== undefined ? sub.maxSec : (sub.max * 60);
+                    const minSec = parseDuration(sub.min);
+                    const maxSec = parseDuration(sub.max);
                     const targetTeks = `${formatSecToText(minSec)} - ${formatSecToText(maxSec)}`;
                     
                     container.innerHTML += `
@@ -835,9 +850,8 @@
 
         function checkTodayAbsensiStatus() {
             const today = document.getElementById('absensiDate').value;
-            const myRow = user.nama.trim().toLowerCase();
-            
             let hasDatang = false, hasPulang = false;
+            let savedMateri = "", savedEvaluasi = "";
             
             // Cari data absen hari ini di state history
             if(stateAbsensiHistory && stateAbsensiHistory.length > 0) {
@@ -845,41 +859,77 @@
                 const colIdx = headers.indexOf(today);
                 
                 if(colIdx !== -1) {
-                    let fdRow = -1, fpRow = -1;
+                    let fdRow = -1, fpRow = -1, matRow = -1, evalRow = -1;
                     for(let i=1; i<stateAbsensiHistory.length; i++) {
                         if(stateAbsensiHistory[i][1] === "FOTO DATANG:") fdRow = i;
                         if(stateAbsensiHistory[i][1] === "FOTO PULANG:") fpRow = i;
+                        if(stateAbsensiHistory[i][1] === "MATERI LATIHAN:") matRow = i;
+                        if(stateAbsensiHistory[i][1] === "EVALUASI LATIHAN:") evalRow = i;
                     }
                     if(fdRow !== -1 && stateAbsensiHistory[fdRow][colIdx]) hasDatang = true;
                     if(fpRow !== -1 && stateAbsensiHistory[fpRow][colIdx]) hasPulang = true;
+                    if(matRow !== -1) savedMateri = stateAbsensiHistory[matRow][colIdx] || "";
+                    if(evalRow !== -1) savedEvaluasi = stateAbsensiHistory[evalRow][colIdx] || "";
                 }
             }
 
             // Update UI
+            const boxDatang = document.getElementById('boxDatang');
             const btnDatang = document.getElementById('btnTakeDatang');
             const statusDatang = document.getElementById('statusDatangDone');
             const boxPulang = document.getElementById('boxPulang');
             const btnPulang = document.getElementById('btnTakePulang');
+            const statusPulang = document.getElementById('statusPulangDone');
+            const formMateriEval = document.getElementById('formMateriEval');
+            const btnSimpan = document.getElementById('btnSimpanAbsen');
+            const dateInput = document.getElementById('absensiDate');
+            const formAbsensi = document.getElementById('formAbsensi');
 
-            if (hasDatang) {
+            // Reset classes
+            formAbsensi.classList.remove('form-locked');
+            dateInput.disabled = false;
+            formMateriEval.classList.add('hidden'); formMateriEval.classList.remove('flex');
+            statusDatang.classList.add('hidden'); statusDatang.classList.remove('flex');
+            statusPulang.classList.add('hidden'); statusPulang.classList.remove('flex');
+            
+            if (hasPulang) {
+                // SEMUA SELESAI & TERKUNCI
+                absenLocked = true;
+                btnDatang.classList.add('hidden');
+                btnPulang.classList.add('hidden');
+                statusDatang.classList.remove('hidden'); statusDatang.classList.add('flex');
+                statusPulang.classList.remove('hidden'); statusPulang.classList.add('flex');
+                formMateriEval.classList.remove('hidden'); formMateriEval.classList.add('flex');
+                dateInput.disabled = true; // Lock Tanggal
+                formAbsensi.classList.add('form-locked');
+                btnSimpan.classList.add('hidden');
+                boxDatang.classList.add('opacity-50');
+                boxPulang.classList.add('opacity-50');
+            } 
+            else if (hasDatang) {
+                // FASE PULANG
+                absenLocked = false;
                 btnDatang.classList.add('hidden');
                 statusDatang.classList.remove('hidden'); statusDatang.classList.add('flex');
-                
-                // Aktifkan kotak pulang
                 boxPulang.classList.remove('opacity-50', 'cursor-not-allowed');
                 btnPulang.disabled = false;
+                btnPulang.classList.remove('hidden');
+                formMateriEval.classList.remove('hidden'); formMateriEval.classList.add('flex');
                 
-                if(hasPulang) {
-                    btnPulang.classList.add('hidden');
-                    document.getElementById('fotoPulangPreview').src = "https://lh3.googleusercontent.com/d/" + "DONE"; // Placeholder
-                    document.getElementById('btnSimpanAbsen').classList.add('hidden'); // Selesai semua
-                    boxPulang.innerHTML = `<div class="flex flex-col items-center gap-1 text-emerald-600 font-bold text-[10px] py-2"><i class="fa-solid fa-circle-check text-3xl"></i><span>Pulang Selesai</span></div>`;
-                }
-            } else {
+                // Isi nilai materi yang sudah tersimpan
+                if (savedMateri) document.getElementById('materiLatihan').value = savedMateri;
+                if (savedEvaluasi) document.getElementById('evaluasiLatihan').value = savedEvaluasi;
+
+                dateInput.disabled = true; // Lock Tanggal
+            } 
+            else {
+                // FASE DATANG (AWAL)
+                absenLocked = false;
                 btnDatang.classList.remove('hidden');
-                statusDatang.classList.add('hidden'); statusDatang.classList.remove('flex');
+                btnPulang.classList.add('hidden');
                 boxPulang.classList.add('opacity-50', 'cursor-not-allowed');
                 btnPulang.disabled = true;
+                dateInput.disabled = false; // Bebas ganti tanggal
             }
         }
 
@@ -991,9 +1041,10 @@
                 if(String(data[i][1]).trim().toLowerCase() === user.nama.trim().toLowerCase()) { myRowIdx = i; break; } 
             }
             
-            let matRow=-1, fdRow=-1, fpRow=-1;
+            let matRow=-1, evalRow=-1, fdRow=-1, fpRow=-1;
             for(let i=1; i<data.length; i++) {
                 if(data[i][1] === "MATERI LATIHAN:") matRow = i;
+                if(data[i][1] === "EVALUASI LATIHAN:") evalRow = i;
                 if(data[i][1] === "FOTO DATANG:") fdRow = i;
                 if(data[i][1] === "FOTO PULANG:") fpRow = i;
             }
@@ -1011,9 +1062,10 @@
                 
                 if(statusKu !== "-") {
                     const materi = (matRow !== -1 && data[matRow][col]) ? data[matRow][col] : "-";
+                    const evaluasi = (evalRow !== -1 && data[evalRow][col]) ? data[evalRow][col] : "";
                     const linkDatang = (fdRow !== -1 && data[fdRow][col]) ? data[fdRow][col] : "";
                     const linkPulang = (fpRow !== -1 && data[fpRow][col]) ? data[fpRow][col] : "";
-                    myHistory.push({ tgl: tglStr, statusKu, materi, linkDatang, linkPulang });
+                    myHistory.push({ tgl: tglStr, statusKu, materi, evaluasi, linkDatang, linkPulang });
                 }
             });
 
@@ -1039,6 +1091,8 @@
                 const btnDatang = h.linkDatang ? `<button onclick="openPhotoModal('${h.linkDatang}', 'Foto Datang - ${h.tgl}')" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-xl flex-1 text-center font-bold hover:bg-blue-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-image"></i> Datang</button>` : '';
                 const btnPulang = h.linkPulang ? `<button onclick="openPhotoModal('${h.linkPulang}', 'Foto Pulang - ${h.tgl}')" class="px-3 py-2 bg-emerald-50 text-emerald-600 rounded-xl flex-1 text-center font-bold hover:bg-emerald-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-image"></i> Pulang</button>` : '';
                 
+                const evalHtml = h.evaluasi ? `<p class="text-[10px] text-gray-500 leading-snug bg-amber-50 p-2.5 rounded-xl mt-1"><span class="font-bold text-amber-700">Evaluasi:</span> ${h.evaluasi}</p>` : '';
+
                 return `
                 <div class="p-4 flex flex-col gap-2">
                     <div class="flex justify-between items-center">
@@ -1046,6 +1100,7 @@
                         <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${badgeClass}">${h.statusKu}</span>
                     </div>
                     <p class="text-[10px] text-gray-500 leading-snug bg-gray-50 p-2.5 rounded-xl"><span class="font-bold text-gray-700">Materi:</span> ${h.materi}</p>
+                    ${evalHtml}
                     <div class="flex gap-2 text-[10px] mt-1">${btnDatang}${btnPulang}</div>
                 </div>`;
             }).join('');
@@ -1084,12 +1139,19 @@
         // Submit form absensi (Datang / Pulang)
         document.getElementById('formAbsensi').addEventListener('submit', (e) => {
             e.preventDefault();
+            if(absenLocked) { showToast("Absensi hari ini sudah selesai dan terkunci.", "error"); return; }
             
             // Tentukan mana yang mau disave
             let typeToSubmit = "";
             let b64ToSubmit = "";
             if (fotoDatangBase64) { typeToSubmit = "Datang"; b64ToSubmit = fotoDatangBase64; }
-            else if (fotoPulangBase64) { typeToSubmit = "Pulang"; b64ToSubmit = fotoPulangBase64; }
+            else if (fotoPulangBase64) { 
+                typeToSubmit = "Pulang"; b64ToSubmit = fotoPulangBase64; 
+                // Validasi form wajib untuk pulang
+                if(!document.getElementById('materiLatihan').value.trim() || !document.getElementById('evaluasiLatihan').value.trim()) {
+                    showToast("Materi & Evaluasi Latihan wajib diisi sebelum pulang!", "error"); return;
+                }
+            }
             else { showToast("Ambil foto terlebih dahulu!", "error"); return; }
             
             if (document.getElementById('tableAbsensiBody').children.length <= 1 || !document.querySelector('#tableAbsensiBody tr[data-nama]')) {
@@ -1104,6 +1166,7 @@
                 type: typeToSubmit, // KIRIM TIPE (Datang/Pulang)
                 tanggal: document.getElementById('absensiDate').value, 
                 materi: document.getElementById('materiLatihan').value, 
+                evaluasi: document.getElementById('evaluasiLatihan').value, // Kirim Evaluasi
                 absensiData: absData, 
                 fotoBase64: b64ToSubmit // Kirim base64 fotonya
             })})
@@ -1115,8 +1178,14 @@
                     document.getElementById('fotoDatangPreviewContainer').classList.add('hidden');
                     document.getElementById('fotoPulangPreviewContainer').classList.add('hidden');
                     document.getElementById('btnSimpanAbsen').classList.add('hidden');
-                    document.getElementById('materiLatihan').value=''; 
-                    fetchRiwayatSemua(); // Refresh UI
+                    
+                    // Jika pulang, kosongkan form teks
+                    if(typeToSubmit === 'Pulang') {
+                        document.getElementById('materiLatihan').value=''; 
+                        document.getElementById('evaluasiLatihan').value='';
+                    }
+                    
+                    fetchRiwayatSemua(); // Refresh UI untuk mengunci form
                 } else showToast(d.message, "error"); 
             }).catch(e=>{showLoading(false); showToast("Error koneksi", "error");});
         });
