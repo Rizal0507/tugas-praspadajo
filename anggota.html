@@ -412,12 +412,15 @@
             return match ? `https://lh3.googleusercontent.com/d/${match[0]}` : url;
         }
 
-        // NORMALISASI EKSTREM: Hanya sisakan huruf dan angka
+        // NORMALISASI EKSTREM: Hanya sisakan huruf dan angka, hapus spasi tersembunyi
         function normalizeStr(str) {
-            return String(str || "").replace(/[^a-z0-9]/gi, '').toLowerCase();
+            return String(str || "")
+                .replace(/[\u00A0\r\n\t]/g, ' ') // Ganti non-breaking space, enter, tab
+                .replace(/[^a-z0-9]/gi, '')      // Hapus semua karakter selain huruf/angka
+                .toLowerCase();
         }
 
-        // FUNGSI PENGECEK TUGAS (Membaca Key dengan format TaskID_DD-MM-YYYY_NamaTugas dari GAS)
+        // FUNGSI PENGECEK TUGAS
         function isSubDone(taskId, tanggal, subName) {
             const prefix = `${taskId}_${tanggal}_`;
             const targetNorm = normalizeStr(subName);
@@ -634,17 +637,24 @@
             const container = document.getElementById('subTasksContainer');
             container.innerHTML = '';
 
-            let pendingCount = 0;
             selectedTask.subTugas.forEach(sub => {
-                // Cek dengan fungsi isSubDone yang baru
                 const isDone = isSubDone(selectedTask.taskId, selectedDay, sub.nama);
                 
-                if(!isDone) {
-                    pendingCount++;
-                    const minSec = parseDuration(sub.min);
-                    const maxSec = parseDuration(sub.max);
-                    const targetTeks = `${formatSecToText(minSec)} - ${formatSecToText(maxSec)}`;
-                    
+                const minSec = parseDuration(sub.min);
+                const maxSec = parseDuration(sub.max);
+                const targetTeks = `${formatSecToText(minSec)} - ${formatSecToText(maxSec)}`;
+
+                if (isDone) {
+                    // Tampilan jika sudah selesai (Hijau + Centang, tidak bisa diklik)
+                    container.innerHTML += `
+                        <div class="w-full bg-emerald-500 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 shadow-sm opacity-90 cursor-not-allowed">
+                            <span class="line-through decoration-white/50">${sub.nama}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] bg-emerald-700 px-2 py-1 rounded font-bold"><i class="fa-solid fa-check mr-1"></i> Selesai</span>
+                            </div>
+                        </div>`;
+                } else {
+                    // Tampilan jika belum selesai (Biru + Bisa diklik)
                     container.innerHTML += `
                         <button onclick="prepareCamera('${sub.nama}', ${minSec}, ${maxSec})" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 active:scale-95 shadow-lg group transition-transform">
                             <span>${sub.nama}</span>
@@ -655,10 +665,6 @@
                         </button>`;
                 }
             });
-
-            if(pendingCount === 0) {
-                container.innerHTML = `<div class="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold py-5 rounded-xl text-xs text-center flex flex-col items-center gap-2"><i class="fa-solid fa-circle-check text-2xl"></i> Semua tugas untuk hari ini sudah selesai!</div>`;
-            }
         }
 
         // --- SISTEM KAMERA TUGAS (VIDEO) ---
