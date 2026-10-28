@@ -64,6 +64,8 @@
         <nav class="bg-white border-b border-gray-100 px-4 pt-3 flex gap-2 overflow-x-auto no-scrollbar shadow-sm sticky top-0 z-20">
             <button onclick="switchTab('monitoring')" id="tabBtnMonitoring" class="tab-btn px-4 py-3 text-xs sm:text-sm font-bold border-b-2 border-blue-600 text-blue-600 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-chart-pie text-sm"></i> <span>Monitoring Tugas</span></button>
             <button onclick="switchTab('buatTugas')" id="tabBtnBuatTugas" class="tab-btn px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-600 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-plus-circle text-sm"></i> <span>Buat/Edit Tugas</span></button>
+            <button onclick="switchTab('absensi')" id="tabBtnAbsensi" class="tab-btn px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-600 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-clipboard-user text-sm"></i> <span>Absensi Harian</span></button>
+            <button onclick="switchTab('riwayatAbsensi')" id="tabBtnRiwayatAbsensi" class="tab-btn px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-600 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-clock-rotate-left text-sm"></i> <span>Riwayat Absensi</span></button>
             <button onclick="switchTab('anggota')" id="tabBtnAnggota" class="tab-btn px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-600 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-users-gear text-sm"></i> <span>Kelola Anggota</span></button>
         </nav>
 
@@ -99,11 +101,16 @@
                 </div>
             </section>
 
-            <!-- TAB: BUAT TUGAS -->
+            <!-- TAB: BUAT / EDIT TUGAS -->
             <section id="viewBuatTugas" class="tab-view hidden flex-col gap-5 max-w-3xl mx-auto w-full">
                 <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm relative">
-                    <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Buat Tugas Baru</h2>
+                    <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
+                        <h2 id="formTaskHeader" class="text-lg font-bold text-gray-800">Buat Tugas Baru</h2>
+                        <button id="btnCancelEdit" type="button" onclick="resetTaskForm()" class="hidden text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-200"><i class="fa-solid fa-xmark mr-1"></i> Batal Edit</button>
+                    </div>
+
                     <form id="formCreateTask" class="flex flex-col gap-4">
+                        <input type="hidden" id="editTaskId" value="">
                         <div>
                             <label class="text-xs font-bold text-gray-600 uppercase mb-1 block">Judul Tugas Utama</label>
                             <input type="text" id="taskTitle" required class="w-full px-4 py-2 bg-gray-50 border rounded-xl text-sm outline-none focus:border-blue-500">
@@ -148,16 +155,110 @@
                     </form>
                 </div>
 
+                <!-- DAFTAR TUGAS AKTIF -->
                 <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
                     <h3 class="p-4 border-b font-bold text-gray-800 text-sm">Daftar Tugas Aktif</h3>
                     <div class="overflow-x-auto max-h-60 overflow-y-auto custom-scroll">
                         <table class="w-full text-left border-collapse text-xs">
-                            <thead class="bg-gray-50 text-gray-400 uppercase text-[10px] font-bold sticky top-0">
+                            <thead class="bg-gray-50 text-gray-400 uppercase text-[10px] font-bold sticky top-0 z-10">
                                 <tr><th class="py-2 px-4 w-10">No</th><th class="py-2 px-4">Judul Tugas</th><th class="py-2 px-4 text-center">Tipe</th><th class="py-2 px-4 text-center">Aksi</th></tr>
                             </thead>
                             <tbody id="tableTaskListBody" class="divide-y divide-gray-100"></tbody>
                         </table>
                     </div>
+                </div>
+            </section>
+
+            <!-- TAB: ABSENSI HARIAN (INPUT) -->
+            <section id="viewAbsensi" class="tab-view hidden flex-col gap-5">
+                <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-4">
+                    <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                        <h2 class="font-bold text-gray-800 text-base">Input Absensi Harian</h2>
+                        <input type="date" id="absensiDate" class="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-blue-600 outline-none">
+                    </div>
+                    
+                    <form id="formAbsensi" class="flex flex-col gap-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-600 uppercase mb-1 block">Materi Latihan Hari Ini</label>
+                            <textarea id="materiLatihan" rows="2" required placeholder="Jelaskan ringkasan materi yang diberikan ke pasukan..." class="w-full px-4 py-2 bg-gray-50 border rounded-xl text-sm outline-none focus:border-blue-500"></textarea>
+                        </div>
+
+                        <div class="overflow-x-auto max-h-[300px] overflow-y-auto custom-scroll border rounded-xl">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold sticky top-0 z-10">
+                                    <tr><th class="py-2.5 px-4 w-10 text-center">No</th><th class="py-2.5 px-4">Nama</th><th class="py-2.5 px-4 text-center w-40">Status Kehadiran</th></tr>
+                                </thead>
+                                <tbody id="tableAbsensiBody" class="divide-y divide-gray-100 text-xs"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Foto Datang -->
+                            <div class="bg-gray-50 border border-dashed border-gray-300 p-4 rounded-xl text-center relative overflow-hidden group">
+                                <div id="fotoDatangPreviewContainer" class="hidden mb-3 relative aspect-video w-full bg-black rounded-lg overflow-hidden">
+                                    <img id="fotoDatangPreview" src="" alt="Foto Datang" class="w-full h-full object-cover">
+                                    <button type="button" onclick="removePhoto('Datang')" class="absolute top-2 right-2 w-8 h-8 bg-rose-500 text-white rounded-full"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                                <label class="cursor-pointer flex flex-col items-center gap-2 text-blue-600 font-bold text-sm">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><i class="fa-solid fa-camera"></i></div>
+                                    <span>Foto Sebelum Latihan (Datang)</span>
+                                    <input type="file" id="fotoDatangInput" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(event, 'Datang')">
+                                </label>
+                            </div>
+                            <!-- Foto Pulang -->
+                            <div class="bg-gray-50 border border-dashed border-gray-300 p-4 rounded-xl text-center relative overflow-hidden group">
+                                <div id="fotoPulangPreviewContainer" class="hidden mb-3 relative aspect-video w-full bg-black rounded-lg overflow-hidden">
+                                    <img id="fotoPulangPreview" src="" alt="Foto Pulang" class="w-full h-full object-cover">
+                                    <button type="button" onclick="removePhoto('Pulang')" class="absolute top-2 right-2 w-8 h-8 bg-rose-500 text-white rounded-full"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                                <label class="cursor-pointer flex flex-col items-center gap-2 text-emerald-600 font-bold text-sm">
+                                    <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-lg group-hover:scale-110 transition-transform"><i class="fa-solid fa-camera"></i></div>
+                                    <span>Foto Selesai Latihan (Pulang)</span>
+                                    <input type="file" id="fotoPulangInput" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(event, 'Pulang')">
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-lg active:scale-95 text-sm"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Data Absensi</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB: RIWAYAT ABSENSI -->
+            <section id="viewRiwayatAbsensi" class="tab-view hidden flex-col gap-5">
+                <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-4">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <h2 class="font-bold text-gray-800 text-base">Riwayat Latihan & Absensi</h2>
+                        <select id="riwayatDateSelect" onchange="showRiwayatDetail()" class="px-3 py-1.5 bg-gray-50 border rounded-xl text-xs font-bold text-blue-600 outline-none"></select>
+                    </div>
+                    
+                    <div id="riwayatDetailContainer" class="hidden flex-col gap-4">
+                        <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl">
+                            <span class="text-[10px] font-bold text-blue-500 uppercase tracking-wider block mb-1">Materi Latihan</span>
+                            <p id="riwayatMateri" class="text-xs font-semibold text-gray-800"></p>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-gray-100 p-2 rounded-xl text-center border">
+                                <span class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Foto Datang</span>
+                                <img id="riwayatFotoDatang" src="" alt="Tidak ada" class="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 bg-gray-200" onclick="window.open(this.src, '_blank')">
+                            </div>
+                            <div class="bg-gray-100 p-2 rounded-xl text-center border">
+                                <span class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Foto Pulang</span>
+                                <img id="riwayatFotoPulang" src="" alt="Tidak ada" class="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 bg-gray-200" onclick="window.open(this.src, '_blank')">
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto max-h-64 overflow-y-auto custom-scroll border rounded-xl">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold sticky top-0">
+                                    <tr><th class="py-2 px-4 w-10">No</th><th class="py-2 px-4">Nama Anggota</th><th class="py-2 px-4 text-center">Status</th></tr>
+                                </thead>
+                                <tbody id="tableRiwayatBody" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="riwayatEmptyState" class="py-10 text-center text-gray-400 text-xs font-bold">Pilih tanggal di atas untuk melihat riwayat.</div>
                 </div>
             </section>
 
@@ -221,27 +322,34 @@
 
     <script>
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbwYTFRirtCpDT1vXJ0hSeFtElQR44rdoMPKskHgRPO3OlCr5_D_cXvLQOFzkDt4lY_IYw/exec';
-        let state = { user: null, tasks: [], members: [], submissions: [] };
+        
+        let state = { user: null, tasks: [], members: [], submissions: [], absensiHistory: [] };
         let fpInstance = null; // Flatpickr Instance
+        let fotoDatangBase64 = null, fotoPulangBase64 = null; // Foto Absensi
 
         document.addEventListener('DOMContentLoaded', () => {
             const raw = localStorage.getItem('userSession') || sessionStorage.getItem('userSession');
             if (raw) { state.user = JSON.parse(raw); }
+            
             setupFlatpickr(); 
             addSubTaskRow('Tugas Utama', 1, 5); // Default baris 1
+            document.getElementById('absensiDate').value = new Date().toISOString().split('T')[0];
+            
             loadDashboardData();
         });
 
         function handleLogout() { localStorage.removeItem('userSession'); sessionStorage.removeItem('userSession'); window.location.href = 'index.html'; }
 
         function switchTab(tabKey) {
-            const tabs = ['monitoring', 'buatTugas', 'anggota'];
+            const tabs = ['monitoring', 'buatTugas', 'absensi', 'riwayatAbsensi', 'anggota'];
             tabs.forEach(t => {
                 const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
                 const view = document.getElementById(`view${t.charAt(0).toUpperCase() + t.slice(1)}`);
                 if (t === tabKey) {
                     btn.classList.add('text-blue-600', 'border-blue-600', 'font-bold'); btn.classList.remove('text-gray-400', 'border-transparent');
                     view.classList.remove('hidden'); view.classList.add('flex');
+                    if (t === 'absensi') renderAbsensiTable(); 
+                    if (t === 'riwayatAbsensi') loadRiwayatAbsensi();
                 } else {
                     btn.classList.remove('text-blue-600', 'border-blue-600', 'font-bold'); btn.classList.add('text-gray-400', 'border-transparent');
                     view.classList.add('hidden'); view.classList.remove('flex');
@@ -261,7 +369,6 @@
                 mode: type === 'Satu Kali' ? 'range' : 'multiple',
                 dateFormat: "Y-m-d",
                 locale: "id",
-                minDate: "today",
                 placeholder: type === 'Satu Kali' ? "Pilih Tgl Mulai s/d Deadline" : "Klik tanggal-tanggal latihan"
             });
         }
@@ -355,16 +462,14 @@
                 selectElement.disabled = false;
                 if(d.success) {
                     showToast("Nilai " + nilaiStr + " tersimpan!", "success");
-                    // Ganti warna background combobox sesuai nilai
                     selectElement.className = `w-full p-1 border rounded text-[10px] font-bold outline-none cursor-pointer ${nilaiStr==='A'?'text-emerald-600 bg-emerald-50':nilaiStr==='B'?'text-blue-600 bg-blue-50':nilaiStr==='C'?'text-amber-600 bg-amber-50':nilaiStr==='D'?'text-orange-600 bg-orange-50':nilaiStr==='E'?'text-rose-600 bg-rose-50':''}`;
-                    // Update state lokal
                     let sub = state.submissions.find(s => s.subId === subId);
                     if(sub) sub.nilai = nilaiStr;
                 } else showToast(d.message, "error");
             }).catch(e=>{ selectElement.disabled=false; showToast("Gagal menyimpan nilai", "error"); });
         }
 
-        // --- KELOLA TUGAS (BUAT & DELETE) ---
+        // --- KELOLA TUGAS (BUAT, EDIT, DELETE) ---
         function renderCheckboxesAnggota() {
             const container = document.getElementById('targetAnggotaCheckboxes');
             const targetMembers = state.members.filter(m => m.role === 'Anggota' || m.role === 'Pengurus');
@@ -381,9 +486,17 @@
             if (boxes.length === document.querySelectorAll('.chk-target').length) return "Semua";
             return Array.from(boxes).map(b => b.value).join(',');
         }
+        function setFormSelectedTargets(strTarget) {
+            const boxes = document.querySelectorAll('.chk-target');
+            if(strTarget === "Semua") { boxes.forEach(b => b.checked = true); } 
+            else { const arr = strTarget.split(','); boxes.forEach(b => { b.checked = arr.includes(b.value); }); }
+        }
 
         document.getElementById('formCreateTask').addEventListener('submit', (e) => {
             e.preventDefault();
+            const action = document.getElementById('editTaskId').value ? 'editTask' : 'createTask';
+            const taskId = document.getElementById('editTaskId').value || ('TASK_' + Date.now());
+            
             const targets = getSelectedTargets();
             if(!targets) { showToast("Pilih minimal 1 target anggota!", "error"); return; }
             const dates = document.getElementById('tanggalPengerjaan').value;
@@ -394,18 +507,18 @@
             
             showLoading(true, "Menyimpan Tugas...");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({
-                action: 'createTask', 
-                taskId: 'TASK_' + Date.now(),
+                action: action, 
+                taskId: taskId,
                 judulTugas: document.getElementById('taskTitle').value, 
                 instruksi: document.getElementById('taskDesc').value,
                 tipePengumpulan: document.getElementById('tipePengumpulan').value,
                 tanggalPengerjaan: dates,
                 targetMember: targets,
-                jenisTugas: "video", // Default video untuk sekarang
+                jenisTugas: "video",
                 subTugas: subTugasJSON
             })}).then(r=>r.json()).then(d=>{
                 showLoading(false); 
-                if(d.success) { showToast(d.message, "success"); document.getElementById('formCreateTask').reset(); document.getElementById('subTaskDynamicContainer').innerHTML = ''; addSubTaskRow('Tugas Utama', 1, 5); setupFlatpickr(); loadDashboardData(); } 
+                if(d.success) { showToast(d.message, "success"); resetTaskForm(); loadDashboardData(); } 
                 else showToast(d.message, "error");
             }).catch(e=>{showLoading(false); showToast("Koneksi gagal", "error");});
         });
@@ -417,11 +530,53 @@
                     <td class="py-2 px-4">${i+1}</td>
                     <td class="py-2 px-4 font-bold text-gray-800">${t.judulTugas}</td>
                     <td class="py-2 px-4 text-center font-semibold text-[10px] text-blue-600">${t.tipePengumpulan}</td>
-                    <td class="py-2 px-4 text-center">
+                    <td class="py-2 px-4 text-center flex justify-center gap-2">
+                        <button onclick='editTaskData(${JSON.stringify(t)})' class="bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100"><i class="fa-solid fa-pen"></i></button>
                         <button onclick="deleteTaskData('${t.taskId}')" class="bg-rose-50 text-rose-600 px-2 py-1 rounded hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
+        }
+
+        function editTaskData(t) {
+            document.getElementById('formTaskHeader').textContent = "Edit Tugas";
+            document.getElementById('editTaskId').value = t.taskId;
+            document.getElementById('taskTitle').value = t.judulTugas;
+            document.getElementById('taskDesc').value = t.instruksi;
+            
+            // Atur dropdown tipe dan inisiasi flatpickr ulang
+            document.getElementById('tipePengumpulan').value = t.tipePengumpulan;
+            setupFlatpickr();
+            
+            // Set tanggal di flatpickr
+            fpInstance.setDate(t.tanggalPengerjaan.includes(' to ') ? t.tanggalPengerjaan.split(' to ') : t.tanggalPengerjaan.split(', '));
+            document.getElementById('tanggalPengerjaan').value = t.tanggalPengerjaan;
+            
+            setFormSelectedTargets(t.targetMember);
+            
+            // Render Sub-Tugas dari JSON
+            document.getElementById('subTaskDynamicContainer').innerHTML = '';
+            let subs = [];
+            try { subs = JSON.parse(t.subTugasRaw); } catch(e) {}
+            if(subs.length === 0) addSubTaskRow('Tugas Utama', 1, 5);
+            else subs.forEach(s => addSubTaskRow(s.nama, s.min, s.max));
+
+            document.getElementById('btnCancelEdit').classList.remove('hidden');
+            document.getElementById('btnSubmitTask').innerHTML = `<i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Perubahan`;
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        function resetTaskForm() {
+            document.getElementById('formTaskHeader').textContent = "Buat Tugas Baru";
+            document.getElementById('formCreateTask').reset();
+            document.getElementById('editTaskId').value = "";
+            document.getElementById('subTaskDynamicContainer').innerHTML = '';
+            addSubTaskRow('Tugas Utama', 1, 5);
+            setupFlatpickr();
+            toggleAllTarget(false);
+            
+            document.getElementById('btnCancelEdit').classList.add('hidden');
+            document.getElementById('btnSubmitTask').innerHTML = `<i class="fa-solid fa-cloud-arrow-up mr-1"></i> Terbitkan Tugas Baru`;
         }
 
         function deleteTaskData(id) {
@@ -429,6 +584,99 @@
             showLoading(true, "Menghapus Tugas...");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteTask', taskId: id }) })
             .then(r=>r.json()).then(d=>{ showLoading(false); if(d.success){ showToast(d.message,"success"); loadDashboardData(); } else showToast(d.message,"error"); }).catch(e=>{showLoading(false); showToast("Koneksi Error","error")});
+        }
+
+        // --- ABSENSI HARIAN (INPUT) ---
+        function renderAbsensiTable() {
+            const tbody = document.getElementById('tableAbsensiBody');
+            const targets = state.members.filter(m => m.role === 'Anggota' || m.role === 'Pengurus');
+            tbody.innerHTML = targets.map((m, i) => `
+                <tr class="border-b" data-nama="${m.nama}" data-kelas="${m.kelas}">
+                    <td class="py-2 px-4 text-center font-semibold text-gray-400">${i + 1}</td>
+                    <td class="py-2 px-4 font-bold text-gray-800 text-xs">${m.nama} <span class="block text-[10px] text-gray-400 font-normal">${m.kelas}</span></td>
+                    <td class="py-2 px-4">
+                        <select class="absensi-select w-full px-2 py-1.5 border rounded-lg text-xs font-bold outline-none cursor-pointer">
+                            <option value="Hadir" class="text-emerald-600">Hadir</option><option value="Izin" class="text-blue-600">Izin</option><option value="Sakit" class="text-amber-600">Sakit</option><option value="Alpa" class="text-rose-600">Alpa</option>
+                        </select>
+                    </td>
+                </tr>
+            `).join('');
+            
+            document.querySelectorAll('.absensi-select').forEach(sel => {
+                sel.addEventListener('change', function() { this.className = "absensi-select w-full px-2 py-1.5 border rounded-lg text-xs font-bold cursor-pointer " + (this.value==='Hadir'?'bg-emerald-50 text-emerald-700':this.value==='Izin'?'bg-blue-50 text-blue-700':this.value==='Sakit'?'bg-amber-50 text-amber-700':'bg-rose-50 text-rose-700'); });
+                sel.dispatchEvent(new Event('change'));
+            });
+        }
+
+        function handlePhoto(e, type) {
+            const file = e.target.files[0]; if(!file) return;
+            if(file.size > 3*1024*1024) { showToast("Maksimal ukuran foto 3MB", "error"); e.target.value=''; return; }
+            const r = new FileReader();
+            r.onload = (ev) => {
+                if(type === 'Datang') { fotoDatangBase64 = ev.target.result; document.getElementById('fotoDatangPreview').src = fotoDatangBase64; document.getElementById('fotoDatangPreviewContainer').classList.remove('hidden'); }
+                else { fotoPulangBase64 = ev.target.result; document.getElementById('fotoPulangPreview').src = fotoPulangBase64; document.getElementById('fotoPulangPreviewContainer').classList.remove('hidden'); }
+            }; r.readAsDataURL(file);
+        }
+        
+        function removePhoto(type) {
+            if(type === 'Datang') { fotoDatangBase64 = null; document.getElementById('fotoDatangInput').value=''; document.getElementById('fotoDatangPreviewContainer').classList.add('hidden'); }
+            else { fotoPulangBase64 = null; document.getElementById('fotoPulangInput').value=''; document.getElementById('fotoPulangPreviewContainer').classList.add('hidden'); }
+        }
+
+        document.getElementById('formAbsensi').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if(!fotoDatangBase64 || !fotoPulangBase64) { showToast("Foto Datang & Pulang Wajib diisi!", "error"); return; }
+            const absData = Array.from(document.querySelectorAll('#tableAbsensiBody tr[data-nama]')).map(row => ({ nama: row.getAttribute('data-nama'), kelas: row.getAttribute('data-kelas'), status: row.querySelector('select').value }));
+            
+            showLoading(true, "Menyimpan Absensi...");
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'saveAbsensi', tanggal: document.getElementById('absensiDate').value, materi: document.getElementById('materiLatihan').value, absensiData: absData, fotoDatangBase64: fotoDatangBase64, fotoPulangBase64: fotoPulangBase64 })})
+            .then(r=>r.json()).then(d=>{ showLoading(false); if(d.success){ showToast(d.message, "success"); removePhoto('Datang'); removePhoto('Pulang'); document.getElementById('materiLatihan').value=''; } else showToast(d.message, "error"); }).catch(e=>{showLoading(false); showToast("Gagal menyimpan", "error");});
+        });
+
+        // --- RIWAYAT ABSENSI ---
+        function loadRiwayatAbsensi() {
+            showLoading(true, "Mengambil Histori...");
+            fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action: 'getAbsensiHistory' }) }).then(r=>r.json()).then(d=>{
+                showLoading(false);
+                if(d.success && d.data.length > 0) {
+                    state.absensiHistory = d.data;
+                    const headers = d.data[0];
+                    const dates = headers.slice(3); // Kolom tanggal dimulai dari index 3
+                    const sel = document.getElementById('riwayatDateSelect');
+                    sel.innerHTML = '<option value="">Pilih Tanggal</option>' + dates.map(dt => `<option value="${dt}">${dt}</option>`).join('');
+                }
+            }).catch(e=>{showLoading(false); showToast("Gagal mengambil histori","error");});
+        }
+
+        function showRiwayatDetail() {
+            const date = document.getElementById('riwayatDateSelect').value;
+            const container = document.getElementById('riwayatDetailContainer');
+            const emptyState = document.getElementById('riwayatEmptyState');
+            if(!date) { container.classList.add('hidden'); emptyState.classList.remove('hidden'); return; }
+            
+            container.classList.remove('hidden'); container.classList.add('flex'); emptyState.classList.add('hidden');
+            
+            const data = state.absensiHistory;
+            const colIdx = data[0].indexOf(date);
+            let materi = "-", fDatang = "", fPulang = "";
+            const absData = [];
+            
+            for(let i=1; i<data.length; i++) {
+                const name = data[i][1];
+                const status = data[i][colIdx] || '-';
+                if(name === "MATERI LATIHAN:") { materi = status; }
+                else if(name === "FOTO DATANG:") { fDatang = status; }
+                else if(name === "FOTO PULANG:") { fPulang = status; }
+                else if(name) { absData.push({ nama: name, status: status }); } // Murid biasa
+            }
+            
+            document.getElementById('riwayatMateri').textContent = materi;
+            document.getElementById('riwayatFotoDatang').src = fDatang || '';
+            document.getElementById('riwayatFotoPulang').src = fPulang || '';
+            
+            document.getElementById('tableRiwayatBody').innerHTML = absData.map((m,i)=>`
+                <tr class="border-b"><td class="py-2 px-4">${i+1}</td><td class="py-2 px-4 font-bold text-gray-700">${m.nama}</td><td class="py-2 px-4 text-center font-bold text-xs ${m.status==='Hadir'?'text-emerald-600':m.status==='Alpa'?'text-rose-600':'text-blue-600'}">${m.status}</td></tr>
+            `).join('');
         }
 
         // --- TAMBAH ANGGOTA ---
