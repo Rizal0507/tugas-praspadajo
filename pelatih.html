@@ -47,7 +47,7 @@
             <div class="absolute bottom-0 left-1/3 w-28 h-28 bg-blue-300/20 rounded-full blur-xl"></div>
             <div class="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-3.5 w-full sm:w-auto">
-                    <!-- REVISI: Logo tanpa border, ukuran lebih besar -->
+                    <!-- Logo tanpa border, ukuran lebih besar -->
                     <div class="flex items-center justify-center flex-none">
                         <img src="./logo.png" alt="Logo" class="h-14 sm:h-16 w-auto object-contain drop-shadow-md" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-white text-4xl\'></i>';">
                     </div>
@@ -171,7 +171,7 @@
                             </div>
                         </div>
 
-                        <!-- TUKAR POSISI - DINAMIS SUB TUGAS DI ATAS TARGET ANGGOTA -->
+                        <!-- DINAMIS SUB TUGAS -->
                         <div class="border border-gray-200 rounded-xl overflow-hidden">
                             <div class="bg-gray-50 p-3 border-b flex justify-between items-center">
                                 <label class="text-xs font-bold text-gray-600 uppercase">Daftar Gerakan / Sub-Tugas</label>
@@ -808,9 +808,23 @@
             document.getElementById('tipePengumpulan').value = t.tipePengumpulan;
             setupFlatpickr();
             
-            // REVISI: Sanitasi format tanggal dari database agar tidak error saat masuk kalender
-            let rawDate = (t.tanggalPengerjaan || "").toString();
-            if (rawDate.includes('T')) rawDate = rawDate.split('T')[0];
+            // PERBAIKAN: Konversi format waktu (ISO String) ke YYYY-MM-DD berdasarkan zona waktu lokal
+            let rawDate = (t.tanggalPengerjaan || "").toString().trim();
+            if (rawDate.includes('T')) {
+                if (rawDate.includes(' to ')) {
+                    const parts = rawDate.split(' to ').map(x => {
+                        const d = new Date(x.trim());
+                        return isNaN(d) ? x.trim() : d.toLocaleDateString('en-CA'); // Menghasilkan YYYY-MM-DD
+                    });
+                    rawDate = parts.join(' to ');
+                } else {
+                    const parts = rawDate.split(',').map(x => {
+                        const d = new Date(x.trim());
+                        return isNaN(d) ? x.trim() : d.toLocaleDateString('en-CA');
+                    });
+                    rawDate = parts.join(', ');
+                }
+            }
             
             fpInstance.setDate(rawDate.includes(' to ') ? rawDate.split(' to ') : rawDate.split(', '));
             document.getElementById('tanggalPengerjaan').value = rawDate;
@@ -1030,11 +1044,26 @@
         }
 
         function isTaskActiveOnDate(t, dateVal) {
-            // REVISI: Sanitasi format tanggal dari database jika ada jam/T
             let raw = (t.tanggalPengerjaan || '').toString().trim();
-            if (raw.includes('T')) raw = raw.split('T')[0]; 
-            
             if (!raw) return false;
+            
+            // PERBAIKAN: Sanitasi format tanggal (UTC ke Waktu Lokal)
+            if (raw.includes('T')) {
+                if (raw.includes(' to ')) {
+                    const parts = raw.split(' to ').map(x => {
+                        const d = new Date(x.trim());
+                        return isNaN(d) ? x.trim() : d.toLocaleDateString('en-CA');
+                    });
+                    if (parts.length >= 2) return dateVal >= parts[0] && dateVal <= parts[1];
+                } else {
+                    const parts = raw.split(',').map(x => {
+                        const d = new Date(x.trim());
+                        return isNaN(d) ? x.trim() : d.toLocaleDateString('en-CA');
+                    });
+                    return parts.includes(dateVal);
+                }
+            }
+            
             if (t.tipePengumpulan === 'Harian') {
                 return raw.split(',').map(x => x.trim()).includes(dateVal);
             }
@@ -1050,10 +1079,8 @@
             const selectedTaskId = document.getElementById('reportTaskSelect').value;
             if (!dateVal) { showToast("Pilih tanggal terlebih dahulu!", "error"); return; }
 
-            // Ambil semua tugas aktif di tanggal tersebut
             let activeTasks = state.tasks.filter(t => isTaskActiveOnDate(t, dateVal));
             
-            // Jika user memilih tugas tertentu, filter hanya tugas itu
             if (selectedTaskId) {
                 activeTasks = activeTasks.filter(t => t.taskId === selectedTaskId);
             }
@@ -1078,7 +1105,6 @@
                     subs.forEach(sub => {
                         memberData[m.nama].total++;
                         
-                        // Cek apakah sub-tugas ini sudah dikumpulkan
                         const isSubmitted = state.submissions.some(x => 
                             x.taskId === t.taskId &&
                             x.namaAnggota === m.nama &&
@@ -1096,7 +1122,6 @@
                 });
             });
 
-            // Tentukan status string untuk masing-masing anggota
             const processedNames = Object.keys(memberData).map(nama => {
                 const data = memberData[nama];
                 let statusStr = "";
@@ -1115,7 +1140,6 @@
                 return { nama, statusStr, rank };
             });
 
-            // Urutkan: 1. Selesai (0), 2. Kurang (1), 3. Belum (2). Jika sama, urut abjad.
             processedNames.sort((a, b) => {
                 if (a.rank !== b.rank) return a.rank - b.rank;
                 return a.nama.localeCompare(b.nama);
