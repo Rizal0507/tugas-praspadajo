@@ -44,7 +44,6 @@
                         <img src="./logo.png" alt="Logo" class="h-10 w-auto object-contain drop-shadow-md" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-white text-3xl\'></i>';">
                     </div>
                     <div>
-                        <!-- REVISI 2: BADGE GANDA -->
                         <div class="flex gap-1 mb-1">
                             <span class="bg-blue-800/60 text-blue-100 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-white/10">Anggota</span>
                             <span id="roleBadgePetugas" class="hidden bg-emerald-500/90 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-emerald-300 shadow-sm">Petugas Absen</span>
@@ -52,7 +51,9 @@
                         <h1 class="text-base font-extrabold tracking-tight leading-tight">PRASPADAJO</h1>
                     </div>
                 </div>
+                <!-- REVISI 2: TOMBOL ABSEN DI HEADER -->
                 <div class="flex gap-2">
+                    <button id="btnHeaderAbsen" onclick="switchTab('absensi')" class="hidden bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-xl shadow-md active:scale-95 transition-colors" title="Menu Absensi"><i class="fa-solid fa-clipboard-user text-sm"></i></button>
                     <button onclick="openPasswordModal()" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-xl shadow-md active:scale-95"><i class="fa-solid fa-key text-sm"></i></button>
                     <button onclick="handleLogout()" class="bg-rose-500 hover:bg-rose-600 text-white p-2 rounded-xl shadow-md active:scale-95"><i class="fa-solid fa-right-from-bracket text-sm"></i></button>
                 </div>
@@ -67,7 +68,7 @@
             </div>
         </header>
 
-        <!-- NAVIGATION (REVISI 1: Bisa discroll, jarak dirapatkan) -->
+        <!-- NAVIGATION (Hanya 3 Menu) -->
         <nav class="bg-white border-b border-gray-100 flex shadow-sm z-20 sticky top-0 overflow-x-auto custom-scroll flex-nowrap">
             <button onclick="switchTab('dashboard')" id="tabBtnDashboard" class="flex-1 min-w-[80px] py-3 text-[11px] font-bold text-blue-600 border-b-2 border-blue-600 flex justify-center items-center gap-1.5 relative">
                 <i class="fa-solid fa-list-check"></i> Tugas
@@ -78,7 +79,6 @@
                 <span id="badgeRiwayatDot" class="hidden w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
             </button>
             <button onclick="switchTab('riwayatLatihan')" id="tabBtnRiwayatLatihan" class="flex-1 min-w-[95px] py-3 text-[11px] font-bold text-gray-400 border-b-2 border-transparent flex justify-center items-center gap-1.5"><i class="fa-solid fa-chart-line"></i> Riwayat Latihan</button>
-            <button onclick="switchTab('absensi')" id="tabBtnAbsensi" class="hidden flex-1 min-w-[80px] py-3 text-[11px] font-bold text-gray-400 border-b-2 border-transparent flex justify-center items-center gap-1.5"><i class="fa-solid fa-clipboard-user"></i> Absen</button>
         </nav>
 
         <!-- VIEW 1: DASHBOARD TUGAS -->
@@ -169,10 +169,10 @@
                         </div>
                     </div>
 
-                    <!-- KOTAK FOTO DATANG & PULANG -->
+                    <!-- KOTAK FOTO DATANG & PULANG (REVISI 3: PERBAIKAN POSISI) -->
                     <div class="grid grid-cols-2 gap-2 mt-2">
                         <!-- Foto Datang -->
-                        <div id="boxDatang" class="bg-gray-50 border border-dashed border-gray-300 p-2 rounded-xl text-center relative group transition-all">
+                        <div id="boxDatang" class="bg-gray-50 border border-dashed border-gray-300 p-2 rounded-xl text-center relative h-full flex flex-col justify-center transition-all">
                             <div id="fotoDatangPreviewContainer" class="hidden mb-2 relative aspect-video w-full bg-black rounded-lg overflow-hidden">
                                 <img id="fotoDatangPreview" src="" class="w-full h-full object-cover">
                             </div>
@@ -180,16 +180,15 @@
                                 <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm"><i class="fa-solid fa-camera"></i></div>
                                 <span>Foto Datang</span>
                             </button>
-                            <div id="statusDatangDone" class="hidden flex-col items-center gap-1 text-emerald-600 font-bold text-[10px] py-2">
+                            <div id="statusDatangDone" class="hidden flex-col items-center justify-center gap-1 text-emerald-600 font-bold text-[10px] py-2 h-full">
                                 <i class="fa-solid fa-circle-check text-3xl"></i>
                                 <span>Datang Selesai</span>
-                                <!-- Teks kecil untuk update -->
                                 <span class="text-[8px] text-gray-400 font-normal mt-1">(Bisa diperbarui sebelum pulang)</span>
                             </div>
                         </div>
 
                         <!-- Foto Pulang -->
-                        <div id="boxPulang" class="bg-gray-50 border border-dashed border-gray-300 p-2 rounded-xl text-center relative group opacity-50 cursor-not-allowed transition-all">
+                        <div id="boxPulang" class="bg-gray-50 border border-dashed border-gray-300 p-2 rounded-xl text-center relative h-full flex flex-col justify-center opacity-50 cursor-not-allowed transition-all">
                             <div id="fotoPulangPreviewContainer" class="hidden mb-2 relative aspect-video w-full bg-black rounded-lg overflow-hidden">
                                 <img id="fotoPulangPreview" src="" class="w-full h-full object-cover">
                             </div>
@@ -197,7 +196,7 @@
                                 <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-sm"><i class="fa-solid fa-camera"></i></div>
                                 <span>Foto Pulang</span>
                             </button>
-                            <div id="statusPulangDone" class="hidden flex-col items-center gap-1 text-emerald-600 font-bold text-[10px] py-2">
+                            <div id="statusPulangDone" class="hidden flex-col items-center justify-center gap-1 text-emerald-600 font-bold text-[10px] py-2 h-full">
                                 <i class="fa-solid fa-circle-check text-3xl"></i>
                                 <span>Pulang Selesai</span>
                             </div>
@@ -260,7 +259,7 @@
             </div>
         </div>
 
-        <!-- VIEW KAMERA ABSEN (FOTO) - REVISI 3: TAMBAH SWITCH CAMERA -->
+        <!-- VIEW KAMERA ABSEN (FOTO) -->
         <div id="viewAbsenCamera" class="fixed inset-0 sm:absolute bg-black z-50 hidden flex-col pointer-events-auto">
             <div class="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-20 bg-gradient-to-b from-black/60 to-transparent pt-6">
                 <button onclick="closeAbsenCamera()" class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white active:scale-95"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -349,10 +348,10 @@
         
         // State Absensi
         let absenStream = null, currentPhotoType = "Datang";
-        let absenFacingMode = "user"; // Default kamera depan untuk absen
+        let absenFacingMode = "user"; 
         let fotoDatangBase64 = null, fotoPulangBase64 = null;
         let absenLocked = false; 
-        let localHasDatang = false; // State lokal untuk update UI instan
+        let localHasDatang = false; 
 
         // --- HELPER ---
         function formatSecToText(secVal) {
@@ -473,10 +472,10 @@
             ];
             document.getElementById('motivationText').textContent = `"${quotes[Math.floor(Math.random() * quotes.length)]}"`;
 
-            // REVISI 2: BADGE GANDA
+            // MENAMPILKAN TOMBOL ABSEN DI HEADER
             if(user.hakAbsen) {
                 document.getElementById('roleBadgePetugas').classList.remove('hidden');
-                document.getElementById('tabBtnAbsensi').classList.remove('hidden');
+                document.getElementById('btnHeaderAbsen').classList.remove('hidden');
                 document.getElementById('absensiDate').value = getLocalToday();
             }
             
@@ -488,13 +487,32 @@
 
         function switchTab(tabKey) {
             const tabs = ['dashboard', 'riwayatTugas', 'riwayatLatihan', 'absensi'];
+            
+            // Highlight menu navbar
             tabs.forEach(t => {
                 const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
-                const view = document.getElementById(`view${t.charAt(0).toUpperCase() + t.slice(1)}`);
-                if(!btn || !view) return;
+                if(!btn) return;
                 
                 if (t === tabKey) {
                     btn.classList.add('text-blue-600', 'border-blue-600'); btn.classList.remove('text-gray-400', 'border-transparent');
+                } else {
+                    btn.classList.remove('text-blue-600', 'border-blue-600'); btn.classList.add('text-gray-400', 'border-transparent');
+                }
+            });
+            
+            // Highlight header btn
+            const btnAbsenHeader = document.getElementById('btnHeaderAbsen');
+            if(btnAbsenHeader) {
+                if (tabKey === 'absensi') btnAbsenHeader.classList.add('ring-2', 'ring-white');
+                else btnAbsenHeader.classList.remove('ring-2', 'ring-white');
+            }
+
+            // Tampilkan view
+            tabs.forEach(t => {
+                const view = document.getElementById(`view${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                if(!view) return;
+                
+                if (t === tabKey) {
                     view.classList.remove('hidden'); view.classList.add('flex');
                     
                     if (t === 'absensi') {
@@ -503,7 +521,6 @@
                     }
                     if (t === 'riwayatTugas') document.getElementById('badgeRiwayatDot').classList.add('hidden');
                 } else {
-                    btn.classList.remove('text-blue-600', 'border-blue-600'); btn.classList.add('text-gray-400', 'border-transparent');
                     view.classList.add('hidden'); view.classList.remove('flex');
                 }
             });
@@ -700,10 +717,14 @@
             document.getElementById('pauseStatusBadge').classList.add('hidden');
         }
 
+        // REVISI 4: TINGKATKAN RESOLUSI & BITRATE VIDEO
         async function startMediaStream() {
             try {
                 if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
-                mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: currentFacingMode } });
+                mediaStream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: true, 
+                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: currentFacingMode } 
+                });
                 const videoEl = document.getElementById('videoPreview'); 
                 videoEl.srcObject = mediaStream; 
                 videoEl.muted = true;
@@ -722,7 +743,7 @@
         function startRecording() {
             if (!mediaStream) return; recordedChunks = [];
             try {
-                let options = { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 500000 };
+                let options = { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 1500000 };
                 if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/mp4' };
                 mediaRecorder = new MediaRecorder(mediaStream, options);
                 mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
@@ -830,12 +851,11 @@
             document.getElementById('successUploadModal').classList.add('hidden'); document.getElementById('successUploadModal').classList.remove('flex');
         }
 
-        // --- SISTEM KAMERA ABSEN (FOTO) - REVISI 3 & 4 ---
+        // --- SISTEM KAMERA ABSEN (FOTO) ---
         async function openAbsenCamera(type) {
             currentPhotoType = type;
             document.getElementById('absenCamTitle').textContent = type === 'Datang' ? 'Foto Datang' : 'Foto Pulang';
             document.getElementById('viewAbsenCamera').classList.remove('hidden'); document.getElementById('viewAbsenCamera').classList.add('flex');
-            
             await startAbsenStream();
         }
 
@@ -947,7 +967,7 @@
                 absenLocked = false;
                 btnDatang.classList.add('hidden');
                 statusDatang.classList.remove('hidden'); statusDatang.classList.add('flex');
-                statusDatang.onclick = function() { openAbsenCamera('Datang'); }; // REVISI 5: IZINKAN KLIK UNTUK UPDATE
+                statusDatang.onclick = function() { openAbsenCamera('Datang'); }; 
                 statusDatang.classList.add('cursor-pointer', 'hover:bg-emerald-100');
                 
                 boxPulang.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -1059,6 +1079,7 @@
             }).join('');
         }
 
+        // REVISI 1: MENCEGAH DATA GANDA (JIKA ADA 2 KOLOM TANGGAL YANG SAMA)
         function renderRiwayatAbsen(data) {
             const rawDates = data[0].slice(3);
             const dates = rawDates.map(d => {
@@ -1074,7 +1095,7 @@
             });
 
             let stat = { Hadir: 0, Izin: 0, Sakit: 0, Alpa: 0 };
-            const myHistory = [];
+            const myHistoryMap = new Map(); // Gunakan Map untuk mencegah duplikasi tanggal
 
             let myRowIdx = -1;
             for(let i=1; i<data.length; i++) { 
@@ -1094,10 +1115,10 @@
                 let statusKu = "-";
                 if(myRowIdx !== -1) {
                     const st = data[myRowIdx][col];
-                    if(st === 'Hadir') { stat.Hadir++; statusKu="Hadir"; }
-                    else if(st === 'Izin') { stat.Izin++; statusKu="Izin"; }
-                    else if(st === 'Sakit') { stat.Sakit++; statusKu="Sakit"; }
-                    else if(st === 'Alpa') { stat.Alpa++; statusKu="Alpa"; }
+                    if(st === 'Hadir') { statusKu="Hadir"; }
+                    else if(st === 'Izin') { statusKu="Izin"; }
+                    else if(st === 'Sakit') { statusKu="Sakit"; }
+                    else if(st === 'Alpa') { statusKu="Alpa"; }
                 }
                 
                 if(statusKu !== "-") {
@@ -1105,8 +1126,26 @@
                     const evaluasi = (evalRow !== -1 && data[evalRow][col]) ? data[evalRow][col] : "";
                     const linkDatang = (fdRow !== -1 && data[fdRow][col]) ? data[fdRow][col] : "";
                     const linkPulang = (fpRow !== -1 && data[fpRow][col]) ? data[fpRow][col] : "";
-                    myHistory.push({ tgl: tglStr, statusKu, materi, evaluasi, linkDatang, linkPulang });
+                    
+                    // Jika tanggal sudah ada di Map, gabungkan datanya (ambil yang ada isinya)
+                    if (myHistoryMap.has(tglStr)) {
+                        const existing = myHistoryMap.get(tglStr);
+                        existing.materi = (existing.materi === "-" || !existing.materi) ? materi : existing.materi;
+                        existing.evaluasi = (existing.evaluasi === "" || !existing.evaluasi) ? evaluasi : existing.evaluasi;
+                        existing.linkDatang = (!existing.linkDatang) ? linkDatang : existing.linkDatang;
+                        existing.linkPulang = (!existing.linkPulang) ? linkPulang : existing.linkPulang;
+                    } else {
+                        myHistoryMap.set(tglStr, { tgl: tglStr, statusKu, materi, evaluasi, linkDatang, linkPulang });
+                    }
                 }
+            });
+
+            // Hitung statistik dari Map yang sudah bersih
+            myHistoryMap.forEach(h => {
+                if(h.statusKu === 'Hadir') stat.Hadir++;
+                else if(h.statusKu === 'Izin') stat.Izin++;
+                else if(h.statusKu === 'Sakit') stat.Sakit++;
+                else if(h.statusKu === 'Alpa') stat.Alpa++;
             });
 
             document.getElementById('statHadir').textContent = stat.Hadir;
@@ -1123,9 +1162,13 @@
             }
 
             const container = document.getElementById('riwayatListContainer');
-            if(myHistory.length === 0) { container.innerHTML = `<div class="p-5 text-center text-xs text-gray-400">Belum ada riwayat latihan.</div>`; return; }
+            if(myHistoryMap.size === 0) { container.innerHTML = `<div class="p-5 text-center text-xs text-gray-400">Belum ada riwayat latihan.</div>`; return; }
 
-            container.innerHTML = myHistory.reverse().map(h => {
+            // Konversi Map kembali ke Array dan urutkan
+            const myHistory = Array.from(myHistoryMap.values());
+            // myHistory.reverse(); // Hapus reverse agar urutan sesuai Map (yang terakhir diproses akan di akhir, tapi karena Map key unik, urutan aslinya tetap)
+
+            container.innerHTML = myHistory.map(h => {
                 const badgeClass = h.statusKu==='Hadir'?'bg-emerald-50 text-emerald-600':h.statusKu==='Alpa'?'bg-rose-50 text-rose-600':'bg-amber-50 text-amber-600';
                 
                 const btnDatang = h.linkDatang ? `<button onclick="openPhotoModal('${h.linkDatang}', 'Foto Datang - ${h.tgl}')" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-xl flex-1 text-center font-bold hover:bg-blue-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-image"></i> Datang</button>` : '';
@@ -1212,15 +1255,14 @@
                 if(d.success){ 
                     showToast(d.message, "success"); 
                     
-                    // REVISI 4: Optimistic UI Update (Langsung ubah tampilan tanpa nunggu fetch GAS)
+                    // Optimistic UI Update
                     if(typeToSubmit === 'Datang') {
                         localHasDatang = true;
                         fotoDatangBase64 = null;
                         document.getElementById('fotoDatangPreviewContainer').classList.add('hidden');
                         document.getElementById('btnSimpanAbsen').classList.add('hidden');
-                        checkTodayAbsensiStatus(); // Paksa UI berubah ke fase pulang
+                        checkTodayAbsensiStatus(); 
                     } else {
-                        // Jika Pulang
                         fotoPulangBase64 = null;
                         document.getElementById('fotoPulangPreviewContainer').classList.add('hidden');
                         document.getElementById('materiLatihan').value=''; 
@@ -1228,7 +1270,7 @@
                         document.getElementById('btnSimpanAbsen').classList.add('hidden');
                     }
                     
-                    fetchRiwayatSemua(); // Sinkronisasi background
+                    fetchRiwayatSemua(); 
                 } else showToast(d.message, "error"); 
             }).catch(e=>{showLoading(false); showToast("Error koneksi", "error");});
         });
