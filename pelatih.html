@@ -170,7 +170,7 @@
                             </div>
                             <!-- REVISI: Input Batas Durasi Video (Menit & Detik) -->
                             <div class="sm:col-span-2">
-                                <label class="text-xs font-bold text-blue-800 uppercase mb-1 block">Batas Durasi Video</label>
+                                <label class="text-xs font-bold text-blue-800 uppercase mb-1 block">Batas Durasi Video (Keseluruhan)</label>
                                 <div class="flex items-center gap-2">
                                     <input type="number" id="durasiMenit" min="0" placeholder="0" class="w-20 px-3 py-2 bg-white border border-blue-200 rounded-xl text-xs font-bold text-center outline-none focus:border-blue-500">
                                     <span class="text-xs font-bold text-blue-800">Menit</span>
@@ -180,13 +180,8 @@
                                 <p class="text-[9px] text-blue-600 mt-1">Batas maksimal durasi video yang diunggah anggota (opsional).</p>
                             </div>
                         </div>
-                        
-                        <div class="bg-gray-50 p-3 rounded-xl border border-gray-200">
-                            <label class="text-xs font-bold text-gray-600 uppercase mb-2 block flex justify-between">Target Anggota <span class="text-[10px] text-blue-600 font-normal cursor-pointer" onclick="toggleAllTarget(true)">Pilih Semua</span></label>
-                            <div id="targetAnggotaCheckboxes" class="custom-scroll max-h-24 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] font-semibold text-gray-700"></div>
-                        </div>
 
-                        <!-- DINAMIS SUB TUGAS -->
+                        <!-- REVISI: TUKAR POSISI - DINAMIS SUB TUGAS DI ATAS TARGET ANGGOTA -->
                         <div class="border border-gray-200 rounded-xl overflow-hidden">
                             <div class="bg-gray-50 p-3 border-b flex justify-between items-center">
                                 <label class="text-xs font-bold text-gray-600 uppercase">Daftar Gerakan / Sub-Tugas</label>
@@ -195,6 +190,11 @@
                             <div id="subTaskDynamicContainer" class="p-3 flex flex-col gap-2 bg-white">
                                 <!-- Baris Sub Tugas Akan Masuk Kesini -->
                             </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 p-3 rounded-xl border border-gray-200">
+                            <label class="text-xs font-bold text-gray-600 uppercase mb-2 block flex justify-between">Target Anggota <span class="text-[10px] text-blue-600 font-normal cursor-pointer" onclick="toggleAllTarget(true)">Pilih Semua</span></label>
+                            <div id="targetAnggotaCheckboxes" class="custom-scroll max-h-24 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] font-semibold text-gray-700"></div>
                         </div>
 
                         <button type="submit" id="btnSubmitTask" class="mt-2 w-full bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-all text-sm"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Terbitkan Tugas Baru</button>
@@ -360,7 +360,7 @@
         </div>
     </div>
 
-    <!-- REVISI: MODAL LAPORAN PENGUMPULAN TUGAS -->
+    <!-- MODAL LAPORAN PENGUMPULAN TUGAS -->
     <div id="reportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all">
         <div class="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl scale-95 transition-transform duration-300 transform" id="reportModalContent">
             <div class="flex justify-between items-center mb-4">
@@ -399,7 +399,7 @@
             if (raw) { state.user = JSON.parse(raw); }
             
             setupFlatpickr(); 
-            addSubTaskRow('Tugas Utama', 1, 5); // Default baris 1
+            addSubTaskRow('Tugas Utama', '01:00', '05:00'); // Default baris 1
             document.getElementById('absensiDate').value = new Date().toISOString().split('T')[0];
             
             loadDashboardData();
@@ -440,15 +440,32 @@
             });
         }
 
+        // --- FORMAT INPUT WAKTU (MM:SS) ---
+        function formatTimeInput(el) {
+            let v = el.value.trim();
+            if(!v) return;
+            if (v.includes(':')) {
+                let parts = v.split(':');
+                let m = parseInt(parts[0]) || 0;
+                let s = parseInt(parts[1]) || 0;
+                if(s > 59) s = 59;
+                el.value = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            } else {
+                let m = parseInt(v) || 0;
+                el.value = `${m.toString().padStart(2, '0')}:00`;
+            }
+        }
+
         // --- SUB TUGAS DINAMIS ---
-        function addSubTaskRow(name = '', min = 1, max = 5) {
+        function addSubTaskRow(name = '', min = '01:00', max = '05:00') {
             const container = document.getElementById('subTaskDynamicContainer');
             const row = document.createElement('div');
             row.className = "flex gap-2 items-center bg-gray-50 p-2 rounded-lg border subtask-row";
             row.innerHTML = `
                 <div class="flex-grow"><input type="text" class="sub-name w-full px-2 py-1.5 border rounded text-xs" placeholder="Nama Gerakan (Cth: Push Up)" value="${name}" required></div>
-                <div class="w-16"><input type="number" class="sub-min w-full px-2 py-1.5 border rounded text-xs text-center" placeholder="Min" value="${min}" min="0"></div>
-                <div class="w-16"><input type="number" class="sub-max w-full px-2 py-1.5 border rounded text-xs text-center" placeholder="Max" value="${max}" min="1"></div>
+                <div class="w-20"><input type="text" class="sub-min w-full px-2 py-1.5 border rounded text-xs text-center" placeholder="mm:ss" value="${min}" pattern="^[0-9]{1,2}:[0-5][0-9]$" title="Format mm:ss" onblur="formatTimeInput(this)" required></div>
+                <span class="text-xs font-bold text-gray-400">-</span>
+                <div class="w-20"><input type="text" class="sub-max w-full px-2 py-1.5 border rounded text-xs text-center" placeholder="mm:ss" value="${max}" pattern="^[0-9]{1,2}:[0-5][0-9]$" title="Format mm:ss" onblur="formatTimeInput(this)" required></div>
                 <button type="button" onclick="this.parentElement.remove()" class="w-8 h-8 bg-rose-100 text-rose-600 rounded flex items-center justify-center hover:bg-rose-200"><i class="fa-solid fa-xmark"></i></button>
             `;
             container.appendChild(row);
@@ -460,8 +477,8 @@
             rows.forEach(r => {
                 result.push({
                     nama: r.querySelector('.sub-name').value,
-                    min: parseInt(r.querySelector('.sub-min').value) || 0,
-                    max: parseInt(r.querySelector('.sub-max').value) || 5
+                    min: r.querySelector('.sub-min').value.trim(),
+                    max: r.querySelector('.sub-max').value.trim()
                 });
             });
             return JSON.stringify(result);
@@ -490,18 +507,60 @@
         // --- REVISI: FILTER CERDAS & TABEL MONITORING ---
         function isGraded(s) { return s.nilai && s.nilai !== '-'; }
 
+        function getLocalDateString(dateObj) {
+            const pad = (n) => n.toString().padStart(2, '0');
+            return `${dateObj.getFullYear()}-${pad(dateObj.getMonth() + 1)}-${pad(dateObj.getDate())}`;
+        }
+
         function matchesSubmissionDate(s, dateVal) {
             if (!dateVal) return true;
-            const tgl = (s.tanggal || '').toString().trim();
-            if (tgl === dateVal) return true;
-            if (tgl.startsWith(dateVal)) return true;
+            
+            if (s.tanggal) {
+                const d1 = new Date(s.tanggal);
+                if (!isNaN(d1.getTime())) {
+                    if (getLocalDateString(d1) === dateVal) return true;
+                } else if (s.tanggal.startsWith(dateVal)) {
+                    return true;
+                }
+            }
+            
+            if (s.waktuKumpul) {
+                const d2 = new Date(s.waktuKumpul);
+                if (!isNaN(d2.getTime())) {
+                    if (getLocalDateString(d2) === dateVal) return true;
+                }
+            }
+            
             const parts = dateVal.split('-');
             if (parts.length === 3) {
                 const dmy = `${parts[2]}/${parts[1]}/${parts[0]}`;
-                if (tgl.includes(dmy)) return true;
+                if ((s.tanggal || '').includes(dmy)) return true;
                 if ((s.waktuKumpul || '').includes(dmy)) return true;
             }
             return false;
+        }
+
+        function formatDisplayTime(val) {
+            if (!val) return '-';
+            try {
+                let d;
+                if (val.includes('T') || val.includes('Z')) {
+                    d = new Date(val);
+                } else {
+                    const parts = val.split('-');
+                    if (parts.length === 3) d = new Date(parts[0], parts[1]-1, parts[2]);
+                    else d = new Date(val);
+                }
+                if (isNaN(d.getTime())) return val;
+                const pad = (n) => n.toString().padStart(2, '0');
+                
+                const dateStr = `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+                
+                if (!val.includes('T') && val.length <= 10) {
+                    return dateStr;
+                }
+                return `${dateStr} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            } catch(e) { return val; }
         }
 
         function renderMemberFilterOptions(taskId) {
@@ -587,7 +646,7 @@
                         <div class="text-[9px] text-gray-500 italic mt-1 line-clamp-1">${judul}</div>
                     </td>
                     <td class="py-3 px-4 text-center align-top">
-                        <div class="text-[10px] font-bold text-gray-600">${s.waktuKumpul || s.tanggal || '-'}</div>
+                        <div class="text-[10px] font-bold text-gray-600">${formatDisplayTime(s.waktuKumpul || s.tanggal)}</div>
                     </td>
                     <td class="py-3 px-4 text-center align-top pt-5">${btnLink}</td>
                     <td class="py-3 px-4 align-top">
@@ -771,7 +830,7 @@
             document.getElementById('taskTitle').value = t.judulTugas;
             document.getElementById('taskDesc').value = t.instruksi;
 
-            // REVISI: Restore batas durasi video (menit & detik)
+            // Restore batas durasi video (menit & detik)
             const totalDetik = parseInt(t.batasDurasiDetik) || 0;
             document.getElementById('durasiMenit').value = totalDetik > 0 ? Math.floor(totalDetik / 60) : '';
             document.getElementById('durasiDetik').value = totalDetik > 0 ? (totalDetik % 60) : '';
@@ -787,8 +846,21 @@
             document.getElementById('subTaskDynamicContainer').innerHTML = '';
             let subs = [];
             try { subs = JSON.parse(t.subTugasRaw); } catch(e) {}
-            if(subs.length === 0) addSubTaskRow('Tugas Utama', 1, 5);
-            else subs.forEach(s => addSubTaskRow(s.nama, s.min, s.max));
+            if(subs.length === 0) addSubTaskRow('Tugas Utama', '01:00', '05:00');
+            else subs.forEach(s => {
+                let minVal = s.min;
+                let maxVal = s.max;
+                // Convert old numeric format to mm:ss if needed
+                if (typeof minVal === 'number' || (!isNaN(parseInt(minVal)) && !minVal.includes(':'))) {
+                    let m = parseInt(minVal) || 0;
+                    minVal = `${m.toString().padStart(2, '0')}:00`;
+                }
+                if (typeof maxVal === 'number' || (!isNaN(parseInt(maxVal)) && !maxVal.includes(':'))) {
+                    let m = parseInt(maxVal) || 5;
+                    maxVal = `${m.toString().padStart(2, '0')}:00`;
+                }
+                addSubTaskRow(s.nama, minVal || '01:00', maxVal || '05:00');
+            });
 
             document.getElementById('btnCancelEdit').classList.remove('hidden');
             document.getElementById('btnSubmitTask').innerHTML = `<i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Perubahan`;
@@ -800,7 +872,7 @@
             document.getElementById('formCreateTask').reset();
             document.getElementById('editTaskId').value = "";
             document.getElementById('subTaskDynamicContainer').innerHTML = '';
-            addSubTaskRow('Tugas Utama', 1, 5);
+            addSubTaskRow('Tugas Utama', '01:00', '05:00');
             setupFlatpickr();
             toggleAllTarget(false);
             
@@ -992,58 +1064,95 @@
             if (!dateVal) { showToast("Pilih tanggal terlebih dahulu!", "error"); return; }
 
             const activeTasks = state.tasks.filter(t => isTaskActiveOnDate(t, dateVal));
-            const membersMap = new Map(); // nama -> array {label, status}
+            
+            // Fallback jika tidak ada tugas aktif spesifik di tanggal itu
+            if (activeTasks.length === 0) {
+                const subs = state.submissions.filter(s => matchesSubmissionDate(s, dateVal));
+                const tglFmt = new Date(dateVal + 'T00:00:00').toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
+                const jam = new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }).replace('.', ':');
+                let text = `Pengumpulan Tugas (${tglFmt}, ${jam})\n`;
+                if (subs.length === 0) {
+                    text += 'Belum ada data pengumpulan pada tanggal ini.';
+                } else {
+                    subs.forEach((s, i) => {
+                        text += `${i+1}. ${s.namaAnggota} — ${s.subTugasName}: ${isGraded(s) ? 'selesai' : 'done'}\n`;
+                    });
+                }
+                document.getElementById('reportText').value = text.trim();
+                showToast("Laporan berhasil dibuat", "success");
+                return;
+            }
 
-            const addStatus = (nama, label, status) => {
-                if (!membersMap.has(nama)) membersMap.set(nama, []);
-                membersMap.get(nama).push({ label, status });
-            };
+            const memberStatuses = {}; // nama -> { total, submitted, details }
 
-            if (activeTasks.length > 0) {
-                const multiTask = activeTasks.length > 1;
-                activeTasks.forEach(t => {
-                    let subs = [];
-                    try { subs = JSON.parse(t.subTugasRaw); } catch(e) {}
-                    if (!Array.isArray(subs)) subs = [];
-                    let targets = state.members.filter(m => m.role === 'Anggota');
-                    if (t.targetMember && t.targetMember !== 'Semua') {
-                        const arr = t.targetMember.split(',');
-                        targets = targets.filter(m => arr.includes(m.username));
-                    }
-                    targets.forEach(m => {
-                        subs.forEach(sub => {
-                            const s = state.submissions.find(x =>
-                                x.taskId === t.taskId &&
-                                x.namaAnggota === m.nama &&
-                                x.subTugasName === sub.nama &&
-                                (t.tipePengumpulan === 'Satu Kali' || matchesSubmissionDate(x, dateVal))
-                            );
-                            let status = 'kurang';
-                            if (s) status = isGraded(s) ? 'selesai' : 'done';
-                            const label = multiTask ? `${t.judulTugas} - ${sub.nama}` : sub.nama;
-                            addStatus(m.nama, label, status);
-                        });
+            activeTasks.forEach(t => {
+                let subs = [];
+                try { subs = JSON.parse(t.subTugasRaw); } catch(e) {}
+                if (!Array.isArray(subs)) subs = [];
+                
+                let targets = state.members.filter(m => m.role === 'Anggota');
+                if (t.targetMember && t.targetMember !== 'Semua') {
+                    const arr = t.targetMember.split(',');
+                    targets = targets.filter(m => arr.includes(m.username));
+                }
+                
+                targets.forEach(m => {
+                    if (!memberStatuses[m.nama]) memberStatuses[m.nama] = { total: 0, submitted: 0, details: [] };
+                    
+                    subs.forEach(sub => {
+                        const label = activeTasks.length > 1 ? `${t.judulTugas} - ${sub.nama}` : sub.nama;
+                        memberStatuses[m.nama].total++;
+                        
+                        const s = state.submissions.find(x => 
+                            x.taskId === t.taskId &&
+                            x.namaAnggota === m.nama &&
+                            x.subTugasName === sub.nama &&
+                            (t.tipePengumpulan === 'Satu Kali' || matchesSubmissionDate(x, dateVal))
+                        );
+                        
+                        if (s) {
+                            memberStatuses[m.nama].submitted++;
+                            memberStatuses[m.nama].details.push(`${label}: ${isGraded(s) ? 'selesai' : 'done'}`);
+                        } else {
+                            memberStatuses[m.nama].details.push(`${label}: kurang`);
+                        }
                     });
                 });
-            } else {
-                const subs = state.submissions.filter(s => matchesSubmissionDate(s, dateVal));
-                subs.forEach(s => {
-                    addStatus(s.namaAnggota, s.subTugasName, isGraded(s) ? 'selesai' : 'done');
-                });
-            }
+            });
+
+            // SORTING: Full (Lengkap) -> Partial (Sebagian) -> None (Belum sama sekali)
+            const sortedNames = Object.keys(memberStatuses).sort((a, b) => {
+                const dataA = memberStatuses[a];
+                const dataB = memberStatuses[b];
+                
+                const isFullA = dataA.submitted === dataA.total;
+                const isFullB = dataB.submitted === dataB.total;
+                const isNoneA = dataA.submitted === 0;
+                const isNoneB = dataB.submitted === 0;
+                
+                if (isFullA && !isFullB) return -1;
+                if (!isFullA && isFullB) return 1;
+                if (isNoneA && !isNoneB) return 1;
+                if (!isNoneA && isNoneB) return -1;
+                return a.localeCompare(b);
+            });
 
             const tglFmt = new Date(dateVal + 'T00:00:00').toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
             const jam = new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }).replace('.', ':');
             let text = `Pengumpulan Tugas (${tglFmt}, ${jam})\n`;
             let no = 1;
-            if (membersMap.size === 0) {
-                text += 'Belum ada data pengumpulan pada tanggal ini.';
-            } else {
-                membersMap.forEach((items, nama) => {
-                    const detail = items.map(it => `${it.label}: ${it.status}`).join(', ');
-                    text += `${no++}. ${nama} — ${detail}\n`;
-                });
-            }
+            
+            sortedNames.forEach(nama => {
+                const data = memberStatuses[nama];
+                let detailStr = "";
+                if (data.submitted === 0) {
+                    detailStr = "Belum mengerjakan";
+                } else {
+                    detailStr = data.details.join(', ');
+                }
+                text += `${no++}. ${nama} — ${detailStr}\n`;
+            });
+
             document.getElementById('reportText').value = text.trim();
             showToast("Laporan berhasil dibuat", "success");
         }
