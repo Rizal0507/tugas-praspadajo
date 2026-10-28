@@ -47,8 +47,9 @@
             <div class="absolute bottom-0 left-1/3 w-28 h-28 bg-blue-300/20 rounded-full blur-xl"></div>
             <div class="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-3.5 w-full sm:w-auto">
-                    <div class="w-14 h-14 bg-white/15 backdrop-blur-md rounded-2xl p-2 flex items-center justify-center border border-white/20 shadow-md flex-none">
-                        <img src="./logo.png" alt="Logo" class="max-h-full max-w-full object-contain drop-shadow" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-white text-2xl\'></i>';">
+                    <!-- REVISI: Logo tanpa border, ukuran lebih besar -->
+                    <div class="flex items-center justify-center flex-none">
+                        <img src="./logo.png" alt="Logo" class="h-14 sm:h-16 w-auto object-contain drop-shadow-md" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-white text-4xl\'></i>';">
                     </div>
                     <div>
                         <span class="bg-blue-800/60 text-blue-100 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider inline-block mb-0.5 border border-white/10">Pelatih Dashboard</span>
@@ -167,17 +168,6 @@
                             <div>
                                 <label class="text-xs font-bold text-blue-800 uppercase mb-1 block">Pilih Tanggal / Rentang</label>
                                 <input type="text" id="tanggalPengerjaan" required placeholder="Pilih Tanggal..." class="w-full px-3 py-2 bg-white border border-blue-200 rounded-xl text-xs font-bold outline-none cursor-pointer">
-                            </div>
-                            <!-- Input Batas Durasi Video (Menit & Detik) -->
-                            <div class="sm:col-span-2">
-                                <label class="text-xs font-bold text-blue-800 uppercase mb-1 block">Batas Durasi Video (Keseluruhan)</label>
-                                <div class="flex items-center gap-2">
-                                    <input type="number" id="durasiMenit" min="0" placeholder="0" class="w-20 px-3 py-2 bg-white border border-blue-200 rounded-xl text-xs font-bold text-center outline-none focus:border-blue-500">
-                                    <span class="text-xs font-bold text-blue-800">Menit</span>
-                                    <input type="number" id="durasiDetik" min="0" max="59" placeholder="0" class="w-20 px-3 py-2 bg-white border border-blue-200 rounded-xl text-xs font-bold text-center outline-none focus:border-blue-500">
-                                    <span class="text-xs font-bold text-blue-800">Detik</span>
-                                </div>
-                                <p class="text-[9px] text-blue-600 mt-1">Batas maksimal durasi video yang diunggah anggota (opsional).</p>
                             </div>
                         </div>
 
@@ -775,10 +765,6 @@
 
             const subTugasJSON = getSubTasksJSON();
             if(subTugasJSON === "[]") { showToast("Tambahkan minimal 1 Gerakan/Sub-Tugas!", "error"); return; }
-
-            const durasiMenitVal = Math.max(0, parseInt(document.getElementById('durasiMenit').value) || 0);
-            const durasiDetikVal = Math.min(59, Math.max(0, parseInt(document.getElementById('durasiDetik').value) || 0));
-            const batasDurasiDetik = (durasiMenitVal * 60) + durasiDetikVal;
             
             showLoading(true, "Menyimpan Tugas...");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({
@@ -790,8 +776,7 @@
                 tanggalPengerjaan: dates,
                 targetMember: targets,
                 jenisTugas: "video",
-                subTugas: subTugasJSON,
-                batasDurasiDetik: batasDurasiDetik
+                subTugas: subTugasJSON
             })}).then(r=>r.json()).then(d=>{
                 showLoading(false); 
                 if(d.success) { showToast(d.message, "success"); resetTaskForm(); loadDashboardData(); } 
@@ -819,16 +804,16 @@
             document.getElementById('editTaskId').value = t.taskId;
             document.getElementById('taskTitle').value = t.judulTugas;
             document.getElementById('taskDesc').value = t.instruksi;
-
-            const totalDetik = parseInt(t.batasDurasiDetik) || 0;
-            document.getElementById('durasiMenit').value = totalDetik > 0 ? Math.floor(totalDetik / 60) : '';
-            document.getElementById('durasiDetik').value = totalDetik > 0 ? (totalDetik % 60) : '';
             
             document.getElementById('tipePengumpulan').value = t.tipePengumpulan;
             setupFlatpickr();
             
-            fpInstance.setDate(t.tanggalPengerjaan.includes(' to ') ? t.tanggalPengerjaan.split(' to ') : t.tanggalPengerjaan.split(', '));
-            document.getElementById('tanggalPengerjaan').value = t.tanggalPengerjaan;
+            // REVISI: Sanitasi format tanggal dari database agar tidak error saat masuk kalender
+            let rawDate = (t.tanggalPengerjaan || "").toString();
+            if (rawDate.includes('T')) rawDate = rawDate.split('T')[0];
+            
+            fpInstance.setDate(rawDate.includes(' to ') ? rawDate.split(' to ') : rawDate.split(', '));
+            document.getElementById('tanggalPengerjaan').value = rawDate;
             
             setFormSelectedTargets(t.targetMember);
             
@@ -1045,7 +1030,10 @@
         }
 
         function isTaskActiveOnDate(t, dateVal) {
-            const raw = (t.tanggalPengerjaan || '').toString().trim();
+            // REVISI: Sanitasi format tanggal dari database jika ada jam/T
+            let raw = (t.tanggalPengerjaan || '').toString().trim();
+            if (raw.includes('T')) raw = raw.split('T')[0]; 
+            
             if (!raw) return false;
             if (t.tipePengumpulan === 'Harian') {
                 return raw.split(',').map(x => x.trim()).includes(dateVal);
