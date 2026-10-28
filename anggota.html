@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }</script>
     <script>
         (function checkAuth() {
@@ -22,131 +21,272 @@
     </script>
     <style>
         * { -webkit-tap-highlight-color: transparent; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.3); opacity: 0; } }
+        .recording-pulse::before { content: ''; position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-radius: 50%; border: 3px solid #ef4444; animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; } .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen font-sans text-gray-800 antialiased flex flex-col">
+<body class="bg-gray-100 min-h-screen font-sans text-gray-800 antialiased flex flex-col items-center">
 
-    <div class="w-full max-w-md mx-auto bg-white min-h-screen shadow-2xl flex flex-col overflow-hidden relative">
+    <div class="w-full max-w-md bg-white min-h-screen sm:min-h-[850px] sm:my-6 sm:rounded-[2.5rem] sm:shadow-2xl flex flex-col relative overflow-hidden">
         
         <!-- HEADER -->
-        <header class="bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 text-white px-5 pt-8 pb-6 relative overflow-hidden flex-none rounded-b-3xl shadow-md z-10">
-            <div class="absolute -top-12 -right-12 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-            <div class="relative z-10 flex items-center justify-between gap-3">
+        <header id="appHeader" class="bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 text-white px-5 pt-8 pb-10 relative overflow-hidden flex-none">
+            <div class="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+            <div class="absolute bottom-0 left-1/3 w-28 h-28 bg-blue-300/20 rounded-full blur-xl"></div>
+            <div class="relative z-10 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-white/15 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20 shadow-sm flex-none">
-                        <i class="fa-solid fa-user-astronaut text-white text-xl"></i>
+                    <div class="w-12 h-12 bg-white/15 backdrop-blur-md rounded-2xl p-2 flex items-center justify-center border border-white/20 shadow-md">
+                        <img src="./logo.png" alt="Logo" class="max-h-full max-w-full object-contain" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-white text-xl\'></i>';">
                     </div>
                     <div>
-                        <span class="bg-blue-800/60 text-blue-100 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider inline-block mb-0.5 border border-white/10">Ruang Anggota</span>
-                        <h1 class="text-base font-extrabold tracking-tight truncate w-40" id="headerNameDisplay">Siswa</h1>
+                        <span id="roleBadge" class="bg-blue-800/60 text-blue-100 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider block mb-0.5 border border-white/10 w-max">Anggota Aktif</span>
+                        <h1 class="text-base font-extrabold tracking-tight leading-tight">PRASPADAJO</h1>
                     </div>
                 </div>
-                <button onclick="handleLogout()" class="bg-rose-500/80 hover:bg-rose-600 text-white p-2 rounded-xl border border-rose-300/30 shadow-md active:scale-95"><i class="fa-solid fa-power-off"></i></button>
+                <div class="flex gap-2">
+                    <button onclick="openPasswordModal()" class="bg-blue-500 hover:bg-blue-600 text-white p-2.5 rounded-xl shadow-md active:scale-95"><i class="fa-solid fa-key text-sm"></i></button>
+                    <button onclick="handleLogout()" class="bg-rose-500 hover:bg-rose-600 text-white p-2.5 rounded-xl shadow-md active:scale-95"><i class="fa-solid fa-right-from-bracket text-sm"></i></button>
+                </div>
+            </div>
+            <div class="mt-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 relative z-10 shadow-inner">
+                <p class="text-[11px] text-blue-100 font-medium uppercase tracking-wider mb-0.5">Selamat Datang,</p>
+                <h2 id="userNameDisplay" class="text-lg font-bold text-white leading-tight truncate">Nama Siswa</h2>
+                <div class="mt-2 flex items-center gap-1.5 text-xs text-blue-50">
+                    <i class="fa-solid fa-users-rectangle text-[10px]"></i><span id="userClassDisplay">Kelas</span>
+                </div>
             </div>
         </header>
 
-        <!-- TABS NAV (BOTTOM FIXED) -->
-        <nav class="bg-white border-t border-gray-100 flex justify-around shadow-[0_-4px_10px_rgba(0,0,0,0.03)] fixed bottom-0 w-full max-w-md z-20 pb-safe">
-            <button onclick="switchTab('tugas')" id="tabBtnTugas" class="flex-1 py-3.5 flex flex-col items-center gap-1 text-blue-600 font-bold border-t-2 border-blue-600 transition-colors">
-                <i class="fa-solid fa-clipboard-list text-lg"></i><span class="text-[10px]">Tugas Aktif</span>
-            </button>
-            <button onclick="switchTab('riwayat')" id="tabBtnRiwayat" class="flex-1 py-3.5 flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600 border-t-2 border-transparent transition-colors">
-                <i class="fa-solid fa-clock-rotate-left text-lg"></i><span class="text-[10px]">Riwayat Tugas</span>
-            </button>
+        <!-- DYNAMIC NAVIGATION -->
+        <nav class="bg-white border-b border-gray-100 flex shadow-sm z-20 sticky top-0 overflow-x-auto custom-scroll">
+            <button onclick="switchTab('dashboard')" id="tabBtnDashboard" class="flex-1 min-w-[100px] py-3 text-xs font-bold text-blue-600 border-b-2 border-blue-600 flex justify-center items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Tugas</button>
+            <button onclick="switchTab('riwayat')" id="tabBtnRiwayat" class="flex-1 min-w-[100px] py-3 text-xs font-bold text-gray-400 border-b-2 border-transparent flex justify-center items-center gap-1.5"><i class="fa-solid fa-chart-line"></i> Riwayat</button>
+            <button onclick="switchTab('absensi')" id="tabBtnAbsensi" class="hidden flex-1 min-w-[110px] py-3 text-xs font-bold text-gray-400 border-b-2 border-transparent flex justify-center items-center gap-1.5"><i class="fa-solid fa-clipboard-user"></i> Input Absen</button>
         </nav>
 
-        <main class="flex-grow p-4 bg-gray-50 flex flex-col overflow-y-auto custom-scroll pb-24">
-            
-            <!-- TAB: TUGAS AKTIF -->
-            <section id="viewTugas" class="tab-view flex flex-col gap-4">
-                <div class="flex justify-between items-center">
-                    <h2 class="font-bold text-gray-800 text-sm">Daftar Tugas Hari Ini</h2>
-                    <button onclick="loadTasks(true)" class="text-blue-600 bg-blue-50 px-2 py-1 rounded-lg text-xs font-bold active:scale-95"><i class="fa-solid fa-rotate mr-1"></i>Refresh</button>
-                </div>
-                <div id="taskListContainer" class="flex flex-col gap-4">
-                    <!-- Cards Tugas Akan Muncul di Sini -->
-                </div>
-            </section>
-
-            <!-- TAB: RIWAYAT TUGAS -->
-            <section id="viewRiwayat" class="tab-view hidden flex-col gap-4">
-                <h2 class="font-bold text-gray-800 text-sm">Riwayat & Nilai Tugas</h2>
-                <div id="riwayatListContainer" class="flex flex-col gap-3">
-                    <!-- List Riwayat Muncul di Sini -->
-                </div>
-            </section>
-
+        <!-- VIEW 1: DASHBOARD TUGAS -->
+        <main id="viewDashboard" class="flex-grow bg-gray-50 flex flex-col relative z-10">
+            <div class="px-5 pt-4 pb-3 border-b border-gray-100 bg-white flex justify-between items-center sticky top-0 z-10">
+                <h3 class="font-bold text-gray-800 text-sm">Tugas Tersedia</h3>
+                <button onclick="fetchTasks()" class="text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg text-xs font-bold flex gap-1.5 active:scale-95"><i class="fa-solid fa-rotate"></i> Refresh</button>
+            </div>
+            <div id="taskListContainer" class="p-5 flex flex-col gap-4 overflow-y-auto custom-scroll">
+                <div class="py-10 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-spinner animate-spin text-3xl text-blue-600 mb-3"></i><p class="text-xs font-semibold text-gray-500">Memuat tugas...</p></div>
+            </div>
         </main>
-    </div>
 
-    <!-- MODAL KAMERA -->
-    <div id="cameraModal" class="fixed inset-0 bg-black z-50 flex flex-col hidden">
-        <div class="p-4 flex justify-between items-center text-white z-10 bg-gradient-to-b from-black/80 to-transparent absolute top-0 w-full">
-            <div>
-                <h3 id="camSubTaskName" class="font-bold text-sm">Merekam...</h3>
-                <p id="camDurasiTarget" class="text-[10px] text-gray-300">Target: 1 - 3 Menit</p>
-            </div>
-            <button onclick="closeCamera()" class="w-8 h-8 bg-gray-800/80 rounded-full flex items-center justify-center active:scale-95"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        
-        <div class="flex-grow relative bg-black flex items-center justify-center overflow-hidden">
-            <video id="videoPreview" autoplay playsinline muted class="w-full h-full object-cover"></video>
+        <!-- VIEW 2: RIWAYAT & GRAFIK (GABUNGAN) -->
+        <main id="viewRiwayat" class="hidden flex-grow bg-gray-50 flex-col relative z-10 overflow-y-auto custom-scroll p-5 gap-5">
             
-            <!-- Overlay Info (Timer & Progress) -->
-            <div class="absolute bottom-24 w-full px-6 flex flex-col items-center gap-3">
-                <div id="recordingTimer" class="text-white text-4xl font-mono font-bold drop-shadow-md hidden">00:00</div>
-                <div id="progressContainer" class="w-full bg-gray-800/80 rounded-full h-2 overflow-hidden hidden">
-                    <div id="progressBar" class="bg-rose-500 h-full transition-all duration-1000 ease-linear w-0"></div>
+            <!-- SEKSI 1: NILAI TUGAS (BARU) -->
+            <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                <h3 class="font-bold text-gray-800 text-sm p-4 border-b flex items-center gap-2"><i class="fa-solid fa-medal text-amber-500"></i> Riwayat & Nilai Tugas</h3>
+                <div id="riwayatNilaiContainer" class="flex flex-col divide-y divide-gray-100 max-h-60 overflow-y-auto custom-scroll">
+                    <div class="p-5 text-center text-gray-400 text-xs">Memuat nilai...</div>
                 </div>
-                <p id="progressWarning" class="text-rose-400 text-xs font-bold drop-shadow-md hidden animate-pulse">Durasi belum mencapai target minimal!</p>
+            </div>
+
+            <!-- SEKSI 2: GRAFIK & ABSENSI (LAMA) -->
+            <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3">
+                <h3 class="font-bold text-gray-800 text-sm border-b pb-2 flex items-center gap-2"><i class="fa-solid fa-chart-pie text-blue-500"></i> Statistik Kehadiran</h3>
+                <div class="flex justify-between text-[10px] font-bold text-gray-500 text-center mt-2">
+                    <div class="flex-1"><span class="block text-emerald-600 text-lg" id="statHadir">0</span>Hadir</div>
+                    <div class="flex-1"><span class="block text-blue-600 text-lg" id="statIzin">0</span>Izin</div>
+                    <div class="flex-1"><span class="block text-amber-600 text-lg" id="statSakit">0</span>Sakit</div>
+                    <div class="flex-1"><span class="block text-rose-600 text-lg" id="statAlpa">0</span>Alpa</div>
+                </div>
+                <div class="w-full bg-gray-100 h-2.5 rounded-full mt-1 overflow-hidden flex">
+                    <div id="barHadir" class="bg-emerald-500 h-full" style="width: 0%"></div>
+                    <div id="barIzin" class="bg-blue-500 h-full" style="width: 0%"></div>
+                    <div id="barSakit" class="bg-amber-500 h-full" style="width: 0%"></div>
+                    <div id="barAlpa" class="bg-rose-500 h-full" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+                <h3 class="font-bold text-gray-800 text-sm p-4 border-b">Detail Materi & Foto Absen</h3>
+                <div id="riwayatListContainer" class="flex flex-col divide-y divide-gray-100">
+                    <div class="p-8 text-center text-gray-400 text-xs"><i class="fa-solid fa-spinner animate-spin text-xl text-blue-600 mb-2 block"></i> Memuat histori...</div>
+                </div>
+            </div>
+        </main>
+
+        <!-- VIEW 3: ABSENSI PENGURUS -->
+        <main id="viewAbsensi" class="hidden flex-grow bg-gray-50 flex-col relative z-10 overflow-y-auto custom-scroll p-5">
+            <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-4">
+                <div class="flex justify-between items-center border-b pb-3">
+                    <h2 class="font-bold text-gray-800 text-sm">Input Absensi Harian</h2>
+                    <input type="date" id="absensiDate" class="px-2 py-1 bg-gray-50 border rounded-lg text-xs font-bold text-blue-600 outline-none">
+                </div>
+                
+                <form id="formAbsensi" class="flex flex-col gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-600 uppercase mb-1 block">Materi Latihan</label>
+                        <textarea id="materiLatihan" rows="2" required placeholder="Ringkasan materi..." class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none focus:border-blue-500"></textarea>
+                    </div>
+
+                    <div class="overflow-x-auto max-h-[300px] overflow-y-auto custom-scroll border rounded-xl">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-gray-50 text-gray-500 uppercase text-[9px] font-bold sticky top-0 z-10">
+                                <tr><th class="py-2 px-2 w-6 text-center">No</th><th class="py-2 px-2">Nama</th><th class="py-2 px-2 text-center w-28">Kehadiran</th></tr>
+                            </thead>
+                            <tbody id="tableAbsensiBody" class="divide-y divide-gray-100 text-[10px]">
+                                <tr><td colspan="3" class="py-5 text-center text-gray-400">Klik load data dibawah</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <button type="button" onclick="loadAbsensiData()" class="text-[11px] text-blue-600 font-bold bg-blue-50 py-2 rounded-lg border border-blue-100"><i class="fa-solid fa-cloud-arrow-down mr-1"></i> Load Data Anggota</button>
+
+                    <!-- Foto Datang & Pulang -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="bg-gray-50 border border-dashed border-gray-300 p-2 rounded-xl text-center relative group">
+                            <div id="fotoDatangPreviewContainer" class="hidden mb-2 relative aspect-video w-full bg-black rounded-lg overflow-hidden">
+                                <img id="fotoDatangPreview" src="" class="w-full h-full object-cover">
+                                <button type="button" onclick="removePhoto('Datang')" class="absolute top-1 right-1 w-6 h-6 bg-rose-500 text-white rounded-full text-[10px]"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                            <label class="cursor-pointer flex flex-col items-center gap-1 text-blue-600 font-bold text-[10px]">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm"><i class="fa-solid fa-camera"></i></div>
+                                <span>Foto Datang</span>
+                                <input type="file" id="fotoDatangInput" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(event, 'Datang')">
+                            </label>
+                        </div>
+                        <div class="bg-gray-50 border border-dashed border-gray-300 p-2 rounded-xl text-center relative group">
+                            <div id="fotoPulangPreviewContainer" class="hidden mb-2 relative aspect-video w-full bg-black rounded-lg overflow-hidden">
+                                <img id="fotoPulangPreview" src="" class="w-full h-full object-cover">
+                                <button type="button" onclick="removePhoto('Pulang')" class="absolute top-1 right-1 w-6 h-6 bg-rose-500 text-white rounded-full text-[10px]"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                            <label class="cursor-pointer flex flex-col items-center gap-1 text-emerald-600 font-bold text-[10px]">
+                                <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-sm"><i class="fa-solid fa-camera"></i></div>
+                                <span>Foto Pulang</span>
+                                <input type="file" id="fotoPulangInput" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(event, 'Pulang')">
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 text-sm mt-2"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Absensi</button>
+                </form>
+            </div>
+        </main>
+
+        <!-- VIEW SETUP & SUB-TUGAS BERTUMPUK -->
+        <div id="viewSetup" class="fixed inset-0 sm:absolute bg-black/80 backdrop-blur-sm z-40 hidden flex-col justify-end pointer-events-auto">
+            <div class="bg-white w-full rounded-t-[2.5rem] p-6 pt-8 pb-10 flex flex-col">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <span id="setupTipeBadge" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100 uppercase">Panel Tugas</span>
+                        <h3 id="setupTaskTitle" class="text-lg font-bold text-gray-800 mt-2 leading-snug">Judul Tugas</h3>
+                    </div>
+                    <button onclick="closeSetup()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                
+                <p id="setupTaskDesc" class="text-xs text-gray-500 mb-4 bg-gray-50 p-3 rounded-xl border border-gray-100 max-h-24 overflow-y-auto custom-scroll"></p>
+
+                <label class="text-xs font-bold text-gray-600 uppercase mb-2">Pilih Tanggal / Waktu Pengumpulan</label>
+                <select id="selectHariKe" onchange="renderSubTasks()" class="w-full px-4 py-3 bg-gray-50 text-sm font-semibold rounded-2xl border border-gray-200 outline-none focus:border-blue-500 mb-4 shadow-inner">
+                    <!-- Otomatis diisi oleh JS sesuai Tipe Tugas -->
+                </select>
+
+                <div id="subTasksContainer" class="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scroll">
+                    <!-- Tombol Sub-Tugas Dirender Disini -->
+                </div>
             </div>
         </div>
 
-        <div class="p-6 bg-black flex justify-center items-center gap-6 pb-safe relative">
-            <button id="btnSwitchCam" onclick="switchCamera()" class="w-12 h-12 bg-gray-800 text-white rounded-full flex items-center justify-center active:scale-95"><i class="fa-solid fa-rotate text-lg"></i></button>
-            <button id="btnRecord" onclick="toggleRecording()" class="w-20 h-20 bg-rose-600 rounded-full flex items-center justify-center border-4 border-rose-300/30 active:scale-95 transition-all"><i id="recordIcon" class="fa-solid fa-video text-2xl text-white"></i></button>
-            <div class="w-12 h-12"></div> <!-- Spacer for balance -->
+        <!-- VIEW KAMERA (Perekaman) -->
+        <div id="viewCamera" class="fixed inset-0 sm:absolute bg-black z-50 hidden flex-col pointer-events-auto">
+            <div class="absolute top-0 left-0 w-full h-1.5 bg-gray-800 z-30">
+                <div id="videoProgressBar" class="h-full bg-rose-500 transition-all duration-1000" style="width: 0%;"></div>
+            </div>
+            <div class="absolute top-1.5 left-0 w-full p-4 flex justify-between items-start z-20 bg-gradient-to-b from-black/60 to-transparent pt-6">
+                <button id="btnCancelCamera" onclick="abortRecording()" class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white active:scale-95"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <div class="bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 flex items-center gap-2 shadow-lg">
+                    <div id="recIndicator" class="w-2.5 h-2.5 rounded-full bg-rose-500 hidden animate-pulse"></div>
+                    <span id="timerDisplay" class="text-white font-mono font-bold text-sm tracking-wider">00:00</span>
+                </div>
+            </div>
+            
+            <video id="videoPreview" autoplay playsinline muted class="w-full h-full object-cover bg-gray-900"></video>
+            
+            <div class="absolute top-20 left-4 right-4 bg-yellow-500/90 backdrop-blur text-black text-[10px] font-bold px-3 py-2 rounded-xl text-center shadow-lg border border-yellow-300">
+                <span class="block text-[9px] uppercase text-yellow-800">Target Waktu: <span id="kameraTarget" class="font-black"></span></span>
+                <i class="fa-solid fa-triangle-exclamation mr-1 mt-1"></i> <span id="kameraSubName" class="font-extrabold"></span>. Jangan keluar aplikasi saat merekam!
+            </div>
+            
+            <div class="absolute bottom-0 left-0 w-full pb-10 pt-16 flex items-center justify-center gap-8 bg-gradient-to-t from-black/80 to-transparent z-20">
+                <button id="btnRecord" onclick="toggleRecording()" class="relative w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-[0_0_0_4px_rgba(255,255,255,0.3)] transition-all">
+                    <div id="btnRecordInner" class="w-14 h-14 bg-rose-500 rounded-full transition-all duration-300"></div>
+                </button>
+            </div>
         </div>
-    </div>
 
-    <!-- LOADING & TOAST -->
-    <div id="loadingOverlay" class="fixed inset-0 bg-white/90 backdrop-blur-sm z-[100] flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity">
-        <i class="fa-solid fa-circle-notch animate-spin text-4xl text-blue-600 mb-3"></i>
-        <p id="loadingText" class="text-blue-700 font-bold text-sm animate-pulse text-center px-6">Menyiapkan Data...</p>
+        <!-- UPLOAD SCREEN -->
+        <div id="viewUploading" class="fixed inset-0 sm:absolute bg-white z-50 hidden flex-col items-center justify-center pointer-events-auto">
+            <div class="relative w-32 h-32 mb-6">
+                <svg class="animate-spin w-full h-full text-blue-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-100" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle><path class="opacity-100 text-blue-600" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <div class="absolute inset-0 flex items-center justify-center"><i class="fa-solid fa-cloud-arrow-up text-4xl text-blue-600"></i></div>
+            </div>
+            <h2 class="text-xl font-bold text-gray-800 mb-2">Mengirim Video...</h2>
+            <p class="text-[11px] text-gray-500 font-medium text-center px-8">Sedang memproses dan membersihkan format agar aman di server...</p>
+        </div>
+
+        <!-- MODAL GANTI PASSWORD -->
+        <div id="passwordModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all">
+            <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl scale-95 transition-transform duration-300 transform" id="passwordModalContent">
+                <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-gray-800 text-lg">Ganti Password</h3><button onclick="closePasswordModal()" class="text-gray-400"><i class="fa-solid fa-xmark text-xl"></i></button></div>
+                <form id="formGantiPassword" class="flex flex-col gap-4">
+                    <div><label class="text-xs font-bold block mb-1">Password Lama</label><input type="password" id="oldPass" required class="w-full px-4 py-2 bg-gray-50 border rounded-xl text-sm outline-none"></div>
+                    <div><label class="text-xs font-bold block mb-1">Password Baru</label><input type="password" id="newPass" required class="w-full px-4 py-2 bg-gray-50 border rounded-xl text-sm outline-none"></div>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl active:scale-95 text-sm">Simpan Password</button>
+                </form>
+            </div>
+        </div>
+
     </div>
     <div id="toastContainer" class="fixed top-5 left-1/2 -translate-x-1/2 z-[110] flex flex-col gap-2 pointer-events-none w-full max-w-xs px-4"></div>
 
     <script>
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwYTFRirtCpDT1vXJ0hSeFtElQR44rdoMPKskHgRPO3OlCr5_D_cXvLQOFzkDt4lY_IYw/exec';
-        let state = { user: null, tasks: [], userSubs: {}, submissions: [] }; // submissions dari riwayat
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwYTFRirtCpDT1vXJ0hSeFtElQR44rdoMPKskHgRPO3OlCr5_D_cXvLQOFzkDt4lY_IYw/exec'; 
         
-        let currentRecordSession = {
-            taskId: '', folderId: '', subName: '', minSec: 0, maxSec: 0, 
-            stream: null, mediaRecorder: null, chunks: [],
-            timerInterval: null, elapsedSec: 0, isRecording: false, facingMode: 'user'
-        };
+        let user = JSON.parse(localStorage.getItem('userSession') || sessionStorage.getItem('userSession'));
+        let activeTasks = [], userSubs = {};
+        let selectedTask = null, currentSubTugas = "Utama", selectedDay = "1";
+        let currentMinSec = 60, currentMaxSec = 300;
+        
+        // Perekaman
+        let mediaStream = null, mediaRecorder = null, recordedChunks = [];
+        let isRecording = false, timerInterval, secondsRecorded = 0;
+        
+        // Absensi Pengurus
+        let fotoDatangBase64 = null, fotoPulangBase64 = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            const raw = localStorage.getItem('userSession') || sessionStorage.getItem('userSession');
-            if (raw) { state.user = JSON.parse(raw); document.getElementById('headerNameDisplay').textContent = state.user.nama; }
-            loadTasks();
-            loadRiwayat();
+            document.getElementById('userNameDisplay').textContent = user.nama;
+            document.getElementById('userClassDisplay').textContent = `Kelas ${user.kelas}`;
+            
+            if(user.role === 'Pengurus') {
+                document.getElementById('roleBadge').textContent = "PENGURUS AKTIF";
+                document.getElementById('roleBadge').className = "bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200 w-max";
+                document.getElementById('tabBtnAbsensi').classList.remove('hidden');
+                document.getElementById('absensiDate').value = new Date().toISOString().split('T')[0];
+            }
+            
+            fetchTasks();
+            fetchRiwayatSemua();
         });
 
         function handleLogout() { localStorage.removeItem('userSession'); sessionStorage.removeItem('userSession'); window.location.href = 'index.html'; }
 
         function switchTab(tabKey) {
-            const tabs = ['tugas', 'riwayat'];
+            const tabs = ['dashboard', 'riwayat', 'absensi'];
             tabs.forEach(t => {
                 const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
                 const view = document.getElementById(`view${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                if(!btn || !view) return;
+                
                 if (t === tabKey) {
                     btn.classList.add('text-blue-600', 'border-blue-600'); btn.classList.remove('text-gray-400', 'border-transparent');
                     view.classList.remove('hidden'); view.classList.add('flex');
+                    if (t === 'absensi' && document.getElementById('tableAbsensiBody').children.length <= 1) loadAbsensiData();
                 } else {
                     btn.classList.remove('text-blue-600', 'border-blue-600'); btn.classList.add('text-gray-400', 'border-transparent');
                     view.classList.add('hidden'); view.classList.remove('flex');
@@ -154,331 +294,400 @@
             });
         }
 
-        // --- FETCH TUGAS AKTIF ---
-        function getTodayString() {
-            const d = new Date();
-            return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + String(d.getDate()).padStart(2,'0');
-        }
-
-        function loadTasks(isManual = false) {
-            showLoading(true, "Memuat Daftar Tugas...");
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getTasks', username: state.user.username }) })
-            .then(r=>r.json()).then(d => {
-                showLoading(false);
-                if (d.success) {
-                    state.tasks = d.tasks; state.userSubs = d.userSubs;
-                    renderTasks();
-                    if(isManual) showToast("Data diperbarui", "success");
-                } else showToast("Gagal memuat tugas", "error");
-            }).catch(e => { showLoading(false); showToast("Koneksi Error", "error"); });
-        }
-
-        function renderTasks() {
+        // --- TUGAS & TUGAS BERTUMPUK (MENDUKUNG FORMAT BARU) ---
+        function fetchTasks() {
             const container = document.getElementById('taskListContainer');
-            let html = '';
-            const todayStr = getTodayString();
-            let activeTaskCount = 0;
-
-            state.tasks.forEach(task => {
-                let isActiveToday = false;
-                const isSatuKali = task.tipePengumpulan === 'Satu Kali';
-
-                // Logika Filter Tanggal
-                if (isSatuKali) {
-                    const dates = task.tanggalPengerjaan.split(' to ');
-                    const start = dates[0];
-                    const end = dates.length > 1 ? dates[1] : dates[0];
-                    if (todayStr >= start && todayStr <= end) isActiveToday = true;
-                } else {
-                    const dates = task.tanggalPengerjaan.split(', ');
-                    if (dates.includes(todayStr)) isActiveToday = true;
+            container.innerHTML = `<div class="py-10 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-spinner animate-spin text-3xl text-blue-600 mb-3"></i><p class="text-xs font-semibold text-gray-500">Memuat tugas...</p></div>`;
+            
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getTasks', username: user.username }) })
+            .then(r => r.json()).then(d => {
+                if (d.success) {
+                    activeTasks = d.tasks; userSubs = d.userSubs || {};
+                    if(activeTasks.length > 0) renderTasks(activeTasks);
+                    else container.innerHTML = `<div class="bg-gray-50 border rounded-3xl p-6 text-center"><i class="fa-solid fa-mug-hot text-gray-300 text-3xl mb-2"></i><p class="text-xs text-gray-400">Belum ada tugas aktif saat ini.</p></div>`;
                 }
+            }).catch(e => container.innerHTML = `<p class="text-center text-xs text-rose-500">Gagal memuat koneksi</p>`);
+        }
 
-                if(isActiveToday) {
-                    let subTaskHtml = '';
-                    let allSubTasksDone = true;
+        function renderTasks(tasks) {
+            const container = document.getElementById('taskListContainer');
+            container.innerHTML = tasks.map(t => {
+                const isLama = t.isLama;
+                const isBertumpuk = t.subTugas && t.subTugas.length > 1;
+                const subTeks = isBertumpuk ? `<p class="text-[9px] font-bold text-amber-600 mt-1"><i class="fa-solid fa-layer-group mr-1"></i>Multitask (${t.subTugas.length} Gerakan)</p>` : '';
+                
+                // Tampilan Label Tanggal
+                let labelTanggal = "";
+                if(isLama) labelTanggal = "Sistem Lama";
+                else if (t.tipePengumpulan === "Satu Kali") labelTanggal = `Deadline: ${t.tanggalPengerjaan.replace(' to ', ' s/d ')}`;
+                else labelTanggal = `Tugas Rutin Harian`;
 
-                    // Logika Sub Tugas JSON (Array)
-                    task.subTugas.forEach(sub => {
-                        let isDone = false;
-                        if(isSatuKali) {
-                            // Jika Satu Kali, cek apakah di userSubs ada key yang mengandung sub.nama untuk taskId ini (di tanggal berapapun)
-                            isDone = Object.keys(state.userSubs).some(k => k.startsWith(task.taskId + "_") && k.endsWith("_" + sub.nama));
-                        } else {
-                            // Jika Harian, cek apakah hari ini sudah kumpul sub.nama ini
-                            const key = task.taskId + "_" + todayStr + "_" + sub.nama;
-                            isDone = !!state.userSubs[key];
-                        }
-
-                        if(!isDone) {
-                            allSubTasksDone = false;
-                            subTaskHtml += `
-                                <button onclick="openCameraSetup('${task.taskId}', '${task.folderId}', '${sub.nama}', ${sub.min}, ${sub.max})" class="w-full mt-2 bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold py-3 px-4 rounded-xl text-xs flex justify-between items-center transition-all active:scale-95 border border-blue-200">
-                                    <span class="flex items-center gap-2"><i class="fa-solid fa-video text-blue-600"></i> Rekam: ${sub.nama}</span>
-                                    <span class="text-[9px] bg-white px-2 py-1 rounded-lg text-blue-600 shadow-sm">${sub.min}-${sub.max} mnt</span>
-                                </button>
-                            `;
-                        } else {
-                            subTaskHtml += `
-                                <div class="w-full mt-2 bg-emerald-50 text-emerald-700 font-bold py-3 px-4 rounded-xl text-xs flex justify-between items-center border border-emerald-100 opacity-80">
-                                    <span class="flex items-center gap-2"><i class="fa-solid fa-circle-check"></i> ${sub.nama}</span>
-                                    <span class="text-[9px] bg-emerald-100 px-2 py-1 rounded-lg">Selesai</span>
-                                </div>
-                            `;
-                        }
-                    });
-
-                    // Hanya tampilkan jika belum semua selesai (khusus "Satu Kali", card hilang. Jika Harian, card tampil sebagai riwayat kecil hari ini)
-                    if(!allSubTasksDone || !isSatuKali) {
-                        activeTaskCount++;
-                        html += `
-                            <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm">
-                                <div class="flex justify-between items-start mb-2">
-                                    <div>
-                                        <span class="text-[9px] font-bold text-white px-2 py-0.5 rounded-full mb-1 inline-block ${isSatuKali ? 'bg-amber-500' : 'bg-purple-500'}">${task.tipePengumpulan}</span>
-                                        <h3 class="font-extrabold text-gray-800 text-base leading-tight">${task.judulTugas}</h3>
-                                    </div>
-                                </div>
-                                <p class="text-xs text-gray-500 mb-3 bg-gray-50 p-2 rounded-lg border border-gray-100">${task.instruksi}</p>
-                                <div class="flex flex-col gap-1 border-t border-gray-100 pt-3">
-                                    <p class="text-[10px] font-bold text-gray-400 uppercase">Aksi Perekaman:</p>
-                                    ${subTaskHtml}
-                                </div>
+                return `
+                    <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden flex flex-col gap-3">
+                        <div class="absolute top-0 left-0 w-1.5 h-full ${isLama ? 'bg-gray-400' : (t.tipePengumpulan==='Satu Kali'?'bg-amber-500':'bg-purple-500')}"></div>
+                        <div class="flex justify-between items-start">
+                            <div class="pr-2">
+                                <span class="text-[9px] font-bold ${isLama?'text-gray-400':(t.tipePengumpulan==='Satu Kali'?'text-amber-500':'text-purple-500')} uppercase">${t.tipePengumpulan}</span>
+                                <h4 class="text-sm font-bold text-gray-800 leading-tight mt-0.5">${t.judulTugas}</h4>
+                                <p class="text-[9px] font-bold text-blue-600 mt-0.5"><i class="fa-solid fa-calendar mr-1"></i>${labelTanggal}</p>
+                                ${subTeks}
                             </div>
-                        `;
-                    }
+                        </div>
+                        <p class="text-[11px] text-gray-500 line-clamp-2 leading-snug bg-gray-50 p-2 rounded">${t.instruksi}</p>
+                        <button onclick="openSetup('${t.taskId}')" class="mt-1 w-full bg-blue-50 text-blue-600 font-bold py-2.5 rounded-xl text-xs flex justify-center items-center gap-2 active:scale-95"><i class="fa-solid fa-folder-open"></i> Buka Modul Tugas</button>
+                    </div>`;
+            }).join('');
+        }
+
+        function openSetup(taskId) {
+            selectedTask = activeTasks.find(t => t.taskId === taskId);
+            document.getElementById('setupTipeBadge').textContent = selectedTask.tipePengumpulan;
+            document.getElementById('setupTaskTitle').textContent = selectedTask.judulTugas;
+            document.getElementById('setupTaskDesc').textContent = selectedTask.instruksi;
+            
+            // Logika Penentuan Isi Dropdown (Hari / Tanggal)
+            const sel = document.getElementById('selectHariKe');
+            sel.innerHTML = '';
+            
+            if (selectedTask.isLama) {
+                for(let i=1; i<=7; i++) sel.innerHTML += `<option value="${i}">Hari Ke-${i}</option>`;
+            } else if (selectedTask.tipePengumpulan === 'Harian') {
+                const dates = selectedTask.tanggalPengerjaan.split(', ');
+                dates.forEach(d => sel.innerHTML += `<option value="${d}">${d}</option>`);
+            } else {
+                sel.innerHTML = `<option value="${selectedTask.tanggalPengerjaan}">${selectedTask.tanggalPengerjaan.replace(' to ',' s/d ')}</option>`;
+            }
+
+            renderSubTasks(); 
+            document.getElementById('viewSetup').classList.remove('hidden'); document.getElementById('viewSetup').classList.add('flex');
+        }
+        
+        function closeSetup() { document.getElementById('viewSetup').classList.add('hidden'); }
+
+        function renderSubTasks() {
+            selectedDay = document.getElementById('selectHariKe').value;
+            const container = document.getElementById('subTasksContainer');
+            container.innerHTML = '';
+
+            const subTugasArr = selectedTask.subTugas;
+            
+            subTugasArr.forEach(sub => {
+                const key = `${selectedTask.taskId}_${selectedDay}_${sub.nama}`;
+                const isDone = userSubs[key]; 
+                
+                if(isDone) {
+                    container.innerHTML += `
+                        <div class="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 opacity-70">
+                            <span>${sub.nama}</span>
+                            <span class="bg-emerald-200 px-2 py-0.5 rounded text-[10px]"><i class="fa-solid fa-check"></i> Selesai</span>
+                        </div>`;
+                } else {
+                    container.innerHTML += `
+                        <button onclick="prepareCamera('${sub.nama}', ${sub.min}, ${sub.max})" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 active:scale-95 shadow-lg group">
+                            <span>${sub.nama}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[9px] text-blue-200 bg-blue-800/50 px-1.5 py-0.5 rounded">${sub.min}-${sub.max} mnt</span>
+                                <span class="bg-blue-800 px-2 py-1 rounded text-[10px] group-hover:scale-105"><i class="fa-solid fa-video"></i> Rekam</span>
+                            </div>
+                        </button>`;
                 }
             });
+        }
 
-            if (activeTaskCount === 0) {
-                html = `
-                    <div class="flex flex-col items-center justify-center py-10 opacity-60">
-                        <i class="fa-solid fa-champagne-glasses text-4xl text-gray-300 mb-3"></i>
-                        <p class="text-sm font-bold text-gray-500 text-center">Hore!<br>Tidak ada tugas aktif untuk Anda hari ini.</p>
-                    </div>
-                `;
+        // --- CAMERA DENGAN DURASI DINAMIS & BYPASS CORS ---
+        async function prepareCamera(subName, minMnt, maxMnt) {
+            currentSubTugas = subName;
+            currentMinSec = minMnt * 60;
+            currentMaxSec = maxMnt * 60;
+            
+            document.getElementById('kameraSubName').textContent = subName;
+            document.getElementById('kameraTarget').textContent = `${minMnt} - ${maxMnt} Menit`;
+            
+            closeSetup();
+            document.getElementById('viewCamera').classList.remove('hidden'); document.getElementById('viewCamera').classList.add('flex');
+            
+            try {
+                // Turunkan resolusi agar ringan
+                const constraints = { audio: true, video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "environment" } };
+                mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+                const videoEl = document.getElementById('videoPreview'); videoEl.srcObject = mediaStream; videoEl.muted = true;
+                
+                document.getElementById('videoProgressBar').style.width = '0%'; 
+                document.getElementById('videoProgressBar').className = "h-full bg-rose-500 transition-all duration-1000";
+            } catch (err) { abortRecording(); showToast("Gagal akses kamera", "error"); }
+        }
+
+        function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(false); }
+
+        function startRecording() {
+            if (!mediaStream) return; recordedChunks = [];
+            try {
+                // Kompresi Bitrate VP8 agar ukuran Base64 masuk akal
+                let options = { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 500000 };
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/mp4' }; // Fallback iOS
+                
+                mediaRecorder = new MediaRecorder(mediaStream, options);
+                mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+                mediaRecorder.onstop = processUploadBase64;
+                
+                mediaRecorder.start(); isRecording = true;
+                
+                document.getElementById('btnRecordInner').className = "w-8 h-8 bg-rose-500 rounded-xl transition-all duration-300";
+                document.getElementById('btnRecord').classList.add('recording-pulse');
+                document.getElementById('recIndicator').classList.remove('hidden');
+                document.getElementById('btnCancelCamera').classList.add('hidden');
+                startTimer();
+            } catch (e) { abortRecording(); showToast("Error Perekaman", "error"); }
+        }
+
+        function stopRecording(isAborted = false) {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') { if (isAborted) { mediaRecorder.onstop = null; recordedChunks = []; } mediaRecorder.stop(); }
+            isRecording = false; stopTimer(); 
+            if(mediaStream) { mediaStream.getTracks().forEach(t=>t.stop()); mediaStream = null; document.getElementById('videoPreview').srcObject = null; }
+            
+            document.getElementById('viewCamera').classList.add('hidden'); document.getElementById('viewCamera').classList.remove('flex');
+            document.getElementById('btnRecordInner').className = "w-14 h-14 bg-rose-500 rounded-full transition-all duration-300";
+            document.getElementById('btnRecord').classList.remove('recording-pulse');
+            document.getElementById('recIndicator').classList.add('hidden');
+            document.getElementById('btnCancelCamera').classList.remove('hidden');
+        }
+
+        function abortRecording() { stopRecording(true); showToast("Dibatalkan", "info"); }
+
+        function startTimer() {
+            secondsRecorded = 0; updateTimerDisplay();
+            timerInterval = setInterval(() => { secondsRecorded++; updateTimerDisplay(); }, 1000);
+        }
+        function stopTimer() { clearInterval(timerInterval); document.getElementById('timerDisplay').textContent = "00:00"; }
+        
+        function updateTimerDisplay() {
+            const m = String(Math.floor(secondsRecorded / 60)).padStart(2, '0'); const s = String(secondsRecorded % 60).padStart(2, '0');
+            document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+            
+            let percent = (secondsRecorded / currentMaxSec) * 100; 
+            if (percent > 100) percent = 100;
+            
+            const pb = document.getElementById('videoProgressBar'); 
+            pb.style.width = `${percent}%`;
+            
+            if(secondsRecorded < currentMinSec) { pb.classList.remove('bg-emerald-500'); pb.classList.add('bg-rose-500'); } 
+            else { pb.classList.remove('bg-rose-500'); pb.classList.add('bg-emerald-500'); }
+            
+            // Paksa berhenti jika sudah lewat batas max
+            if(secondsRecorded >= currentMaxSec && isRecording) { 
+                stopRecording(false); 
+                showToast("Batas maksimal tercapai.", "info"); 
             }
-            container.innerHTML = html;
         }
 
-        // --- FETCH RIWAYAT ---
-        function loadRiwayat() {
-            // Karena kita butuh nilai (A-E), kita ambil getDashboardData untuk memfilter nama kita
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getDashboardData' }) })
-            .then(r=>r.json()).then(d => {
-                if (d.success) {
-                    state.submissions = d.submissions.filter(s => s.namaAnggota === state.user.nama).reverse();
-                    renderRiwayat();
-                }
-            }).catch(e => console.log(e));
-        }
-
-        function renderRiwayat() {
-            const container = document.getElementById('riwayatListContainer');
-            if(state.submissions.length === 0) {
-                container.innerHTML = `<p class="text-xs text-center text-gray-400 py-10">Belum ada riwayat tugas.</p>`;
+        function processUploadBase64() {
+            if (recordedChunks.length === 0) return;
+            if (secondsRecorded < currentMinSec) {
+                showToast(`Dibatalkan! Waktu minimum adalah ${currentMinSec/60} menit.`, "error");
                 return;
             }
 
-            container.innerHTML = state.submissions.map(s => {
+            const blob = new Blob(recordedChunks, { type: recordedChunks[0].type });
+            const ext = blob.type.includes('mp4') ? '.mp4' : '.webm';
+            const cleanName = user.nama.replace(/[^a-zA-Z0-9]/g, '');
+            const cleanSub = currentSubTugas.replace(/[^a-zA-Z0-9]/g, '');
+            const filename = `Tugas_${cleanName}_${cleanSub}_${Date.now()}${ext}`;
+
+            const viewUp = document.getElementById('viewUploading');
+            viewUp.classList.remove('hidden'); viewUp.classList.add('flex');
+
+            const reader = new FileReader();
+            reader.readAsDataURL(blob);
+            reader.onloadend = function() {
+                const base64data = reader.result;
+                fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'submitVideoBase64',
+                        taskFolderId: selectedTask.folderId,
+                        taskId: selectedTask.taskId,
+                        subId: 'SUB_' + Date.now(),
+                        namaAnggota: user.nama,
+                        tanggal: selectedDay,      // Dikirim sbg tanggal (baru)
+                        hariKe: selectedDay,       // Dikirim juga sbg fallback (lama)
+                        subTugasName: currentSubTugas,
+                        filename: filename,
+                        mimeType: blob.type,
+                        base64Data: base64data
+                    })
+                }).then(r => r.json()).then(d => {
+                    viewUp.classList.add('hidden'); viewUp.classList.remove('flex');
+                    if (d.success) { 
+                        showToast("Video Terkirim!", "success");
+                        userSubs[`${selectedTask.taskId}_${selectedDay}_${currentSubTugas}`] = true;
+                        fetchRiwayatSemua(); // Refresh nilai/riwayat
+                    } else showToast(d.message, "error");
+                }).catch(err => {
+                    viewUp.classList.add('hidden'); viewUp.classList.remove('flex');
+                    showToast("Gagal mengirim data.", "error");
+                });
+            }
+        }
+
+        // --- RIWAYAT GABUNGAN (ABSENSI & NILAI TUGAS) ---
+        function fetchRiwayatSemua() {
+            // 1. Ambil History Absensi (Fitur Lama)
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAbsensiHistory' }) })
+            .then(r=>r.json()).then(d => { if(d.success && d.data.length > 0) renderRiwayatAbsen(d.data); }).catch(e=>console.error("Gagal load absen"));
+
+            // 2. Ambil Nilai Tugas (A-E) dengan pinjam fungsi getDashboardData (Hanya filter nama kita)
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getDashboardData' }) })
+            .then(r=>r.json()).then(d => { 
+                if(d.success) {
+                    const mySubs = d.submissions.filter(s => s.namaAnggota === user.nama).reverse();
+                    renderRiwayatNilai(mySubs, d.tasks);
+                }
+            }).catch(e=>console.error("Gagal load nilai"));
+        }
+
+        function renderRiwayatNilai(mySubs, allTasks) {
+            const container = document.getElementById('riwayatNilaiContainer');
+            if(mySubs.length === 0) { container.innerHTML = `<div class="p-5 text-center text-xs text-gray-400">Belum ada tugas yang dikumpulkan.</div>`; return; }
+
+            container.innerHTML = mySubs.map(s => {
                 const n = s.nilai;
                 const badgeColor = (n==='A')?'bg-emerald-500':(n==='B')?'bg-blue-500':(n==='C')?'bg-amber-500':(n==='D')?'bg-orange-500':(n==='E')?'bg-rose-500':'bg-gray-300';
+                const taskRef = allTasks.find(t => t.taskId === s.taskId);
+                const judul = taskRef ? taskRef.judulTugas : "Tugas";
+
                 return `
-                <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
-                    <div class="flex flex-col overflow-hidden pr-2">
-                        <span class="text-[10px] text-gray-400 font-semibold">${s.tanggal}</span>
-                        <h4 class="font-bold text-gray-800 text-xs truncate">${s.subTugasName}</h4>
+                <div class="p-4 flex justify-between items-center bg-white hover:bg-gray-50 transition-colors">
+                    <div class="flex flex-col pr-2">
+                        <span class="text-[10px] text-gray-400 font-bold mb-0.5"><i class="fa-solid fa-clock mr-1"></i>${s.tanggal}</span>
+                        <h4 class="font-bold text-gray-800 text-xs">${judul}</h4>
+                        <span class="text-[10px] text-blue-600 font-semibold">${s.subTugasName}</span>
                     </div>
-                    <div class="flex flex-col items-center">
-                        <span class="text-[8px] font-bold text-gray-400 uppercase mb-0.5">Nilai</span>
+                    <div class="flex flex-col items-center ml-2 border-l border-gray-100 pl-4">
+                        <span class="text-[9px] font-bold text-gray-400 uppercase mb-1">Nilai</span>
                         <span class="w-8 h-8 rounded-full ${badgeColor} text-white font-extrabold flex items-center justify-center text-sm shadow-sm">${n && n !== '-' ? n : '?'}</span>
                     </div>
                 </div>`;
             }).join('');
         }
 
+        function renderRiwayatAbsen(data) {
+            const dates = data[0].slice(3); // Tanggal dari index 3
+            let stat = { Hadir: 0, Izin: 0, Sakit: 0, Alpa: 0 };
+            const myHistory = [];
 
-        // --- LOGIKA KAMERA & VIDEO ---
-        function openCameraSetup(taskId, folderId, subName, minMnt, maxMnt) {
-            currentRecordSession = {
-                taskId: taskId, folderId: folderId, subName: subName,
-                minSec: minMnt * 60, maxSec: maxMnt * 60,
-                stream: null, mediaRecorder: null, chunks: [],
-                timerInterval: null, elapsedSec: 0, isRecording: false, facingMode: 'user'
-            };
+            let myRowIdx = -1;
+            for(let i=1; i<data.length; i++) { if(data[i][1] === user.nama) { myRowIdx = i; break; } }
             
-            document.getElementById('camSubTaskName').textContent = subName;
-            document.getElementById('camDurasiTarget').textContent = `Target: ${minMnt} - ${maxMnt} Menit`;
-            document.getElementById('cameraModal').classList.remove('hidden');
-            
-            initCamera();
-        }
+            let matRow=-1, fdRow=-1, fpRow=-1;
+            for(let i=1; i<data.length; i++) {
+                if(data[i][1] === "MATERI LATIHAN:") matRow = i;
+                if(data[i][1] === "FOTO DATANG:") fdRow = i;
+                if(data[i][1] === "FOTO PULANG:") fpRow = i;
+            }
 
-        async function initCamera() {
-            try {
-                if(currentRecordSession.stream) currentRecordSession.stream.getTracks().forEach(t => t.stop());
+            dates.forEach((tgl, index) => {
+                const col = index + 3;
+                let statusKu = "Alpa";
+                if(myRowIdx !== -1) {
+                    const st = data[myRowIdx][col];
+                    if(st === 'Hadir') { stat.Hadir++; statusKu="Hadir"; }
+                    else if(st === 'Izin') { stat.Izin++; statusKu="Izin"; }
+                    else if(st === 'Sakit') { stat.Sakit++; statusKu="Sakit"; }
+                    else { stat.Alpa++; statusKu="Alpa"; }
+                }
                 
-                // Menurunkan resolusi agar Base64 tidak terlalu raksasa saat dikirim
-                const constraints = { 
-                    video: { facingMode: currentRecordSession.facingMode, width: { ideal: 640 }, height: { ideal: 480 } }, 
-                    audio: true 
-                };
-                currentRecordSession.stream = await navigator.mediaDevices.getUserMedia(constraints);
-                document.getElementById('videoPreview').srcObject = currentRecordSession.stream;
-            } catch (err) {
-                showToast("Akses kamera ditolak / tidak tersedia.", "error");
-                closeCamera();
-            }
-        }
-
-        function switchCamera() {
-            if (currentRecordSession.isRecording) return;
-            currentRecordSession.facingMode = currentRecordSession.facingMode === 'user' ? 'environment' : 'user';
-            initCamera();
-        }
-
-        function closeCamera() {
-            if (currentRecordSession.isRecording) stopRecording(false);
-            if (currentRecordSession.stream) currentRecordSession.stream.getTracks().forEach(t => t.stop());
-            clearInterval(currentRecordSession.timerInterval);
-            document.getElementById('cameraModal').classList.add('hidden');
-            resetCameraUI();
-        }
-
-        function toggleRecording() {
-            if (!currentRecordSession.isRecording) startRecording();
-            else stopRecording(true);
-        }
-
-        function startRecording() {
-            currentRecordSession.chunks = [];
-            // Kompresi Bitrate agar file ringan (500kbps)
-            let options = { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 500000 };
-            try {
-                currentRecordSession.mediaRecorder = new MediaRecorder(currentRecordSession.stream, options);
-            } catch(e) {
-                // Fallback untuk Safari / iOS
-                currentRecordSession.mediaRecorder = new MediaRecorder(currentRecordSession.stream);
-            }
-
-            currentRecordSession.mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) currentRecordSession.chunks.push(e.data); };
-            currentRecordSession.mediaRecorder.onstop = () => { processVideoUpload(); };
-            
-            currentRecordSession.mediaRecorder.start(1000); // chunk tiap 1 detik
-            currentRecordSession.isRecording = true;
-            currentRecordSession.elapsedSec = 0;
-            
-            // UI Updates
-            document.getElementById('btnSwitchCam').classList.add('opacity-50', 'pointer-events-none');
-            document.getElementById('btnRecord').classList.replace('bg-rose-600', 'bg-white');
-            document.getElementById('recordIcon').classList.replace('fa-video', 'fa-stop');
-            document.getElementById('recordIcon').classList.replace('text-white', 'text-rose-600');
-            document.getElementById('recordingTimer').classList.remove('hidden');
-            document.getElementById('progressContainer').classList.remove('hidden');
-            
-            currentRecordSession.timerInterval = setInterval(updateTimerAndProgress, 1000);
-        }
-
-        function updateTimerAndProgress() {
-            currentRecordSession.elapsedSec++;
-            const s = currentRecordSession.elapsedSec;
-            
-            // Text Timer
-            const mText = String(Math.floor(s / 60)).padStart(2, '0');
-            const sText = String(s % 60).padStart(2, '0');
-            document.getElementById('recordingTimer').textContent = `${mText}:${sText}`;
-            
-            // Progress Bar Logic
-            const pb = document.getElementById('progressBar');
-            const pct = Math.min((s / currentRecordSession.maxSec) * 100, 100);
-            pb.style.width = pct + "%";
-            
-            if (s < currentRecordSession.minSec) {
-                pb.classList.replace('bg-emerald-500', 'bg-rose-500'); // Merah (Belum Cukup)
-                document.getElementById('progressWarning').classList.remove('hidden');
-            } else {
-                pb.classList.replace('bg-rose-500', 'bg-emerald-500'); // Hijau (Aman)
-                document.getElementById('progressWarning').classList.add('hidden');
-            }
-            
-            // Auto Stop di Max
-            if (s >= currentRecordSession.maxSec) {
-                stopRecording(true);
-            }
-        }
-
-        function stopRecording(save) {
-            clearInterval(currentRecordSession.timerInterval);
-            currentRecordSession.isRecording = false;
-            if(currentRecordSession.mediaRecorder && currentRecordSession.mediaRecorder.state !== 'inactive') {
-                currentRecordSession.mediaRecorder.stop();
-            }
-            if(!save) currentRecordSession.chunks = []; // cancel
-        }
-
-        function resetCameraUI() {
-            document.getElementById('btnSwitchCam').classList.remove('opacity-50', 'pointer-events-none');
-            document.getElementById('btnRecord').classList.replace('bg-white', 'bg-rose-600');
-            document.getElementById('recordIcon').classList.replace('fa-stop', 'fa-video');
-            document.getElementById('recordIcon').classList.replace('text-rose-600', 'text-white');
-            document.getElementById('recordingTimer').classList.add('hidden');
-            document.getElementById('progressContainer').classList.add('hidden');
-            document.getElementById('progressWarning').classList.add('hidden');
-            document.getElementById('progressBar').style.width = "0%";
-            document.getElementById('recordingTimer').textContent = "00:00";
-        }
-
-        function processVideoUpload() {
-            if (currentRecordSession.chunks.length === 0) return;
-            if (currentRecordSession.elapsedSec < currentRecordSession.minSec) {
-                showToast(`Video dibatalkan. Minimal harus ${currentRecordSession.minSec / 60} Menit!`, "error");
-                currentRecordSession.chunks = [];
-                resetCameraUI();
-                return;
-            }
-
-            const blob = new Blob(currentRecordSession.chunks, { type: currentRecordSession.chunks[0].type });
-            const reader = new FileReader();
-            
-            showLoading(true, "Mengompres & Mengirim Video...\n(Mohon Tunggu)");
-            closeCamera();
-            
-            reader.onloadend = function() {
-                const base64data = reader.result;
-                const payload = {
-                    action: 'submitVideoBase64',
-                    subId: 'SUB_' + Date.now(),
-                    taskId: currentRecordSession.taskId,
-                    taskFolderId: currentRecordSession.folderId,
-                    namaAnggota: state.user.nama,
-                    tanggal: getTodayString(), // Tanggal kirim
-                    subTugasName: currentRecordSession.subName,
-                    filename: `${state.user.nama}_${currentRecordSession.subName}_${Date.now()}.webm`,
-                    mimeType: blob.type || 'video/webm',
-                    base64Data: base64data
-                };
+                const materi = (matRow !== -1 && data[matRow][col]) ? data[matRow][col] : "-";
+                const linkDatang = (fdRow !== -1 && data[fdRow][col]) ? data[fdRow][col] : "";
+                const linkPulang = (fpRow !== -1 && data[fpRow][col]) ? data[fpRow][col] : "";
                 
-                fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
-                .then(r=>r.json()).then(d => {
-                    showLoading(false);
-                    if (d.success) {
-                        showToast(d.message, "success");
-                        loadTasks(); // Refresh List (menghilangkan tombol yang sudah selesai)
-                        loadRiwayat(); // Refresh Riwayat
-                    } else showToast(d.message, "error");
-                }).catch(e => { showLoading(false); showToast("Gagal mengirim video (Koneksi putus/File terlalu besar)", "error"); });
-            };
-            
-            reader.readAsDataURL(blob);
+                myHistory.push({ tgl, statusKu, materi, linkDatang, linkPulang });
+            });
+
+            document.getElementById('statHadir').textContent = stat.Hadir;
+            document.getElementById('statIzin').textContent = stat.Izin;
+            document.getElementById('statSakit').textContent = stat.Sakit;
+            document.getElementById('statAlpa').textContent = stat.Alpa;
+
+            const total = stat.Hadir + stat.Izin + stat.Sakit + stat.Alpa;
+            if(total > 0) {
+                document.getElementById('barHadir').style.width = `${(stat.Hadir/total)*100}%`;
+                document.getElementById('barIzin').style.width = `${(stat.Izin/total)*100}%`;
+                document.getElementById('barSakit').style.width = `${(stat.Sakit/total)*100}%`;
+                document.getElementById('barAlpa').style.width = `${(stat.Alpa/total)*100}%`;
+            }
+
+            const container = document.getElementById('riwayatListContainer');
+            if(myHistory.length === 0) { container.innerHTML = `<div class="p-5 text-center text-xs text-gray-400">Belum ada latihan.</div>`; return; }
+
+            container.innerHTML = myHistory.reverse().map(h => {
+                const badgeClass = h.statusKu==='Hadir'?'bg-emerald-50 text-emerald-600':h.statusKu==='Alpa'?'bg-rose-50 text-rose-600':'bg-amber-50 text-amber-600';
+                const btnDatang = h.linkDatang ? `<a href="${h.linkDatang}" target="_blank" class="px-2 py-1.5 bg-blue-50 text-blue-600 rounded-lg flex-1 text-center font-bold hover:bg-blue-100"><i class="fa-solid fa-download mr-1"></i> Datang</a>` : '';
+                const btnPulang = h.linkPulang ? `<a href="${h.linkPulang}" target="_blank" class="px-2 py-1.5 bg-blue-50 text-blue-600 rounded-lg flex-1 text-center font-bold hover:bg-blue-100"><i class="fa-solid fa-download mr-1"></i> Pulang</a>` : '';
+                
+                return `
+                <div class="p-4 flex flex-col gap-2">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-gray-800 text-xs"><i class="fa-regular fa-calendar text-blue-500 mr-1"></i> ${h.tgl}</h4>
+                        <span class="px-2 py-1 rounded-full text-[10px] font-bold ${badgeClass}">${h.statusKu}</span>
+                    </div>
+                    <p class="text-[10px] text-gray-500 leading-snug bg-gray-50 p-2 rounded"><span class="font-bold text-gray-700">Materi:</span> ${h.materi}</p>
+                    <div class="flex gap-2 text-[10px] mt-1">${btnDatang}${btnPulang}</div>
+                </div>`;
+            }).join('');
         }
 
-        // --- UTILS ---
-        function showLoading(show, txt="Memproses...") { document.getElementById('loadingText').innerText = txt; document.getElementById('loadingOverlay').classList[show?'remove':'add']('opacity-0', 'pointer-events-none'); }
-        function showToast(msg, type='info') {
-            const div = document.createElement('div'); div.className = `p-3 rounded-xl shadow-xl text-xs font-bold text-white flex items-center gap-2 transition-all transform translate-y-4 opacity-0 mt-2 ${type==='success'?'bg-emerald-600':type==='error'?'bg-rose-600':'bg-gray-800'}`;
-            div.innerHTML = `<i class="fa-solid ${type==='success'?'fa-check':type==='error'?'fa-xmark':'fa-info'}"></i> <span>${msg}</span>`;
-            document.getElementById('toastContainer').appendChild(div); setTimeout(() => div.classList.remove('translate-y-4', 'opacity-0'), 50); setTimeout(() => { div.classList.add('opacity-0'); setTimeout(()=>div.remove(), 300); }, 3000);
+        // --- ABSENSI PENGURUS (TETAP UTUH) ---
+        function loadAbsensiData() {
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAbsensiData' }) }).then(r=>r.json()).then(d=>{
+                if(d.success) {
+                    const tbody = document.getElementById('tableAbsensiBody');
+                    tbody.innerHTML = d.members.map((m, i) => `
+                        <tr class="border-b" data-nama="${m.nama}" data-kelas="${m.kelas}">
+                            <td class="py-2 px-2 text-center text-gray-500">${i+1}</td>
+                            <td class="py-2 px-2 font-bold text-gray-800 text-[10px]">${m.nama} <span class="block text-[9px] font-normal text-gray-400">${m.kelas}</span></td>
+                            <td class="py-2 px-2">
+                                <select class="absensi-select w-full px-1 py-1.5 border rounded-lg text-[10px] font-bold outline-none cursor-pointer"><option value="Hadir" class="text-emerald-600">Hadir</option><option value="Izin" class="text-blue-600">Izin</option><option value="Sakit" class="text-amber-600">Sakit</option><option value="Alpa" class="text-rose-600">Alpa</option></select>
+                            </td>
+                        </tr>`).join('');
+                    document.querySelectorAll('.absensi-select').forEach(sel => {
+                        sel.addEventListener('change', function() { this.className = "absensi-select w-full px-1 py-1.5 border rounded-lg text-[10px] font-bold cursor-pointer " + (this.value==='Hadir'?'bg-emerald-50 text-emerald-700':this.value==='Izin'?'bg-blue-50 text-blue-700':this.value==='Sakit'?'bg-amber-50 text-amber-700':'bg-rose-50 text-rose-700'); });
+                        sel.dispatchEvent(new Event('change'));
+                    });
+                }
+            }).catch(e=>showToast("Gagal muat data", "error"));
         }
+
+        function handlePhoto(e, type) {
+            const file = e.target.files[0]; if(!file) return;
+            if(file.size > 3*1024*1024) { showToast("Maks 3MB", "error"); e.target.value=''; return; }
+            const r = new FileReader();
+            r.onload = (ev) => {
+                if(type === 'Datang') { fotoDatangBase64 = ev.target.result; document.getElementById('fotoDatangPreview').src = fotoDatangBase64; document.getElementById('fotoDatangPreviewContainer').classList.remove('hidden'); }
+                else { fotoPulangBase64 = ev.target.result; document.getElementById('fotoPulangPreview').src = fotoPulangBase64; document.getElementById('fotoPulangPreviewContainer').classList.remove('hidden'); }
+            }; r.readAsDataURL(file);
+        }
+        function removePhoto(type) {
+            if(type === 'Datang') { fotoDatangBase64 = null; document.getElementById('fotoDatangInput').value=''; document.getElementById('fotoDatangPreviewContainer').classList.add('hidden'); }
+            else { fotoPulangBase64 = null; document.getElementById('fotoPulangInput').value=''; document.getElementById('fotoPulangPreviewContainer').classList.add('hidden'); }
+        }
+
+        document.getElementById('formAbsensi').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if(!fotoDatangBase64 || !fotoPulangBase64) { showToast("Foto Datang & Pulang Wajib diisi!", "error"); return; }
+            const absData = Array.from(document.querySelectorAll('#tableAbsensiBody tr[data-nama]')).map(row => ({ nama: row.getAttribute('data-nama'), kelas: row.getAttribute('data-kelas'), status: row.querySelector('select').value }));
+            
+            showLoading(true, "Menyimpan Absen...");
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'saveAbsensi', tanggal: document.getElementById('absensiDate').value, materi: document.getElementById('materiLatihan').value, absensiData: absData, fotoDatangBase64: fotoDatangBase64, fotoPulangBase64: fotoPulangBase64 })})
+            .then(r=>r.json()).then(d=>{ showLoading(false); if(d.success){ showToast(d.message, "success"); removePhoto('Datang'); removePhoto('Pulang'); document.getElementById('materiLatihan').value=''; } else showToast(d.message, "error"); }).catch(e=>{showLoading(false); showToast("Error koneksi", "error");});
+        });
+
+        // --- GANTI PASSWORD & TOAST ---
+        function openPasswordModal() { document.getElementById('passwordModal').classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.remove('scale-95'); }
+        function closePasswordModal() { document.getElementById('passwordModal').classList.add('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.add('scale-95'); }
+        document.getElementById('formGantiPassword').addEventListener('submit', (e) => { e.preventDefault(); showLoading(true, "Verifikasi..."); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'gantiPassword', username: user.username, oldPassword: document.getElementById('oldPass').value, newPassword: document.getElementById('newPass').value })}).then(r=>r.json()).then(d=>{ showLoading(false); if(d.success) { showToast("Password diganti", "success"); closePasswordModal(); } else showToast(d.message, "error"); }).catch(e=>showLoading(false)); });
+        function showLoading(show, txt="Memproses...") { document.getElementById('loadingText').textContent = txt; document.getElementById('loadingOverlay').classList[show?'remove':'add']('opacity-0', 'pointer-events-none'); }
+        function showToast(msg, type='info') { const div = document.createElement('div'); div.className = `p-3 rounded-xl shadow-xl text-xs font-bold text-white flex items-center gap-2 transition-all transform translate-y-4 opacity-0 mt-2 ${type==='success'?'bg-emerald-600':'bg-rose-600'}`; div.innerHTML = `<i class="fa-solid ${type==='success'?'fa-check':'fa-xmark'}"></i> <span>${msg}</span>`; document.getElementById('toastContainer').appendChild(div); setTimeout(() => div.classList.remove('translate-y-4', 'opacity-0'), 50); setTimeout(() => { div.classList.add('opacity-0'); setTimeout(()=>div.remove(), 300); }, 3000); }
     </script>
 </body>
 </html>
