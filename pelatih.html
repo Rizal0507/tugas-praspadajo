@@ -31,6 +31,10 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        
+        /* Animasi Transisi Halus untuk Kotak Komentar */
+        .comment-box-anim { transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, margin 0.3s ease-in-out; max-height: 0; opacity: 0; overflow: hidden; }
+        .comment-box-anim.open { max-height: 150px; opacity: 1; margin-top: 0.5rem; overflow: visible; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans text-gray-800 antialiased flex flex-col justify-between">
@@ -79,20 +83,24 @@
                         <select id="selectTaskFilter" onchange="filterSubmissions()" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs font-semibold outline-none focus:border-blue-500"></select>
                     </div>
                     <div class="flex items-end">
-                        <button onclick="loadDashboardData(true)" class="w-full sm:w-auto px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold border border-blue-200 active:scale-95"><i class="fa-solid fa-rotate mr-1"></i> Refresh</button>
+                        <button onclick="loadDashboardData(true)" class="w-full sm:w-auto px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold border border-blue-200 active:scale-95"><i class="fa-solid fa-rotate mr-1"></i> Refresh Data</button>
                     </div>
                 </div>
 
                 <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
                     <div class="p-4 border-b flex justify-between items-center gap-3">
                         <h3 class="font-bold text-gray-800 text-sm">Status Pengumpulan & Penilaian</h3>
-                        <input type="text" id="inputSearchMember" onkeyup="filterSubmissions()" placeholder="Cari Nama..." class="w-40 sm:w-64 px-3 py-1.5 bg-gray-50 border rounded-xl text-xs outline-none focus:border-blue-500">
+                        <input type="text" id="inputSearchMember" onkeyup="filterSubmissions()" placeholder="Cari Nama Anggota..." class="w-40 sm:w-64 px-3 py-1.5 bg-gray-50 border rounded-xl text-xs outline-none focus:border-blue-500">
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-gray-50 text-gray-400 uppercase text-[10px] font-bold border-b">
-                                    <th class="py-3 px-4 w-10">No</th><th class="py-3 px-4">Nama Anggota</th><th class="py-3 px-4 text-center">Sub-Tugas</th><th class="py-3 px-4 text-center">Tanggal</th><th class="py-3 px-4 text-center">Status</th><th class="py-3 px-4 text-center">Video</th><th class="py-3 px-4 text-center w-28">Nilai (A-E)</th>
+                    
+                    <div class="overflow-x-auto overflow-y-auto max-h-[600px] custom-scroll">
+                        <table class="w-full text-left border-collapse min-w-[700px]">
+                            <thead class="bg-gray-50 text-gray-400 uppercase text-[10px] font-bold border-b sticky top-0 z-10 shadow-sm">
+                                <tr>
+                                    <th class="py-3 px-4 w-10 text-center">No</th>
+                                    <th class="py-3 px-4">Info Pengumpulan</th>
+                                    <th class="py-3 px-4 text-center">Video Latihan</th>
+                                    <th class="py-3 px-4 w-72">Penilaian & Catatan</th>
                                 </tr>
                             </thead>
                             <tbody id="tableSubmissionsBody" class="divide-y divide-gray-100 text-xs font-medium"></tbody>
@@ -314,14 +322,6 @@
         </div>
     </div>
     
-    <div id="videoModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
-        <div class="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl flex flex-col">
-            <div class="p-4 bg-gray-900 text-white flex justify-between"><span id="modalVideoTitle" class="text-xs font-bold truncate">Preview</span><button onclick="closeVideoModal()"><i class="fa-solid fa-xmark text-lg"></i></button></div>
-            <div class="bg-black aspect-video"><iframe id="videoIframe" class="w-full h-full border-0" allowfullscreen></iframe></div>
-            <div class="p-3 bg-gray-50 flex justify-end"><a id="btnOpenExternal" href="#" target="_blank" class="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl">Buka di Tab Baru <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i></a></div>
-        </div>
-    </div>
-
     <div id="loadingOverlay" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-[100] flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity">
         <i class="fa-solid fa-circle-notch animate-spin text-4xl text-blue-600 mb-3"></i><p id="loadingText" class="text-blue-700 font-bold text-sm animate-pulse">Memproses...</p>
     </div>
@@ -425,55 +425,135 @@
             sel.innerHTML = '<option value="">Semua Tugas</option>' + state.tasks.map(t => `<option value="${t.taskId}">${t.judulTugas}</option>`).join('');
         }
 
+        // --- RENDER TABEL MONITORING TUGAS & PENILAIAN ---
         function filterSubmissions() {
             const taskId = document.getElementById('selectTaskFilter').value;
             const query = document.getElementById('inputSearchMember').value.toLowerCase();
             const tbody = document.getElementById('tableSubmissionsBody');
             
-            let filteredSubs = state.submissions;
+            let filteredSubs = state.submissions.slice().reverse(); // Tampilkan yang terbaru di atas
             if(taskId) filteredSubs = filteredSubs.filter(s => s.taskId === taskId);
             if(query) filteredSubs = filteredSubs.filter(s => s.namaAnggota.toLowerCase().includes(query));
 
-            if(filteredSubs.length === 0) { tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-gray-400">Belum ada pengumpulan.</td></tr>`; return; }
+            if(filteredSubs.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-gray-400">Belum ada pengumpulan pada tugas/pencarian ini.</td></tr>`; return; }
 
             tbody.innerHTML = filteredSubs.map((s, idx) => {
-                const btn = s.linkVideo ? `<button onclick="openVideoModal('${encodeURIComponent(s.namaAnggota)}', '${s.linkVideo}')" class="px-2 py-1 bg-blue-50 text-blue-600 rounded text-[10px] font-bold border border-blue-200">Lihat File</button>` : '-';
+                const btnLink = s.linkVideo ? `<a href="${s.linkVideo}" target="_blank" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-[10px] font-bold border border-blue-200 flex items-center justify-center gap-1"><i class="fa-solid fa-play"></i> Buka Drive</a>` : `<span class="text-gray-400 text-[10px]">No Link</span>`;
                 
-                // Dropdown Penilaian (A-E)
+                const taskRef = state.tasks.find(t => t.taskId === s.taskId);
+                const judul = taskRef ? taskRef.judulTugas : "Tugas Latihan";
+                
+                // Form Penilaian (Nilai + Catatan/Komentar)
                 const nilaiVal = (s.nilai && s.nilai !== '-') ? s.nilai : '';
-                const colorClass = nilaiVal==='A'?'text-emerald-600 bg-emerald-50':nilaiVal==='B'?'text-blue-600 bg-blue-50':nilaiVal==='C'?'text-amber-600 bg-amber-50':nilaiVal==='D'?'text-orange-600 bg-orange-50':nilaiVal==='E'?'text-rose-600 bg-rose-50':'text-gray-500 bg-white';
-                const selectNilai = `
-                    <select onchange="submitNilai('${s.subId}', this.value, this)" class="w-full p-1 border rounded text-[10px] font-bold outline-none cursor-pointer ${colorClass}">
-                        <option value="">- Nilai -</option><option value="A" ${nilaiVal==='A'?'selected':''}>A (Sangat Baik)</option><option value="B" ${nilaiVal==='B'?'selected':''}>B (Baik)</option><option value="C" ${nilaiVal==='C'?'selected':''}>C (Cukup)</option><option value="D" ${nilaiVal==='D'?'selected':''}>D (Kurang)</option><option value="E" ${nilaiVal==='E'?'selected':''}>E (Buruk)</option>
-                    </select>
-                `;
-
-                return `<tr class="hover:bg-gray-50 border-b">
-                    <td class="py-2 px-4 text-center text-gray-400">${idx + 1}</td>
-                    <td class="py-2 px-4 font-bold text-gray-800">${s.namaAnggota}</td>
-                    <td class="py-2 px-4 text-center font-bold text-blue-600 text-[10px]">${s.subTugasName}</td>
-                    <td class="py-2 px-4 text-center text-xs">${s.tanggal}</td>
-                    <td class="py-2 px-4 text-center"><span class="text-[10px] font-bold px-2 py-1 rounded-full bg-emerald-50 text-emerald-600">Sudah</span></td>
-                    <td class="py-2 px-4 text-center">${btn}</td>
-                    <td class="py-2 px-4 text-center">${selectNilai}</td>
+                const komentarVal = s.komentar || '';
+                
+                const colorClass = nilaiVal==='A'?'text-emerald-600 bg-emerald-50 border-emerald-300':nilaiVal==='B'?'text-blue-600 bg-blue-50 border-blue-300':nilaiVal==='C'?'text-amber-600 bg-amber-50 border-amber-300':nilaiVal==='D'?'text-orange-600 bg-orange-50 border-orange-300':nilaiVal==='E'?'text-rose-600 bg-rose-50 border-rose-300':'text-gray-600 bg-white border-gray-300';
+                
+                return `<tr class="hover:bg-gray-50 border-b group">
+                    <td class="py-3 px-4 text-center text-gray-400 align-top">${idx + 1}</td>
+                    <td class="py-3 px-4 align-top">
+                        <div class="font-bold text-gray-800 text-sm mb-0.5">${s.namaAnggota}</div>
+                        <div class="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded inline-block mb-1">${s.subTugasName}</div>
+                        <div class="text-[9px] text-gray-400 font-semibold"><i class="fa-solid fa-clock mr-1"></i>${s.waktuKumpul || s.tanggal}</div>
+                        <div class="text-[9px] text-gray-500 italic mt-1 line-clamp-1">${judul}</div>
+                    </td>
+                    <td class="py-3 px-4 text-center align-top pt-5">${btnLink}</td>
+                    <td class="py-3 px-4 align-top">
+                        <div class="bg-gray-100/50 p-2.5 rounded-xl border border-gray-200">
+                            <!-- Container Penilaian -->
+                            <div class="flex gap-2 items-center">
+                                <select id="selNilai_${s.subId}" class="flex-1 p-2 border rounded-lg text-xs font-bold outline-none cursor-pointer ${colorClass}">
+                                    <option value="">-- Beri Nilai --</option>
+                                    <option value="A" ${nilaiVal==='A'?'selected':''}>A (Sangat Baik)</option>
+                                    <option value="B" ${nilaiVal==='B'?'selected':''}>B (Baik)</option>
+                                    <option value="C" ${nilaiVal==='C'?'selected':''}>C (Cukup)</option>
+                                    <option value="D" ${nilaiVal==='D'?'selected':''}>D (Kurang)</option>
+                                    <option value="E" ${nilaiVal==='E'?'selected':''}>E (Buruk)</option>
+                                </select>
+                                <button type="button" onclick="toggleKomentarBox('${s.subId}')" class="px-2.5 py-2 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 text-[10px] font-bold" title="Tulis Komentar/Catatan">
+                                    <i class="fa-solid fa-comment-dots"></i>
+                                </button>
+                                <button type="button" onclick="executeSubmitNilai('${s.subId}')" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs font-bold active:scale-95 transition-transform" title="Simpan Evaluasi">
+                                    Simpan
+                                </button>
+                            </div>
+                            
+                            <!-- Kotak Input Komentar (Tersembunyi by default kecuali sudah ada isinya) -->
+                            <div id="boxKomentar_${s.subId}" class="comment-box-anim ${komentarVal ? 'open' : ''}">
+                                <textarea id="inputKomentar_${s.subId}" rows="2" placeholder="Tulis catatan perbaikan untuk anggota ini..." class="w-full p-2 border border-blue-200 rounded-lg text-[10px] bg-blue-50/30 outline-none focus:border-blue-500">${komentarVal}</textarea>
+                            </div>
+                        </div>
+                    </td>
                 </tr>`;
             }).join('');
         }
 
-        // --- SUBMIT NILAI A-E ---
-        function submitNilai(subId, nilaiStr, selectElement) {
-            if(!nilaiStr) return;
-            selectElement.disabled = true;
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'nilaiTugas', subId: subId, nilai: nilaiStr }) })
-            .then(r=>r.json()).then(d=>{
-                selectElement.disabled = false;
+        // Tampilkan/Sembunyikan kotak komentar
+        function toggleKomentarBox(subId) {
+            const box = document.getElementById(`boxKomentar_${subId}`);
+            if (box.classList.contains('open')) {
+                box.classList.remove('open');
+            } else {
+                box.classList.add('open');
+                document.getElementById(`inputKomentar_${subId}`).focus();
+            }
+        }
+
+        // Eksekusi Simpan Nilai + Komentar ke Backend
+        function executeSubmitNilai(subId) {
+            const selectEl = document.getElementById(`selNilai_${subId}`);
+            const komentarEl = document.getElementById(`inputKomentar_${subId}`);
+            
+            const nilaiVal = selectEl.value;
+            const komentarVal = komentarEl.value.trim();
+            
+            if(!nilaiVal) {
+                showToast("Pilih nilai (A-E) terlebih dahulu!", "error");
+                return;
+            }
+
+            // Disable input selama proses
+            selectEl.disabled = true;
+            komentarEl.disabled = true;
+            showLoading(true, "Menyimpan Evaluasi...");
+
+            fetch(GAS_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ 
+                    action: 'nilaiTugas', 
+                    subId: subId, 
+                    nilai: nilaiVal,
+                    komentar: komentarVal 
+                }) 
+            })
+            .then(r => r.json())
+            .then(d => {
+                selectEl.disabled = false;
+                komentarEl.disabled = false;
+                showLoading(false);
+                
                 if(d.success) {
-                    showToast("Nilai " + nilaiStr + " tersimpan!", "success");
-                    selectElement.className = `w-full p-1 border rounded text-[10px] font-bold outline-none cursor-pointer ${nilaiStr==='A'?'text-emerald-600 bg-emerald-50':nilaiStr==='B'?'text-blue-600 bg-blue-50':nilaiStr==='C'?'text-amber-600 bg-amber-50':nilaiStr==='D'?'text-orange-600 bg-orange-50':nilaiStr==='E'?'text-rose-600 bg-rose-50':''}`;
+                    showToast("Evaluasi Nilai & Catatan berhasil disimpan!", "success");
+                    
+                    // Update state lokal
                     let sub = state.submissions.find(s => s.subId === subId);
-                    if(sub) sub.nilai = nilaiStr;
-                } else showToast(d.message, "error");
-            }).catch(e=>{ selectElement.disabled=false; showToast("Gagal menyimpan nilai", "error"); });
+                    if(sub) {
+                        sub.nilai = nilaiVal;
+                        sub.komentar = komentarVal;
+                    }
+                    
+                    // Update warna dropdown
+                    selectEl.className = `flex-1 p-2 border rounded-lg text-xs font-bold outline-none cursor-pointer ${nilaiVal==='A'?'text-emerald-600 bg-emerald-50 border-emerald-300':nilaiVal==='B'?'text-blue-600 bg-blue-50 border-blue-300':nilaiVal==='C'?'text-amber-600 bg-amber-50 border-amber-300':nilaiVal==='D'?'text-orange-600 bg-orange-50 border-orange-300':'text-rose-600 bg-rose-50 border-rose-300'}`;
+                } else {
+                    showToast(d.message, "error");
+                }
+            })
+            .catch(e => { 
+                selectEl.disabled = false;
+                komentarEl.disabled = false;
+                showLoading(false);
+                showToast("Gagal terhubung ke server", "error"); 
+            });
         }
 
         // --- KELOLA TUGAS (BUAT, EDIT, DELETE) ---
@@ -551,17 +631,14 @@
             document.getElementById('taskTitle').value = t.judulTugas;
             document.getElementById('taskDesc').value = t.instruksi;
             
-            // Atur dropdown tipe dan inisiasi flatpickr ulang
             document.getElementById('tipePengumpulan').value = t.tipePengumpulan;
             setupFlatpickr();
             
-            // Set tanggal di flatpickr
             fpInstance.setDate(t.tanggalPengerjaan.includes(' to ') ? t.tanggalPengerjaan.split(' to ') : t.tanggalPengerjaan.split(', '));
             document.getElementById('tanggalPengerjaan').value = t.tanggalPengerjaan;
             
             setFormSelectedTargets(t.targetMember);
             
-            // Render Sub-Tugas dari JSON
             document.getElementById('subTaskDynamicContainer').innerHTML = '';
             let subs = [];
             try { subs = JSON.parse(t.subTugasRaw); } catch(e) {}
@@ -596,7 +673,7 @@
         // --- ABSENSI HARIAN (INPUT) ---
         function renderAbsensiTable() {
             const tbody = document.getElementById('tableAbsensiBody');
-            const targets = state.members.filter(m => m.role === 'Anggota'); // Hapus Pengurus
+            const targets = state.members.filter(m => m.role === 'Anggota');
             tbody.innerHTML = targets.map((m, i) => `
                 <tr class="border-b" data-nama="${m.nama}" data-kelas="${m.kelas}">
                     <td class="py-2 px-4 text-center font-semibold text-gray-400">${i + 1}</td>
@@ -648,7 +725,7 @@
                 if(d.success && d.data.length > 0) {
                     state.absensiHistory = d.data;
                     const headers = d.data[0];
-                    const dates = headers.slice(3); // Kolom tanggal dimulai dari index 3
+                    const dates = headers.slice(3);
                     const sel = document.getElementById('riwayatDateSelect');
                     sel.innerHTML = '<option value="">Pilih Tanggal</option>' + dates.map(dt => `<option value="${dt}">${dt}</option>`).join('');
                 }
@@ -674,7 +751,7 @@
                 if(name === "MATERI LATIHAN:") { materi = status; }
                 else if(name === "FOTO DATANG:") { fDatang = status; }
                 else if(name === "FOTO PULANG:") { fPulang = status; }
-                else if(name) { absData.push({ nama: name, status: status }); } // Murid biasa
+                else if(name) { absData.push({ nama: name, status: status }); }
             }
             
             document.getElementById('riwayatMateri').textContent = materi;
@@ -723,7 +800,7 @@
                 showLoading(false);
                 if(d.success) {
                     showToast("Hak Akses diperbarui", "success");
-                    loadDashboardData(); // Muat ulang untuk update tabel
+                    loadDashboardData(); 
                 } else {
                     showToast(d.message, "error");
                 }
@@ -744,8 +821,6 @@
         function openPasswordModal() { document.getElementById('passwordModal').classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.remove('scale-95'); }
         function closePasswordModal() { document.getElementById('passwordModal').classList.add('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.add('scale-95'); }
         document.getElementById('formGantiPassword').addEventListener('submit', (e) => { e.preventDefault(); showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'gantiPassword', username: state.user.username, oldPassword: document.getElementById('oldPass').value, newPassword: document.getElementById('newPass').value })}).then(r=>r.json()).then(d=>{ showLoading(false); if(d.success) { showToast("Berhasil", "success"); closePasswordModal(); } else showToast(d.message, "error"); }).catch(e=>showLoading(false)); });
-        function openVideoModal(name, link) { document.getElementById('modalVideoTitle').textContent = `File: ${decodeURIComponent(name)}`; document.getElementById('videoIframe').src = link.replace('/view','/preview'); document.getElementById('btnOpenExternal').href = link; document.getElementById('videoModal').classList.remove('opacity-0', 'pointer-events-none'); }
-        function closeVideoModal() { document.getElementById('videoModal').classList.add('opacity-0', 'pointer-events-none'); document.getElementById('videoIframe').src = ''; }
         function showLoading(show, txt="Memproses...") { document.getElementById('loadingText').textContent = txt; document.getElementById('loadingOverlay').classList[show?'remove':'add']('opacity-0', 'pointer-events-none'); }
         function showToast(msg, type='info') {
             const div = document.createElement('div'); div.className = `p-3 rounded-xl shadow-xl text-xs font-bold text-white flex items-center gap-2 transition-all transform translate-y-4 opacity-0 mt-2 ${type==='success'?'bg-emerald-600':type==='error'?'bg-rose-600':'bg-gray-800'}`;
