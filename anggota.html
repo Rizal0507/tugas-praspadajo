@@ -58,30 +58,42 @@
             </div>
         </header>
 
-        <!-- DYNAMIC NAVIGATION -->
+        <!-- DYNAMIC NAVIGATION WITH NOTIFICATION BADGES -->
         <nav class="bg-white border-b border-gray-100 flex shadow-sm z-20 sticky top-0 overflow-x-auto custom-scroll">
-            <button onclick="switchTab('dashboard')" id="tabBtnDashboard" class="flex-1 min-w-[90px] py-3 text-xs font-bold text-blue-600 border-b-2 border-blue-600 flex justify-center items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Tugas</button>
-            <button onclick="switchTab('riwayatTugas')" id="tabBtnRiwayatTugas" class="flex-1 min-w-[100px] py-3 text-xs font-bold text-gray-400 border-b-2 border-transparent flex justify-center items-center gap-1.5"><i class="fa-solid fa-medal"></i> Riwayat Tugas</button>
+            <button onclick="switchTab('dashboard')" id="tabBtnDashboard" class="flex-1 min-w-[90px] py-3 text-xs font-bold text-blue-600 border-b-2 border-blue-600 flex justify-center items-center gap-1.5 relative">
+                <i class="fa-solid fa-list-check"></i> Tugas
+                <span id="badgeTugasCount" class="hidden bg-rose-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">0</span>
+            </button>
+            <button onclick="switchTab('riwayatTugas')" id="tabBtnRiwayatTugas" class="flex-1 min-w-[100px] py-3 text-xs font-bold text-gray-400 border-b-2 border-transparent flex justify-center items-center gap-1.5 relative">
+                <i class="fa-solid fa-medal"></i> Riwayat Tugas
+                <span id="badgeRiwayatDot" class="hidden w-2.5 h-2.5 bg-rose-500 rounded-full animate-pulse"></span>
+            </button>
             <button onclick="switchTab('riwayatLatihan')" id="tabBtnRiwayatLatihan" class="flex-1 min-w-[110px] py-3 text-xs font-bold text-gray-400 border-b-2 border-transparent flex justify-center items-center gap-1.5"><i class="fa-solid fa-chart-line"></i> Riwayat Latihan</button>
             <button onclick="switchTab('absensi')" id="tabBtnAbsensi" class="hidden flex-1 min-w-[100px] py-3 text-xs font-bold text-gray-400 border-b-2 border-transparent flex justify-center items-center gap-1.5"><i class="fa-solid fa-clipboard-user"></i> Absen</button>
         </nav>
 
         <!-- VIEW 1: DASHBOARD TUGAS -->
-        <main id="viewDashboard" class="flex-grow bg-gray-50 flex flex-col relative z-10">
-            <div class="px-5 pt-4 pb-3 border-b border-gray-100 bg-white flex justify-between items-center sticky top-0 z-10">
-                <h3 class="font-bold text-gray-800 text-sm">Tugas Tersedia</h3>
-                <button onclick="fetchTasks()" class="text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg text-xs font-bold flex gap-1.5 active:scale-95"><i class="fa-solid fa-rotate"></i> Refresh</button>
+        <main id="viewDashboard" class="flex-grow bg-gray-50 flex flex-col relative z-10 overflow-y-auto custom-scroll">
+            <!-- RINGKASAN TUGAS MENDATANG -->
+            <div id="upcomingTasksSection" class="p-5 pb-0 hidden"></div>
+
+            <!-- TUGAS TERSEDIA HARI INI HEADER -->
+            <div class="px-5 pt-4 pb-3 bg-gray-50 flex justify-between items-center sticky top-0 z-10 border-b border-gray-100">
+                <h3 class="font-bold text-gray-800 text-sm">Tugas Tersedia Hari Ini</h3>
+                <button onclick="fetchTasks()" class="text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg text-xs font-bold flex gap-1.5 active:scale-95 hover:bg-blue-100 transition-colors"><i class="fa-solid fa-rotate"></i> Refresh</button>
             </div>
-            <div id="taskListContainer" class="p-5 flex flex-col gap-4 overflow-y-auto custom-scroll">
+
+            <!-- LIST TUGAS HARI INI -->
+            <div id="taskListContainer" class="p-5 flex flex-col gap-4">
                 <div class="py-10 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-spinner animate-spin text-3xl text-blue-600 mb-3"></i><p class="text-xs font-semibold text-gray-500">Memuat tugas...</p></div>
             </div>
         </main>
 
         <!-- VIEW 2: RIWAYAT TUGAS & NILAI -->
         <main id="viewRiwayatTugas" class="hidden flex-grow bg-gray-50 flex-col relative z-10 overflow-y-auto custom-scroll p-5 gap-4">
-            <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
+            <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center sticky top-0 z-10">
                 <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2"><i class="fa-solid fa-medal text-amber-500"></i> Hasil & Catatan Tugas</h3>
-                <button onclick="fetchRiwayatSemua()" class="text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 active:scale-95"><i class="fa-solid fa-rotate text-[10px]"></i> Refresh</button>
+                <button onclick="fetchRiwayatSemua()" class="text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 active:scale-95 hover:bg-blue-100"><i class="fa-solid fa-rotate text-[10px]"></i> Refresh</button>
             </div>
             <div id="riwayatNilaiContainer" class="flex flex-col gap-3">
                 <div class="p-8 text-center text-gray-400 text-xs bg-white rounded-3xl border">Memuat riwayat tugas...</div>
@@ -185,9 +197,11 @@
                 </div>
                 
                 <p id="setupTaskDesc" class="text-xs text-gray-500 mb-4 bg-gray-50 p-3 rounded-xl border border-gray-100 max-h-24 overflow-y-auto custom-scroll"></p>
-                <label class="text-xs font-bold text-gray-600 uppercase mb-2">Pilih Tanggal / Waktu Pengumpulan (Auto Hari Ini)</label>
-                <select id="selectHariKe" onchange="renderSubTasks()" class="w-full px-4 py-3 bg-gray-50 text-sm font-semibold rounded-2xl border border-gray-200 outline-none focus:border-blue-500 mb-4 shadow-inner"></select>
-                <div id="subTasksContainer" class="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scroll"></div>
+                <div id="selectHariKeContainer" class="hidden">
+                    <label class="text-xs font-bold text-gray-600 uppercase mb-2 block">Pilih Tanggal Pengumpulkan</label>
+                    <select id="selectHariKe" onchange="renderSubTasks()" class="w-full px-4 py-3 bg-gray-50 text-sm font-semibold rounded-2xl border border-gray-200 outline-none focus:border-blue-500 mb-4 shadow-inner"></select>
+                </div>
+                <div id="subTasksContainer" class="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scroll p-1"></div>
             </div>
         </div>
 
@@ -273,6 +287,34 @@
         
         let fotoDatangBase64 = null, fotoPulangBase64 = null;
 
+        // --- Helper Detik ke Teks (Format Detail Menit & Detik) ---
+        function formatSecToText(secVal) {
+            const sec = parseInt(secVal) || 0;
+            const m = Math.floor(sec / 60);
+            const s = sec % 60;
+            if (m > 0 && s > 0) return `${m} mnt ${s} dtk`;
+            if (m > 0) return `${m} mnt`;
+            return `${s} dtk`;
+        }
+
+        // --- Helper Waktu ISO ke dd/mm/yyyy & jj.mm.dd ---
+        function formatDateTime(iso) {
+            if(!iso) return { date: "", time: "" };
+            try {
+                if (iso.includes('/')) {
+                    const parts = iso.split(', ');
+                    return { date: parts[0], time: parts[1] || '' };
+                }
+                const d = new Date(iso);
+                if(isNaN(d.getTime())) return { date: iso, time: "" };
+                const pad = (n) => String(n).padStart(2, '0');
+                return {
+                    date: `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`,
+                    time: `${pad(d.getHours())}.${pad(d.getMinutes())}.${pad(d.getSeconds())}`
+                };
+            } catch(e) { return { date: iso, time: "" }; }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('userNameDisplay').textContent = user.nama;
             document.getElementById('userClassDisplay').textContent = `Kelas ${user.kelas}`;
@@ -301,6 +343,10 @@
                     btn.classList.add('text-blue-600', 'border-blue-600'); btn.classList.remove('text-gray-400', 'border-transparent');
                     view.classList.remove('hidden'); view.classList.add('flex');
                     if (t === 'absensi' && document.getElementById('tableAbsensiBody').children.length <= 1) loadAbsensiData();
+                    if (t === 'riwayatTugas') {
+                        // Sembunyikan badge notifikasi riwayat setelah diklik
+                        document.getElementById('badgeRiwayatDot').classList.add('hidden');
+                    }
                 } else {
                     btn.classList.remove('text-blue-600', 'border-blue-600'); btn.classList.add('text-gray-400', 'border-transparent');
                     view.classList.add('hidden'); view.classList.remove('flex');
@@ -316,42 +362,135 @@
             .then(r => r.json()).then(d => {
                 if (d.success) {
                     activeTasks = d.tasks; userSubs = d.userSubs || {};
-                    if(activeTasks.length > 0) renderTasks(activeTasks);
-                    else container.innerHTML = `<div class="bg-gray-50 border rounded-3xl p-6 text-center"><i class="fa-solid fa-mug-hot text-gray-300 text-3xl mb-2"></i><p class="text-xs text-gray-400">Belum ada tugas aktif saat ini.</p></div>`;
+                    renderTasks(activeTasks);
                 }
             }).catch(e => container.innerHTML = `<p class="text-center text-xs text-rose-500">Gagal memuat koneksi</p>`);
         }
 
+        // --- DASHBOARD RENDERER (HARI INI & MENDATANG) ---
         function renderTasks(tasks) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const todayTasks = [];
+            const upcomingTasks = [];
+            let totalUnfinishedToday = 0;
+
+            tasks.forEach(t => {
+                if (t.isLama) {
+                    todayTasks.push(t);
+                    return;
+                }
+
+                if (t.tipePengumpulan === 'Harian') {
+                    const dates = t.tanggalPengerjaan ? t.tanggalPengerjaan.split(',').map(d => d.trim()) : [];
+                    if (dates.includes(todayStr)) {
+                        todayTasks.push(t);
+                    } else {
+                        const futureDates = dates.filter(d => d > todayStr);
+                        if (futureDates.length > 0) {
+                            upcomingTasks.push({ ...t, nextDate: futureDates[0] });
+                        }
+                    }
+                } else if (t.tipePengumpulan === 'Satu Kali') {
+                    const dl = t.tanggalPengerjaan;
+                    if (dl >= todayStr) {
+                        todayTasks.push(t);
+                    } else if (dl > todayStr) {
+                        upcomingTasks.push({ ...t, nextDate: dl });
+                    }
+                } else {
+                    todayTasks.push(t);
+                }
+            });
+
+            // 1. RENDER KARTU RINGKASAN TUGAS MENDATANG
+            const upcomingSection = document.getElementById('upcomingTasksSection');
+            if (upcomingTasks.length > 0) {
+                upcomingSection.classList.remove('hidden');
+                upcomingSection.innerHTML = `
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 p-4 rounded-3xl shadow-sm">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[10px] font-extrabold text-blue-600 uppercase tracking-wider flex items-center gap-1">
+                                <i class="fa-solid fa-calendar-day"></i> Tugas Mendatang
+                            </span>
+                            <span class="bg-blue-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">${upcomingTasks.length} Tugas</span>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            ${upcomingTasks.map(u => `
+                                <div class="bg-white/90 backdrop-blur p-2.5 rounded-2xl border border-blue-100 flex justify-between items-center shadow-2xs">
+                                    <div class="pr-2">
+                                        <h5 class="text-xs font-bold text-gray-800 leading-tight">${u.judulTugas}</h5>
+                                        <p class="text-[9px] text-gray-500 font-medium mt-0.5"><i class="fa-solid fa-layer-group text-amber-500 mr-1"></i>${u.subTugas ? u.subTugas.length : 1} Gerakan</p>
+                                    </div>
+                                    <span class="text-[10px] font-bold text-blue-600 bg-blue-100/70 px-2.5 py-1 rounded-xl whitespace-nowrap">${u.nextDate || u.tanggalPengerjaan}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                upcomingSection.classList.add('hidden');
+                upcomingSection.innerHTML = '';
+            }
+
+            // 2. RENDER TUGAS TERSEDIA HARI INI
             const container = document.getElementById('taskListContainer');
-            container.innerHTML = tasks.map(t => {
+            if (todayTasks.length === 0) {
+                container.innerHTML = `<div class="bg-white border rounded-3xl p-6 text-center shadow-xs"><i class="fa-solid fa-circle-check text-emerald-400 text-3xl mb-2"></i><p class="text-xs text-gray-500 font-semibold">Tidak ada tugas aktif untuk hari ini.</p></div>`;
+                document.getElementById('badgeTugasCount').classList.add('hidden');
+                return;
+            }
+
+            container.innerHTML = todayTasks.map(t => {
                 const isLama = t.isLama;
                 const isBertumpuk = t.subTugas && t.subTugas.length > 1;
-                const subTeks = isBertumpuk ? `<p class="text-[9px] font-bold text-amber-600 mt-1"><i class="fa-solid fa-layer-group mr-1"></i>Multitask (${t.subTugas.length} Gerakan)</p>` : '';
                 
-                let labelTanggal = "";
-                if(isLama) labelTanggal = "Sistem Lama";
-                else if (t.tipePengumpulan === "Satu Kali") labelTanggal = `Deadline: ${t.tanggalPengerjaan.replace(' to ', ' s/d ')}`;
-                else labelTanggal = `Tugas Rutin Harian`;
+                // Hitung sub-tugas yang belum dikerjakan hari ini
+                const pendingSubs = (t.subTugas || []).filter(sub => !userSubs[`${t.taskId}_${todayStr}_${sub.nama}`]);
+                totalUnfinishedToday += pendingSubs.length;
+
+                let statusTeks = '';
+                if (pendingSubs.length === 0) {
+                    statusTeks = `<div class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl text-center mt-2 border border-emerald-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-check-circle"></i> Selesai dikerjakan hari ini</div>`;
+                } else if ((t.subTugas || []).length === 1) {
+                    statusTeks = `<div class="text-[10px] font-bold text-rose-500 bg-rose-50 px-3 py-2 rounded-xl text-center mt-2 border border-rose-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-circle-exclamation"></i> Anda belum mengerjakan tugas ini</div>`;
+                } else {
+                    statusTeks = `<div class="text-[10px] font-bold text-amber-600 bg-amber-50 px-3 py-2 rounded-xl text-center mt-2 border border-amber-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-clock"></i> Sisa ${pendingSubs.length} gerakan belum dikerjakan</div>`;
+                }
+                
+                let labelTanggal = isLama ? "Sistem Lama" : (t.tipePengumpulan === "Satu Kali" ? `Deadline: ${t.tanggalPengerjaan.replace(' to ', ' s/d ')}` : `Tugas Rutin Hari Ini`);
+                const borderClass = isLama ? 'border-gray-400' : (t.tipePengumpulan === 'Satu Kali' ? 'border-amber-500' : 'border-purple-500');
+                const textClass = isLama ? 'text-gray-400' : (t.tipePengumpulan === 'Satu Kali' ? 'text-amber-500' : 'text-purple-500');
 
                 return `
-                    <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden flex flex-col gap-3">
-                        <div class="absolute top-0 left-0 w-1.5 h-full ${isLama ? 'bg-gray-400' : (t.tipePengumpulan==='Satu Kali'?'bg-amber-500':'bg-purple-500')}"></div>
-                        <div class="flex justify-between items-start">
-                            <div class="pr-2">
-                                <span class="text-[9px] font-bold ${isLama?'text-gray-400':(t.tipePengumpulan==='Satu Kali'?'text-amber-500':'text-purple-500')} uppercase">${t.tipePengumpulan}</span>
-                                <h4 class="text-sm font-bold text-gray-800 leading-tight mt-0.5">${t.judulTugas}</h4>
-                                <p class="text-[9px] font-bold text-blue-600 mt-0.5"><i class="fa-solid fa-calendar mr-1"></i>${labelTanggal}</p>
-                                ${subTeks}
-                            </div>
+                    <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden flex flex-col gap-2 pl-5 border-l-[5px] ${borderClass}">
+                        <span class="text-[9px] font-extrabold ${textClass} uppercase tracking-wider">${t.tipePengumpulan}</span>
+                        <h4 class="text-base font-bold text-gray-800 leading-tight">${t.judulTugas}</h4>
+                        
+                        <div class="flex flex-col gap-0.5 text-[10px] font-bold text-blue-600 mb-1">
+                            <span><i class="fa-solid fa-calendar mr-1.5"></i>${labelTanggal}</span>
+                            ${isBertumpuk ? `<span class="text-amber-600"><i class="fa-solid fa-layer-group mr-1.5"></i>Multitask (${t.subTugas.length} Gerakan)</span>` : ''}
                         </div>
-                        <p class="text-[11px] text-gray-500 line-clamp-2 leading-snug bg-gray-50 p-2 rounded">${t.instruksi}</p>
-                        <button onclick="openSetup('${t.taskId}')" class="mt-1 w-full bg-blue-50 text-blue-600 font-bold py-2.5 rounded-xl text-xs flex justify-center items-center gap-2 active:scale-95"><i class="fa-solid fa-folder-open"></i> Buka Modul Tugas</button>
+                        
+                        <div class="text-[11px] text-gray-500 bg-gray-50/80 border border-gray-100 p-3 rounded-xl leading-snug">
+                            ${t.instruksi}
+                            ${statusTeks}
+                        </div>
+                        
+                        <button onclick="openSetup('${t.taskId}')" class="mt-2 w-full bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-3 rounded-xl text-xs flex justify-center items-center gap-2 active:scale-95 transition-colors"><i class="fa-solid fa-folder-open"></i> Buka Modul Tugas</button>
                     </div>`;
             }).join('');
+
+            // UPDATE BADGE NOTIFIKASI TUGAS
+            const badgeBtn = document.getElementById('badgeTugasCount');
+            if (totalUnfinishedToday > 0) {
+                badgeBtn.textContent = totalUnfinishedToday;
+                badgeBtn.classList.remove('hidden');
+            } else {
+                badgeBtn.classList.add('hidden');
+            }
         }
 
-        // --- FITUR AUTO TANGGAL HARI INI SAAT BUKA MODUL ---
+        // --- OPEN SETUP AUTO TERAKSES HARI INI ---
         function openSetup(taskId) {
             selectedTask = activeTasks.find(t => t.taskId === taskId);
             document.getElementById('setupTipeBadge').textContent = selectedTask.tipePengumpulan;
@@ -359,30 +498,11 @@
             document.getElementById('setupTaskDesc').textContent = selectedTask.instruksi;
             
             const sel = document.getElementById('selectHariKe');
-            sel.innerHTML = '';
+            const todayStr = new Date().toISOString().split('T')[0];
             
-            const todayStr = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
-            let matchFound = false;
-
-            if (selectedTask.isLama) {
-                for(let i=1; i<=7; i++) {
-                    sel.innerHTML += `<option value="${i}">Hari Ke-${i}</option>`;
-                }
-            } else if (selectedTask.tipePengumpulan === 'Harian') {
-                const dates = selectedTask.tanggalPengerjaan.split(', ');
-                dates.forEach(d => {
-                    const isToday = d.trim() === todayStr;
-                    if(isToday) matchFound = true;
-                    sel.innerHTML += `<option value="${d}" ${isToday ? 'selected' : ''}>${d} ${isToday ? '(Hari Ini)' : ''}</option>`;
-                });
-            } else {
-                sel.innerHTML = `<option value="${selectedTask.tanggalPengerjaan}">${selectedTask.tanggalPengerjaan.replace(' to ',' s/d ')}</option>`;
-            }
-
-            // Jika tipe harian dan hari ini tidak ada di daftar tanggal tugas, pilih opsi pertama
-            if(!matchFound && sel.options.length > 0) {
-                sel.selectedIndex = 0;
-            }
+            // Set otomatis hari ini
+            selectedDay = todayStr;
+            sel.innerHTML = `<option value="${todayStr}">${todayStr} (Hari Ini)</option>`;
 
             renderSubTasks(); 
             document.getElementById('viewSetup').classList.remove('hidden'); document.getElementById('viewSetup').classList.add('flex');
@@ -390,41 +510,48 @@
         
         function closeSetup() { document.getElementById('viewSetup').classList.add('hidden'); }
 
+        // --- RENDER SUB-TUGAS (YANG SUDAH SELESAI OTOMATIS HILANG) ---
         function renderSubTasks() {
-            selectedDay = document.getElementById('selectHariKe').value;
+            selectedDay = document.getElementById('selectHariKe').value || new Date().toISOString().split('T')[0];
             const container = document.getElementById('subTasksContainer');
             container.innerHTML = '';
 
+            let pendingCount = 0;
             selectedTask.subTugas.forEach(sub => {
                 const key = `${selectedTask.taskId}_${selectedDay}_${sub.nama}`;
                 const isDone = userSubs[key]; 
                 
-                if(isDone) {
+                // JIKA BELUM DIKERJAKAN, TAMPILKAN TOMBOL REKAM. JIKA SUDAH, HILANGKAN!
+                if(!isDone) {
+                    pendingCount++;
+                    const minSec = sub.minSec !== undefined ? sub.minSec : (sub.min * 60);
+                    const maxSec = sub.maxSec !== undefined ? sub.maxSec : (sub.max * 60);
+                    const targetTeks = `${formatSecToText(minSec)} - ${formatSecToText(maxSec)}`;
+                    
                     container.innerHTML += `
-                        <div class="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 opacity-70">
-                            <span>${sub.nama}</span>
-                            <span class="bg-emerald-200 px-2 py-0.5 rounded text-[10px]"><i class="fa-solid fa-check"></i> Selesai</span>
-                        </div>`;
-                } else {
-                    container.innerHTML += `
-                        <button onclick="prepareCamera('${sub.nama}', ${sub.min}, ${sub.max})" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 active:scale-95 shadow-lg group">
+                        <button onclick="prepareCamera('${sub.nama}', ${minSec}, ${maxSec})" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 active:scale-95 shadow-lg group transition-transform">
                             <span>${sub.nama}</span>
                             <div class="flex items-center gap-2">
-                                <span class="text-[9px] text-blue-200 bg-blue-800/50 px-1.5 py-0.5 rounded">${sub.min}-${sub.max} mnt</span>
-                                <span class="bg-blue-800 px-2 py-1 rounded text-[10px] group-hover:scale-105"><i class="fa-solid fa-video"></i> Rekam</span>
+                                <span class="text-[9px] text-blue-200 bg-blue-800/50 px-1.5 py-0.5 rounded">${targetTeks}</span>
+                                <span class="bg-blue-800 px-2 py-1 rounded text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-video"></i> Rekam</span>
                             </div>
                         </button>`;
                 }
             });
+
+            if(pendingCount === 0) {
+                container.innerHTML = `<div class="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold py-5 rounded-xl text-xs text-center flex flex-col items-center gap-2"><i class="fa-solid fa-circle-check text-2xl"></i> Semua tugas untuk hari ini sudah selesai!</div>`;
+            }
         }
 
-        async function prepareCamera(subName, minMnt, maxMnt) {
+        // --- SISTEM KAMERA & WAKTU DETIK ---
+        async function prepareCamera(subName, minSec, maxSec) {
             currentSubTugas = subName;
-            currentMinSec = minMnt * 60;
-            currentMaxSec = maxMnt * 60;
+            currentMinSec = parseInt(minSec);
+            currentMaxSec = parseInt(maxSec);
             
             document.getElementById('kameraSubName').textContent = subName;
-            document.getElementById('kameraTarget').textContent = `${minMnt} - ${maxMnt} Menit`;
+            document.getElementById('kameraTarget').textContent = `${formatSecToText(currentMinSec)} - ${formatSecToText(currentMaxSec)}`;
             
             closeSetup();
             document.getElementById('viewCamera').classList.remove('hidden'); document.getElementById('viewCamera').classList.add('flex');
@@ -570,7 +697,7 @@
         function processUploadBase64() {
             if (recordedChunks.length === 0) return;
             if (secondsRecorded < currentMinSec) {
-                showToast(`Dibatalkan! Waktu minimum adalah ${currentMinSec/60} menit.`, "error");
+                showToast(`Dibatalkan! Waktu minimum adalah ${formatSecToText(currentMinSec)}.`, "error");
                 return;
             }
 
@@ -609,6 +736,7 @@
                     if (d.success) { 
                         showToast("Video Terkirim!", "success");
                         userSubs[`${selectedTask.taskId}_${selectedDay}_${currentSubTugas}`] = true;
+                        fetchTasks(); 
                         fetchRiwayatSemua();
                     } else {
                         showToast("Gagal: " + d.message, "error");
@@ -620,7 +748,7 @@
             }
         }
 
-        // --- PENGAMBILAN DATA RIWAYAT TERPISAH ---
+        // --- FETCH RIWAYAT & UPDATE NOTIFIKASI ---
         function fetchRiwayatSemua() {
             showToast("Memperbarui riwayat...", "info");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAbsensiHistory' }) })
@@ -629,13 +757,13 @@
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getDashboardData' }) })
             .then(r=>r.json()).then(d => { 
                 if(d.success) {
-                    const mySubs = d.submissions.filter(s => s.namaAnggota === user.nama).reverse();
+                    const mySubs = d.submissions.filter(s => s.namaAnggota === user.nama);
                     renderRiwayatNilai(mySubs, d.tasks);
                 }
             }).catch(e=>console.error("Gagal load nilai"));
         }
 
-        // --- RIWAYAT TUGAS & KOMENTAR PELATIH ---
+        // --- RIWAYAT TUGAS DENGAN PENGELOMPOKAN TANGGAL & FORMAT TEPAT ---
         function renderRiwayatNilai(mySubs, allTasks) {
             const container = document.getElementById('riwayatNilaiContainer');
             if(mySubs.length === 0) { 
@@ -643,45 +771,76 @@
                 return; 
             }
 
-            container.innerHTML = mySubs.map(s => {
-                const n = s.nilai;
-                const badgeColor = (n==='A')?'bg-emerald-500':(n==='B')?'bg-blue-500':(n==='C')?'bg-amber-500':(n==='D')?'bg-orange-500':(n==='E')?'bg-rose-500':'bg-gray-300';
-                const taskRef = allTasks.find(t => t.taskId === s.taskId);
-                const judul = taskRef ? taskRef.judulTugas : "Tugas Latihan";
-                const komentar = s.komentar ? s.komentar : "Belum ada catatan dari pelatih.";
+            // Tampilkan ikon notifikasi jika ada nilai baru atau catatan masuk
+            document.getElementById('badgeRiwayatDot').classList.remove('hidden');
+
+            const grouped = {};
+            mySubs.forEach(s => {
+                const dt = formatDateTime(s.waktuKumpul || s.tanggal);
+                if(!grouped[dt.date]) grouped[dt.date] = [];
+                grouped[dt.date].push({ ...s, formattedTime: dt.time });
+            });
+
+            const sortedDates = Object.keys(grouped).sort((a,b) => {
+                const pA = a.split('/');
+                const pB = b.split('/');
+                const dateA = new Date(pA[2], pA[1]-1, pA[0]);
+                const dateB = new Date(pB[2], pB[1]-1, pB[0]);
+                return dateB - dateA;
+            });
+
+            container.innerHTML = sortedDates.map(dateStr => {
+                const itemsForDate = grouped[dateStr].reverse(); 
+                
+                const itemsHtml = itemsForDate.map(s => {
+                    const n = s.nilai;
+                    const badgeColor = (n==='A')?'bg-emerald-500':(n==='B')?'bg-blue-500':(n==='C')?'bg-amber-500':(n==='D')?'bg-orange-500':(n==='E')?'bg-rose-500':'bg-gray-300';
+                    const taskRef = allTasks.find(t => t.taskId === s.taskId);
+                    const judul = taskRef ? taskRef.judulTugas : "Tugas Latihan";
+                    const komentar = s.komentar ? s.komentar : "Belum ada catatan dari pelatih.";
+
+                    return `
+                    <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3">
+                        <div class="flex justify-between items-start border-b pb-3">
+                            <div class="pr-2">
+                                <span class="text-[10px] text-gray-400 font-bold block mb-1"><i class="fa-solid fa-clock mr-1"></i>${dateStr}, ${s.formattedTime}</span>
+                                <h4 class="font-bold text-gray-800 text-sm">${judul}</h4>
+                                <span class="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-md inline-block mt-1">${s.subTugasName}</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <span class="text-[9px] font-bold text-gray-400 uppercase mb-1">Nilai</span>
+                                <span class="w-10 h-10 rounded-full ${badgeColor} text-white font-extrabold flex items-center justify-center text-base shadow-sm">${n && n !== '-' ? n : '?'}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-amber-50/60 border border-amber-100 p-3 rounded-2xl text-[11px] text-gray-700">
+                            <span class="font-bold text-amber-800 block mb-1"><i class="fa-solid fa-comment-dots mr-1"></i> Catatan Perbaikan:</span>
+                            <p class="italic text-gray-600 leading-snug">${komentar}</p>
+                        </div>
+
+                        <div class="flex gap-2 pt-1">
+                            <a href="${s.linkVideo}" target="_blank" class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-2 rounded-xl text-center text-xs flex items-center justify-center gap-1.5 transition-colors">
+                                <i class="fa-solid fa-play"></i> Tonton
+                            </a>
+                            <a href="${s.linkVideo}" download target="_blank" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 py-2 rounded-xl text-center text-xs flex items-center justify-center gap-1.5 transition-colors">
+                                <i class="fa-solid fa-download"></i>
+                            </a>
+                        </div>
+                    </div>`;
+                }).join('');
 
                 return `
-                <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3">
-                    <div class="flex justify-between items-start border-b pb-3">
-                        <div class="pr-2">
-                            <span class="text-[10px] text-gray-400 font-bold block mb-0.5"><i class="fa-solid fa-clock mr-1"></i>${s.waktuKumpul || s.tanggal}</span>
-                            <h4 class="font-bold text-gray-800 text-xs">${judul}</h4>
-                            <span class="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-md inline-block mt-1">${s.subTugasName}</span>
-                        </div>
-                        <div class="flex flex-col items-center">
-                            <span class="text-[9px] font-bold text-gray-400 uppercase mb-1">Nilai</span>
-                            <span class="w-9 h-9 rounded-full ${badgeColor} text-white font-extrabold flex items-center justify-center text-sm shadow-sm">${n && n !== '-' ? n : '?'}</span>
-                        </div>
+                    <div class="flex items-center gap-3 mt-4 mb-2">
+                        <div class="h-px bg-gray-200 flex-1"></div>
+                        <span class="text-[10px] font-extrabold text-gray-400 bg-gray-100 px-3 py-1.5 rounded-full uppercase tracking-wider"><i class="fa-regular fa-calendar-days mr-1"></i> ${dateStr}</span>
+                        <div class="h-px bg-gray-200 flex-1"></div>
                     </div>
-                    
-                    <div class="bg-amber-50/60 border border-amber-100 p-2.5 rounded-2xl text-[11px] text-gray-700">
-                        <span class="font-bold text-amber-800 block mb-0.5"><i class="fa-solid fa-comment-dots mr-1"></i> Catatan Perbaikan:</span>
-                        <p class="italic text-gray-600">${komentar}</p>
-                    </div>
-
-                    <div class="flex gap-2 pt-1">
-                        <a href="${s.linkVideo}" target="_blank" class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-2 rounded-xl text-center text-xs flex items-center justify-center gap-1.5 transition-colors">
-                            <i class="fa-solid fa-play"></i> Tonton
-                        </a>
-                        <a href="${s.linkVideo}" download target="_blank" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 py-2 rounded-xl text-center text-xs flex items-center justify-center gap-1.5 transition-colors">
-                            <i class="fa-solid fa-download"></i>
-                        </a>
-                    </div>
-                </div>`;
+                    ${itemsHtml}
+                `;
             }).join('');
         }
 
-        // --- RIWAYAT LATIHAN & FOTO ABSEN (BISA DIKLIK) ---
+        // --- RIWAYAT LATIHAN ---
         function renderRiwayatAbsen(data) {
             const dates = data[0].slice(3);
             let stat = { Hadir: 0, Izin: 0, Sakit: 0, Alpa: 0 };
@@ -749,7 +908,7 @@
             }).join('');
         }
 
-        // --- MODAL PREVIEW FOTO ---
+        // --- PREVIEW FOTO ---
         function openPhotoModal(url, title) {
             document.getElementById('modalPhotoImg').src = url;
             document.getElementById('modalPhotoTitle').textContent = title;
