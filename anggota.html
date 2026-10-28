@@ -23,16 +23,10 @@
         * { -webkit-tap-highlight-color: transparent; }
         @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.3); opacity: 0; } }
         .recording-pulse::before { content: ''; position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-radius: 50%; border: 3px solid #ef4444; animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
-        
-        .custom-scroll::-webkit-scrollbar { width: 0px; height: 0px; } 
+        .custom-scroll::-webkit-scrollbar { width: 0px; height: 0px; }
         .custom-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-        
         .form-locked { opacity: 0.6; pointer-events: none; }
-
-        /* Sidebar Animation */
         .sidebar-open { transform: translateX(0) !important; }
-
-        /* Easter Egg Sunflower Animation */
         @keyframes float-up {
             0% { transform: translateY(100vh) scale(0) rotate(0deg); opacity: 0; }
             10% { opacity: 1; }
@@ -40,51 +34,34 @@
             100% { transform: translateY(-20vh) scale(1) rotate(360deg); opacity: 0; }
         }
         .sunflower { position: fixed; bottom: -50px; font-size: 2rem; animation: float-up 5s ease-in forwards; z-index: 100; pointer-events: none; }
-
-        /* Countdown Text Animation */
         @keyframes pop-in { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
         .countdown-anim { animation: pop-in 0.8s ease-out forwards; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans text-gray-800 antialiased flex flex-col items-center relative overflow-hidden">
 
-    <!-- AUDIO ELEMENTS -->
     <audio id="beep1" src="beep1.mp3" preload="auto"></audio>
     <audio id="beep2" src="beep2.mp3" preload="auto"></audio>
 
-    <!-- Backdrop Mobile Sidebar -->
     <div id="sidebarBackdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] hidden md:hidden transition-opacity"></div>
 
-    <!-- Main Wrapper -->
     <div class="w-full max-w-6xl mx-auto bg-white min-h-screen sm:min-h-[850px] sm:my-6 sm:rounded-[2.5rem] sm:shadow-2xl flex flex-col md:flex-row overflow-hidden relative">
-        
-        <!-- SIDEBAR -->
+
         <aside id="sidebar" class="fixed md:relative inset-y-0 left-0 z-[90] w-72 bg-white border-r border-gray-100 flex-shrink-0 flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out h-full md:h-auto">
-            
-            <!-- HEADER / PROFIL SIDEBAR -->
             <div class="bg-gradient-to-br from-blue-700 via-blue-600 to-blue-500 text-white px-5 pt-8 pb-6 relative overflow-hidden flex-none md:rounded-tr-[2.5rem]">
                 <div class="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
                 <div class="relative z-10 flex flex-col items-center text-center">
-                    <!-- REVISI: Logo tanpa border, HD -->
                     <div class="w-16 h-16 mb-3 flex items-center justify-center">
                         <img src="./logo.png" alt="Logo" class="max-h-full max-w-full object-contain drop-shadow-md" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-white text-3xl\'></i>';">
                     </div>
-                    
                     <h2 id="sidebarNameDisplay" class="text-lg font-extrabold text-white leading-tight truncate w-full mb-2">Nama Lengkap</h2>
-                    
                     <div class="flex items-center justify-center gap-2">
                         <span class="bg-blue-900/50 text-blue-100 text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/10"><i class="fa-solid fa-users-rectangle mr-1"></i> <span id="sidebarClassDisplay">Kelas</span></span>
                         <span id="sidebarRoleBadge" class="bg-blue-800 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-white/10">Anggota</span>
                     </div>
                 </div>
             </div>
-
-            <!-- MENU NAVIGATION (Di-render via JS) -->
-            <nav id="sidebarMenuContainer" class="flex flex-col p-3 gap-1 overflow-y-auto custom-scroll bg-gray-50 md:bg-white flex-grow">
-                <!-- Menu akan di-inject oleh JavaScript -->
-            </nav>
-
-            <!-- FOOTER ACTIONS -->
+            <nav id="sidebarMenuContainer" class="flex flex-col p-3 gap-1 overflow-y-auto custom-scroll bg-gray-50 md:bg-white flex-grow"></nav>
             <div class="p-3 border-t border-gray-100 bg-white">
                 <div class="grid grid-cols-2 gap-2">
                     <button onclick="openPasswordModal()" class="bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 px-2 py-2 rounded-xl text-[10px] font-bold shadow-sm active:scale-95 flex items-center justify-center gap-1"><i class="fa-solid fa-key"></i> Password</button>
@@ -93,37 +70,30 @@
             </div>
         </aside>
 
-        <!-- MAIN CONTENT -->
         <main class="flex-grow p-4 sm:p-6 bg-gray-50 flex flex-col h-screen md:h-[850px] overflow-y-auto custom-scroll relative w-full">
-            
-                        <!-- MOBILE HEADER -->
+
             <div class="md:hidden flex items-center justify-between bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100 flex-none w-full">
                 <div class="flex items-center gap-3 w-full min-w-0">
                     <button onclick="toggleSidebar()" class="bg-blue-50 text-blue-600 p-2 rounded-lg shadow-sm flex-shrink-0"><i class="fa-solid fa-bars text-sm"></i></button>
                     <div class="flex flex-col flex-1 min-w-0">
                         <span id="mobileGreeting" class="text-[10px] font-extrabold text-blue-500 uppercase tracking-widest">Selamat Pagi</span>
                         <span id="mobileName" class="font-extrabold text-gray-800 text-sm leading-tight truncate">Nama</span>
-                        <!-- Teks Motivasi sekarang memanjang penuh ke ujung layar, dan turun ke baris 2 jika kepanjangan -->
                         <span id="mobileMotivation" class="text-[10px] text-gray-500 italic mt-0.5 leading-snug whitespace-normal">"Motivasi..."</span>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB: DASHBOARD TUGAS -->
             <section id="viewDashboard" class="tab-view flex flex-col gap-4 w-full">
                 <div id="upcomingTasksSection" class="hidden"></div>
-
                 <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center sticky top-0 z-10">
                     <h3 class="font-bold text-gray-800 text-sm">Tugas Tersedia Hari Ini</h3>
                     <button onclick="fetchTasks()" class="text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg text-[11px] font-bold flex gap-1.5 active:scale-95 hover:bg-blue-100 transition-colors"><i class="fa-solid fa-rotate"></i> Refresh</button>
                 </div>
-
                 <div id="taskListContainer" class="flex flex-col gap-4">
                     <div class="py-10 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-spinner animate-spin text-3xl text-blue-600 mb-3"></i><p class="text-xs font-semibold text-gray-500">Memuat tugas...</p></div>
                 </div>
             </section>
 
-            <!-- TAB: RIWAYAT TUGAS & NILAI -->
             <section id="viewRiwayatTugas" class="tab-view hidden flex-col gap-4 w-full">
                 <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center sticky top-0 z-10">
                     <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2"><i class="fa-solid fa-medal text-amber-500"></i> Hasil & Catatan Tugas</h3>
@@ -134,13 +104,11 @@
                 </div>
             </section>
 
-            <!-- TAB: RIWAYAT LATIHAN & STATISTIK -->
             <section id="viewRiwayatLatihan" class="tab-view hidden flex-col gap-4 w-full">
                 <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
                     <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2"><i class="fa-solid fa-chart-pie text-blue-500"></i> Statistik Kehadiran</h3>
                     <button onclick="fetchRiwayatSemua()" class="text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 active:scale-95"><i class="fa-solid fa-rotate text-[10px]"></i> Refresh</button>
                 </div>
-
                 <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3">
                     <div class="flex justify-between text-[10px] font-bold text-gray-500 text-center mt-1">
                         <div class="flex-1"><span class="block text-emerald-600 text-lg font-extrabold" id="statHadir">0</span>Hadir</div>
@@ -155,7 +123,6 @@
                         <div id="barAlpa" class="bg-rose-500 h-full" style="width: 0%"></div>
                     </div>
                 </div>
-                
                 <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden mb-6">
                     <h3 class="font-bold text-gray-800 text-sm p-4 border-b">Detail Materi & Foto Absen</h3>
                     <div id="riwayatListContainer" class="flex flex-col divide-y divide-gray-100">
@@ -164,7 +131,6 @@
                 </div>
             </section>
 
-            <!-- TAB: MATERI (COMING SOON) -->
             <section id="viewMateri" class="tab-view hidden flex-col items-center justify-center w-full h-full min-h-[400px]">
                 <div class="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm text-center max-w-sm">
                     <i class="fa-solid fa-person-digging text-5xl text-amber-400 mb-4"></i>
@@ -173,7 +139,6 @@
                 </div>
             </section>
 
-            <!-- TAB: DATA ANGGOTA -->
             <section id="viewDataAnggota" class="tab-view hidden flex-col gap-4 w-full max-w-md mx-auto">
                 <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                     <div class="bg-blue-600 p-6 text-center text-white">
@@ -182,22 +147,10 @@
                         <p id="dataKelas" class="text-xs text-blue-200">Kelas</p>
                     </div>
                     <div class="p-5 flex flex-col gap-3 text-sm">
-                        <div class="flex justify-between border-b pb-2">
-                            <span class="text-gray-500 font-medium">Nama Lengkap</span>
-                            <span id="dataNamaLengkap" class="font-bold text-gray-800"></span>
-                        </div>
-                        <div class="flex justify-between border-b pb-2">
-                            <span class="text-gray-500 font-medium">Username</span>
-                            <span id="dataUsername" class="font-bold text-blue-600"></span>
-                        </div>
-                        <div class="flex justify-between border-b pb-2">
-                            <span class="text-gray-500 font-medium">Kelas</span>
-                            <span id="dataKelasLengkap" class="font-bold text-gray-800"></span>
-                        </div>
-                        <div class="flex justify-between border-b pb-2">
-                            <span class="text-gray-500 font-medium">Role</span>
-                            <span id="dataRole" class="font-bold text-gray-800 uppercase"></span>
-                        </div>
+                        <div class="flex justify-between border-b pb-2"><span class="text-gray-500 font-medium">Nama Lengkap</span><span id="dataNamaLengkap" class="font-bold text-gray-800"></span></div>
+                        <div class="flex justify-between border-b pb-2"><span class="text-gray-500 font-medium">Username</span><span id="dataUsername" class="font-bold text-blue-600"></span></div>
+                        <div class="flex justify-between border-b pb-2"><span class="text-gray-500 font-medium">Kelas</span><span id="dataKelasLengkap" class="font-bold text-gray-800"></span></div>
+                        <div class="flex justify-between border-b pb-2"><span class="text-gray-500 font-medium">Role</span><span id="dataRole" class="font-bold text-gray-800 uppercase"></span></div>
                         <div class="flex justify-between border-b pb-2 items-center">
                             <span class="text-gray-500 font-medium">Password</span>
                             <div class="flex items-center gap-2">
@@ -211,20 +164,16 @@
         </main>
     </div>
 
-    <!-- VIEW 4: ABSENSI (POPUP MODAL) -->
     <div id="absenModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] hidden flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto custom-scroll">
         <div class="bg-white w-full max-w-md rounded-3xl border border-gray-100 shadow-2xl relative my-auto flex flex-col gap-4 p-5">
-            
             <div class="flex justify-between items-center border-b pb-3">
                 <h2 class="font-bold text-gray-800 text-sm">Input Absensi Harian</h2>
                 <button onclick="closeAbsenModal()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200"><i class="fa-solid fa-xmark"></i></button>
             </div>
-
             <div class="flex justify-between items-center bg-gray-50 p-2 rounded-xl border">
                 <label class="text-[10px] font-bold text-gray-600 uppercase">Tanggal Absensi</label>
                 <input type="date" id="absensiDate" onchange="checkTodayAbsensiStatus()" class="px-2 py-1 bg-white border rounded-lg text-xs font-bold text-blue-600 outline-none disabled:opacity-50">
             </div>
-            
             <form id="formAbsensi" class="flex flex-col gap-4">
                 <div class="overflow-x-auto max-h-[300px] overflow-y-auto custom-scroll border rounded-xl">
                     <table class="w-full text-left border-collapse">
@@ -237,8 +186,6 @@
                     </table>
                 </div>
                 <button type="button" onclick="loadAbsensiData()" class="text-[11px] text-blue-600 font-bold bg-blue-50 py-2 rounded-lg border border-blue-100"><i class="fa-solid fa-cloud-arrow-down mr-1"></i> Load Data Anggota</button>
-
-                <!-- FORM MATERI & EVALUASI -->
                 <div id="formMateriEval" class="hidden flex-col gap-3 bg-blue-50/50 p-3 rounded-xl border border-blue-100">
                     <div>
                         <label class="text-[10px] font-bold text-gray-600 uppercase mb-1 block">Materi Latihan</label>
@@ -249,8 +196,6 @@
                         <textarea id="evaluasiLatihan" rows="2" placeholder="Catatan evaluasi selama latihan..." class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs outline-none focus:border-blue-500"></textarea>
                     </div>
                 </div>
-
-                <!-- KOTAK FOTO DATANG & PULANG -->
                 <div class="grid grid-cols-2 gap-2 mt-2">
                     <div id="boxDatang" class="bg-gray-50 border border-dashed border-gray-300 p-2 rounded-xl text-center relative h-full flex flex-col justify-center transition-all">
                         <div id="fotoDatangPreviewContainer" class="hidden mb-2 relative aspect-video w-full bg-black rounded-lg overflow-hidden">
@@ -280,13 +225,11 @@
                         </div>
                     </div>
                 </div>
-                
                 <button type="submit" id="btnSimpanAbsen" class="hidden w-full bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 text-sm mt-2"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Absensi</button>
             </form>
         </div>
     </div>
 
-    <!-- VIEW SETUP & SUB-TUGAS -->
     <div id="viewSetup" class="fixed inset-0 sm:absolute bg-black/80 backdrop-blur-sm z-40 hidden flex-col justify-end pointer-events-auto">
         <div class="bg-white w-full rounded-t-[2.5rem] p-6 pt-8 pb-10 flex flex-col md:max-w-lg md:mx-auto md:rounded-3xl md:mb-10">
             <div class="flex justify-between items-start mb-4">
@@ -297,52 +240,42 @@
                 </div>
                 <button onclick="closeSetup()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            
             <p id="setupTaskDesc" class="text-xs text-gray-500 mb-4 bg-gray-50 p-3 rounded-xl border border-gray-100 max-h-24 overflow-y-auto custom-scroll"></p>
             <div id="subTasksContainer" class="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scroll p-1"></div>
         </div>
     </div>
 
-    <!-- VIEW KAMERA TUGAS (VIDEO) -->
     <div id="viewCamera" class="fixed inset-0 bg-black z-50 hidden flex-col pointer-events-auto">
-        <!-- COUNTDOWN OVERLAY -->
         <div id="countdownOverlay" class="absolute inset-0 bg-black/80 z-[60] hidden flex-col items-center justify-center">
             <h1 id="countdownText" class="text-white text-8xl font-black countdown-anim">3</h1>
         </div>
-
         <div class="absolute top-0 left-0 w-full h-1.5 bg-gray-800 z-30">
             <div id="videoProgressBar" class="h-full bg-rose-500 transition-all duration-1000" style="width: 0%;"></div>
         </div>
         <div class="absolute top-1.5 left-0 w-full p-4 flex justify-between items-start z-20 bg-gradient-to-b from-black/60 to-transparent pt-6">
             <button id="btnCancelCamera" onclick="abortRecording()" class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white active:scale-95"><i class="fa-solid fa-xmark text-lg"></i></button>
-            <div class="bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 flex items-center gap-2 shadow-lg">
+            <div class="bg-black/50 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/10 flex items-center gap-1.5 shadow-lg">
+                <button id="btnMetroMute" onclick="toggleMetroMute()" class="hidden w-6 h-6 bg-white/20 rounded-full flex items-center justify-center text-white text-[10px] active:scale-95" title="Mute Metronome"><i id="metroMuteIcon" class="fa-solid fa-volume-high"></i></button>
+                <div id="metroBadge" class="hidden items-center gap-1 bg-blue-600/80 px-1.5 py-0.5 rounded-md"><i class="fa-solid fa-drum text-[9px] text-white"></i><span id="metroBadgeText" class="text-[9px] font-bold text-white">96</span></div>
                 <div id="recIndicator" class="w-2.5 h-2.5 rounded-full bg-rose-500 hidden animate-pulse"></div>
                 <span id="timerDisplay" class="text-white font-mono font-bold text-sm tracking-wider">00:00</span>
                 <span id="pauseStatusBadge" class="text-[9px] font-bold text-yellow-300 uppercase hidden ml-1 bg-yellow-900/50 px-1.5 py-0.5 rounded">PAUSED</span>
             </div>
         </div>
-        
         <video id="videoPreview" autoplay playsinline muted class="w-full h-full object-cover bg-gray-900"></video>
-        
         <div class="absolute top-20 left-4 right-4 bg-yellow-500/90 backdrop-blur text-black text-[10px] font-bold px-3 py-2 rounded-xl text-center shadow-lg border border-yellow-300 md:max-w-md md:mx-auto">
             <span class="block text-[9px] uppercase text-yellow-800">Target Waktu: <span id="kameraTarget" class="font-black"></span></span>
             <i class="fa-solid fa-triangle-exclamation mr-1 mt-1"></i> <span id="kameraSubName" class="font-extrabold"></span>.
         </div>
-        
         <div class="absolute bottom-0 left-0 w-full pb-10 pt-16 flex items-center justify-center gap-4 bg-gradient-to-t from-black/80 to-transparent z-20">
-            <button id="btnSwitchCamera" onclick="switchCamera()" class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white text-sm active:scale-95 transition-all" title="Ganti Kamera">
-                <i class="fa-solid fa-camera-rotate"></i>
-            </button>
-            <button id="btnPause" onclick="togglePauseRecording()" disabled class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white text-sm opacity-40 cursor-not-allowed active:scale-95 transition-all" title="Jeda Perekaman">
-                <i id="pauseIcon" class="fa-solid fa-pause"></i>
-            </button>
+            <button id="btnSwitchCamera" onclick="switchCamera()" class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white text-sm active:scale-95 transition-all" title="Ganti Kamera"><i class="fa-solid fa-camera-rotate"></i></button>
+            <button id="btnPause" onclick="togglePauseRecording()" disabled class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white text-sm opacity-40 cursor-not-allowed active:scale-95 transition-all" title="Jeda Perekaman"><i id="pauseIcon" class="fa-solid fa-pause"></i></button>
             <button id="btnRecord" onclick="toggleRecording()" class="relative w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-[0_0_0_4px_rgba(255,255,255,0.3)] transition-all">
                 <div id="btnRecordInner" class="w-14 h-14 bg-rose-500 rounded-full transition-all duration-300"></div>
             </button>
         </div>
     </div>
 
-    <!-- VIEW KAMERA ABSEN (FOTO) -->
     <div id="viewAbsenCamera" class="fixed inset-0 bg-black z-50 hidden flex-col pointer-events-auto">
         <div class="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-20 bg-gradient-to-b from-black/60 to-transparent pt-6">
             <button onclick="closeAbsenCamera()" class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white active:scale-95"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -350,16 +283,13 @@
         </div>
         <video id="absenVideoPreview" autoplay playsinline muted class="w-full h-full object-cover bg-gray-900"></video>
         <div class="absolute bottom-0 left-0 w-full pb-10 pt-16 flex items-center justify-center gap-6 bg-gradient-to-t from-black/80 to-transparent z-20">
-            <button onclick="switchAbsenCamera()" class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white text-sm active:scale-95 transition-all" title="Ganti Kamera">
-                <i class="fa-solid fa-camera-rotate"></i>
-            </button>
+            <button onclick="switchAbsenCamera()" class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white text-sm active:scale-95 transition-all" title="Ganti Kamera"><i class="fa-solid fa-camera-rotate"></i></button>
             <button onclick="captureAbsenPhoto()" class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-[0_0_0_4px_rgba(255,255,255,0.3)] transition-all">
                 <div class="w-14 h-14 bg-blue-600 rounded-full border-4 border-white"></div>
             </button>
         </div>
     </div>
 
-    <!-- UPLOAD SCREEN -->
     <div id="viewUploading" class="fixed inset-0 bg-white z-50 hidden flex-col items-center justify-center pointer-events-auto">
         <div class="relative w-32 h-32 mb-6">
             <svg class="animate-spin w-full h-full text-blue-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-100" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle><path class="opacity-100 text-blue-600" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -369,31 +299,24 @@
         <p id="uploadStatusText" class="text-[11px] text-gray-500 font-medium text-center px-8">Sedang memproses dan membersihkan format agar aman di server...</p>
     </div>
 
-    <!-- POPUP SUKSES UPLOAD TUGAS -->
     <div id="successUploadModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden flex-col items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-6 shadow-2xl w-full max-w-xs text-center flex flex-col items-center transform scale-100 transition-transform">
-            <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
-                <i class="fa-solid fa-check text-4xl text-emerald-500"></i>
-            </div>
+            <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-4"><i class="fa-solid fa-check text-4xl text-emerald-500"></i></div>
             <h3 class="font-bold text-gray-800 text-lg mb-1">Berhasil!</h3>
             <p class="text-xs text-gray-500 mb-5">Video tugas kamu berhasil terkirim dan tersimpan ke server.</p>
             <button onclick="closeSuccessModal()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl active:scale-95 text-sm">Kembali ke Dashboard</button>
         </div>
     </div>
 
-    <!-- POPUP SUKSES ABSEN -->
     <div id="successAbsenModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden flex-col items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-6 shadow-2xl w-full max-w-xs text-center flex flex-col items-center transform scale-100 transition-transform">
-            <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
-                <i class="fa-solid fa-check text-4xl text-emerald-500"></i>
-            </div>
+            <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-4"><i class="fa-solid fa-check text-4xl text-emerald-500"></i></div>
             <h3 class="font-bold text-gray-800 text-lg mb-1">Absen Disimpan!</h3>
             <p id="successAbsenText" class="text-xs text-gray-500 mb-5">Absen berhasil disimpan oleh petugas.</p>
             <button onclick="closeSuccessAbsenModal()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl active:scale-95 text-sm">Selesai</button>
         </div>
     </div>
 
-    <!-- POPUP EASTER EGG -->
     <div id="easterEggModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[140] hidden flex-col items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 shadow-2xl w-full max-w-sm text-center flex flex-col items-center transform scale-100 transition-transform relative overflow-hidden">
             <div class="absolute -top-10 -right-10 text-9xl opacity-10">🌻</div>
@@ -404,7 +327,6 @@
         </div>
     </div>
 
-    <!-- MODAL PREVIEW FOTO ABSEN -->
     <div id="photoModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[120] hidden flex items-center justify-center p-4">
         <div class="relative max-w-lg w-full bg-black rounded-3xl overflow-hidden shadow-2xl flex flex-col items-center">
             <button onclick="closePhotoModal()" class="absolute top-3 right-3 w-8 h-8 bg-white/20 backdrop-blur rounded-full flex items-center justify-center text-white z-10"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -416,7 +338,6 @@
         </div>
     </div>
 
-    <!-- MODAL GANTI PASSWORD -->
     <div id="passwordModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all">
         <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl scale-95 transition-transform duration-300 transform" id="passwordModalContent">
             <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-gray-800 text-lg">Ganti Password</h3><button onclick="closePasswordModal()" class="text-gray-400"><i class="fa-solid fa-xmark text-xl"></i></button></div>
@@ -428,38 +349,43 @@
         </div>
     </div>
 
-    <!-- LOADING OVERLAY -->
     <div id="loadingOverlay" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-[100] flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity">
         <div class="w-24 h-24 mb-4 flex items-center justify-center">
             <img src="./logo.png" alt="Loading" class="max-h-full max-w-full object-contain animate-pulse drop-shadow-xl" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-blue-600 text-5xl animate-pulse\'></i>';">
         </div>
         <p id="loadingText" class="text-blue-700 font-bold text-sm animate-pulse">Memproses...</p>
     </div>
-
     <div id="toastContainer" class="fixed top-5 left-1/2 -translate-x-1/2 z-[110] flex flex-col gap-2 pointer-events-none w-full max-w-xs px-4"></div>
 
     <script>
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwYTFRirtCpDT1vXJ0hSeFtElQR44rdoMPKskHgRPO3OlCr5_D_cXvLQOFzkDt4lY_IYw/exec'; 
-        
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwYTFRirtCpDT1vXJ0hSeFtElQR44rdoMPKskHgRPO3OlCr5_D_cXvLQOFzkDt4lY_IYw/exec';
+
         let user = JSON.parse(localStorage.getItem('userSession') || sessionStorage.getItem('userSession'));
         let activeTasks = [], userSubs = {};
         let selectedTask = null, currentSubTugas = "Utama", selectedDay = "1";
         let currentMinSec = 60, currentMaxSec = 300;
-        
         let mediaStream = null, mediaRecorder = null, recordedChunks = [];
         let isRecording = false, isPaused = false, timerInterval, secondsRecorded = 0;
         let currentFacingMode = "environment";
-        let isMinBeepPlayed = false; 
-        let isCountdownActive = false; 
-        
-        // State Absensi
+        let isMinBeepPlayed = false;
+        let isCountdownActive = false;
         let absenStream = null, currentPhotoType = "Datang";
-        let absenFacingMode = "user"; 
+        let absenFacingMode = "user";
         let fotoDatangBase64 = null, fotoPulangBase64 = null;
-        let absenLocked = false; 
-        let localHasDatang = false; 
+        let absenLocked = false;
+        let localHasDatang = false;
 
-        // Easter Egg State
+        // ============ STATE METRONOME ============
+        let currentMetroOn = false;
+        let currentMetroBpm = 96;
+        let currentMetroSound = 'beep';
+        let metroMuted = false;
+        let metroAudioCtx = null;
+        let metroMasterGain = null;
+        let metroSchedulerId = null;
+        let metroNextBeatTime = 0;
+        let metroBeatCount = 0;
+
         let easterEggShownToday = false;
         const eggQuotes = [
             "Kamu hebat! Kamu sudah menyelesaikan semua tugas hari ini. Yakinlah semua ini akan membuatmu lebih baik.",
@@ -469,7 +395,6 @@
             "Selamat! Kamu berhasil menaklukkan semua tantangan hari ini. Istirahatlah dengan tenang."
         ];
 
-        // --- HELPER ---
         function formatSecToText(secVal) {
             const sec = parseInt(secVal) || 0;
             const m = Math.floor(sec / 60); const s = sec % 60;
@@ -489,7 +414,7 @@
             }
             return (parseInt(val) || 0) * 60;
         }
-        
+
         function formatDateTime(iso) {
             if(!iso) return { date: "", time: "" };
             try {
@@ -520,7 +445,7 @@
                     const pad = (n) => String(n).padStart(2, '0');
                     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
                 }
-                return str.split('T')[0]; 
+                return str.split('T')[0];
             }
             return str;
         }
@@ -533,7 +458,7 @@
 
         function getDirectImageLink(url) {
             if(!url) return "";
-            const match = url.match(/[-\w]{25,}/); 
+            const match = url.match(/[-\w]{25,}/);
             return match ? `https://lh3.googleusercontent.com/d/${match[0]}` : url;
         }
 
@@ -544,11 +469,9 @@
         function isSubDone(taskId, tanggal, subName) {
             const cleanTaskId = normalizeStr(taskId);
             const cleanSubName = normalizeStr(subName);
-
             return Object.keys(userSubs).some(k => {
                 const cleanK = normalizeStr(k);
                 if (!cleanK.includes(cleanTaskId) || !cleanK.includes(cleanSubName)) return false;
-
                 let dateInKey = "";
                 const isoMatch = k.match(/(\d{4}-\d{2}-\d{2})/);
                 if (isoMatch) {
@@ -579,33 +502,21 @@
             }
         }
 
-        // --- SWIPE SIDEBAR FEATURE ---
         let touchStartX = 0;
         let touchEndX = 0;
-
-        document.addEventListener('touchstart', e => {
-            touchStartX = e.changedTouches[0].screenX;
-        }, false);
-
-        document.addEventListener('touchend', e => {
-            touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
-        }, false);
+        document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, false);
+        document.addEventListener('touchend', e => { touchEndX = e.changedTouches[0].screenX; handleSwipe(); }, false);
 
         function handleSwipe() {
-            if (window.innerWidth >= 768) return; // Hanya untuk mobile
-
+            if (window.innerWidth >= 768) return;
             const sidebar = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebarBackdrop');
-            
-            // Geser ke kanan (Buka Sidebar)
             if (touchEndX - touchStartX > 70 && touchStartX < 50) {
                 if (sidebar.classList.contains('-translate-x-full')) {
                     sidebar.classList.remove('-translate-x-full');
                     backdrop.classList.remove('hidden');
                 }
             }
-            // Geser ke kiri (Tutup Sidebar)
             if (touchStartX - touchEndX > 70) {
                 if (!sidebar.classList.contains('-translate-x-full')) {
                     sidebar.classList.add('-translate-x-full');
@@ -614,67 +525,36 @@
             }
         }
 
-        // --- MENU RENDERING ---
         function renderMenu() {
             const container = document.getElementById('sidebarMenuContainer');
             let html = '';
-            
-            // Menu Absen (Hanya Petugas)
             if(user.hakAbsen) {
-                html += `<button onclick="openAbsenModal()" class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-600 hover:bg-emerald-100 flex items-center gap-2 transition-colors border border-emerald-200 mb-2">
-                    <i class="fa-solid fa-clipboard-user w-4 text-center"></i> <span>Input Absensi Harian</span>
-                </button>`;
+                html += `<button onclick="openAbsenModal()" class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-600 hover:bg-emerald-100 flex items-center gap-2 transition-colors border border-emerald-200 mb-2"><i class="fa-solid fa-clipboard-user w-4 text-center"></i> <span>Input Absensi Harian</span></button>`;
             }
-            
-            // Menu Data Anggota (Selalu di atas jika bukan petugas)
-            html += `<button onclick="switchTab('dataAnggota')" id="tabBtnDataAnggota" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors">
-                <i class="fa-solid fa-id-card w-4 text-center"></i> <span>Data Anggota</span>
-            </button>`;
-            
-            // Menu Tugas
-            html += `<button onclick="switchTab('dashboard')" id="tabBtnDashboard" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold bg-blue-600 text-white flex items-center gap-2 transition-colors">
-                <i class="fa-solid fa-list-check w-4 text-center"></i> <span>Tugas Hari Ini</span>
-                <span id="badgeTugasCount" class="hidden ml-auto bg-rose-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">0</span>
-            </button>`;
-            
-            html += `<button onclick="switchTab('riwayatTugas')" id="tabBtnRiwayatTugas" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors relative">
-                <i class="fa-solid fa-medal w-4 text-center"></i> <span>Riwayat Tugas</span>
-                <span id="badgeRiwayatDot" class="hidden absolute right-3 w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
-            </button>`;
-            
-            html += `<button onclick="switchTab('riwayatLatihan')" id="tabBtnRiwayatLatihan" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors">
-                <i class="fa-solid fa-chart-line w-4 text-center"></i> <span>Riwayat Latihan</span>
-            </button>`;
-            
-            html += `<button onclick="switchTab('materi')" id="tabBtnMateri" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors">
-                <i class="fa-solid fa-book-open w-4 text-center"></i> <span>Materi</span>
-            </button>`;
-            
+            html += `<button onclick="switchTab('dataAnggota')" id="tabBtnDataAnggota" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors"><i class="fa-solid fa-id-card w-4 text-center"></i> <span>Data Anggota</span></button>`;
+            html += `<button onclick="switchTab('dashboard')" id="tabBtnDashboard" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold bg-blue-600 text-white flex items-center gap-2 transition-colors"><i class="fa-solid fa-list-check w-4 text-center"></i> <span>Tugas Hari Ini</span><span id="badgeTugasCount" class="hidden ml-auto bg-rose-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">0</span></button>`;
+            html += `<button onclick="switchTab('riwayatTugas')" id="tabBtnRiwayatTugas" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors relative"><i class="fa-solid fa-medal w-4 text-center"></i> <span>Riwayat Tugas</span><span id="badgeRiwayatDot" class="hidden absolute right-3 w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span></button>`;
+            html += `<button onclick="switchTab('riwayatLatihan')" id="tabBtnRiwayatLatihan" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors"><i class="fa-solid fa-chart-line w-4 text-center"></i> <span>Riwayat Latihan</span></button>`;
+            html += `<button onclick="switchTab('materi')" id="tabBtnMateri" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors"><i class="fa-solid fa-book-open w-4 text-center"></i> <span>Materi</span></button>`;
             container.innerHTML = html;
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Set Profil Sidebar & Mobile Header
             document.getElementById('sidebarNameDisplay').textContent = user.nama;
             document.getElementById('sidebarClassDisplay').textContent = user.kelas;
             document.getElementById('mobileName').textContent = user.nama;
-
-            // Set Data Anggota View
             document.getElementById('dataNama').textContent = user.nama;
             document.getElementById('dataKelas').textContent = `Kelas ${user.kelas}`;
             document.getElementById('dataNamaLengkap').textContent = user.nama;
             document.getElementById('dataUsername').textContent = user.username;
             document.getElementById('dataKelasLengkap').textContent = user.kelas;
             document.getElementById('dataRole').textContent = user.role;
-
             const hour = new Date().getHours();
             let greeting = "Selamat Pagi";
             if (hour >= 11 && hour < 15) greeting = "Selamat Siang";
             else if (hour >= 15 && hour < 18) greeting = "Selamat Sore";
             else if (hour >= 18 || hour < 11) greeting = "Selamat Malam";
-            
             document.getElementById('mobileGreeting').textContent = greeting;
-
             const quotes = [
                 "Disiplin adalah jembatan antara cita-cita dan pencapaian.",
                 "Keringat hari ini adalah kekuatan di masa depan.",
@@ -685,14 +565,11 @@
             ];
             const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
             document.getElementById('mobileMotivation').textContent = `"${randomQuote}"`;
-
-            // Cek Hak Absen
             if(user.hakAbsen) {
                 document.getElementById('sidebarRoleBadge').textContent = "Petugas Absen";
                 document.getElementById('sidebarRoleBadge').className = "bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-emerald-300 shadow-sm";
                 document.getElementById('absensiDate').value = getLocalToday();
             }
-
             renderMenu();
             fetchTasks();
             fetchRiwayatSemua();
@@ -702,40 +579,34 @@
 
         function switchTab(tabKey) {
             const tabs = ['dashboard', 'riwayatTugas', 'riwayatLatihan', 'materi', 'dataAnggota'];
-            const tabNames = { 'dashboard': 'Tugas Hari Ini', 'riwayatTugas': 'Riwayat Tugas', 'riwayatLatihan': 'Riwayat Latihan', 'materi': 'Materi', 'dataAnggota': 'Data Anggota' };
-            
             if (window.innerWidth < 768) {
                 const sidebar = document.getElementById('sidebar');
                 if (!sidebar.classList.contains('-translate-x-full')) toggleSidebar();
             }
-
             tabs.forEach(t => {
                 const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
                 const view = document.getElementById(`view${t.charAt(0).toUpperCase() + t.slice(1)}`);
                 if(!btn || !view) return;
-                
                 if (t === tabKey) {
-                    btn.classList.add('bg-blue-600', 'text-white'); 
+                    btn.classList.add('bg-blue-600', 'text-white');
                     btn.classList.remove('text-gray-600', 'hover:bg-gray-100');
                     view.classList.remove('hidden'); view.classList.add('flex');
-                    
                     if (t === 'riwayatTugas') document.getElementById('badgeRiwayatDot').classList.add('hidden');
                 } else {
-                    btn.classList.remove('bg-blue-600', 'text-white'); 
+                    btn.classList.remove('bg-blue-600', 'text-white');
                     btn.classList.add('text-gray-600', 'hover:bg-gray-100');
                     view.classList.add('hidden'); view.classList.remove('flex');
                 }
             });
         }
 
-        // Toggle Password di Data Anggota
         let passVisible = false;
         function togglePassword() {
             passVisible = !passVisible;
             const el = document.getElementById('dataPassword');
             const btn = document.getElementById('btnTogglePass');
             if (passVisible) {
-                el.textContent = user.password || "Password tidak tersedia"; 
+                el.textContent = user.password || "Password tidak tersedia";
                 btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
             } else {
                 el.textContent = "••••••••";
@@ -743,7 +614,6 @@
             }
         }
 
-        // --- FUNGSI MODAL ABSENSI ---
         function openAbsenModal() {
             document.getElementById('absenModal').classList.remove('hidden');
             document.getElementById('absenModal').classList.add('flex');
@@ -755,12 +625,9 @@
             document.getElementById('absenModal').classList.remove('flex');
         }
 
-        // --- FUNGSI EASTER EGG ---
         function triggerEasterEgg() {
             if (easterEggShownToday) return;
             easterEggShownToday = true;
-
-            // Buat animasi bunga matahari
             const emojis = ['🌻', '🌻', '🌼', '✨'];
             for (let i = 0; i < 20; i++) {
                 setTimeout(() => {
@@ -773,8 +640,6 @@
                     setTimeout(() => el.remove(), 6000);
                 }, i * 150);
             }
-
-            // Tampilkan Popup
             const randomQuote = eggQuotes[Math.floor(Math.random() * eggQuotes.length)];
             document.getElementById('easterEggText').textContent = randomQuote;
             setTimeout(() => {
@@ -788,15 +653,13 @@
             document.getElementById('easterEggModal').classList.remove('flex');
         }
 
-        // --- FETCH & RENDER TUGAS ---
         function fetchTasks() {
             const container = document.getElementById('taskListContainer');
             container.innerHTML = `<div class="py-10 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-spinner animate-spin text-3xl text-blue-600 mb-3"></i><p class="text-xs font-semibold text-gray-500">Memuat tugas...</p></div>`;
-            
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getTasks', username: user.username }) })
             .then(r => r.json()).then(d => {
                 if (d.success) {
-                    activeTasks = d.tasks; 
+                    activeTasks = d.tasks;
                     userSubs = d.userSubs || {};
                     renderTasks(activeTasks);
                 }
@@ -806,25 +669,19 @@
         function renderTasks(tasks) {
             const today = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Jakarta"}));
             const todayStr = getLocalToday();
-            
-            // Hitung tanggal besok
             let tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
             const pad = (n) => String(n).padStart(2, '0');
             const tomorrowStr = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth()+1)}-${pad(tomorrow.getDate())}`;
-
             const todayTasks = [];
             const tomorrowTasks = [];
             let totalUnfinishedToday = 0;
-
             tasks.forEach(t => {
                 if (t.isLama) { todayTasks.push(t); return; }
-
                 const rawDates = t.tanggalPengerjaan ? t.tanggalPengerjaan.toString() : "";
-                let dateList = rawDates.includes(' to ') 
+                let dateList = rawDates.includes(' to ')
                     ? rawDates.split(' to ').map(d => extractLocalDate(d))
                     : rawDates.split(',').map(d => extractLocalDate(d));
-
                 if (t.tipePengumpulan === 'Harian') {
                     if (dateList.includes(todayStr)) {
                         todayTasks.push(t);
@@ -838,8 +695,6 @@
                     todayTasks.push(t);
                 }
             });
-
-            // 1. Render Tugas Besok (Upcoming)
             const upcomingSection = document.getElementById('upcomingTasksSection');
             if (tomorrowTasks.length > 0) {
                 upcomingSection.classList.remove('hidden');
@@ -858,66 +713,51 @@
                         `).join('')}
                     </div>`;
             } else { upcomingSection.classList.add('hidden'); upcomingSection.innerHTML = ''; }
-
-            // 2. Render Tugas Hari Ini
             const container = document.getElementById('taskListContainer');
-            
             const todayTasksFiltered = todayTasks.filter(t => {
                 if(t.isLama) return true;
                 const pendingSubs = (t.subTugas || []).filter(sub => !isSubDone(t.taskId, todayStr, sub.nama));
                 return pendingSubs.length > 0;
             });
-
             let totalSubsToday = 0;
             todayTasks.forEach(t => { if(!t.isLama) totalSubsToday += (t.subTugas || []).length; });
-
             if (todayTasks.length > 0 && todayTasksFiltered.length === 0 && totalSubsToday > 0) {
                 triggerEasterEgg();
             }
-
             if (todayTasksFiltered.length === 0) {
                 container.innerHTML = `<div class="bg-white border rounded-3xl p-6 text-center shadow-xs"><i class="fa-solid fa-circle-check text-emerald-400 text-3xl mb-2"></i><p class="text-xs text-gray-500 font-semibold">Mantap! Semua tugas untuk hari ini sudah selesai.</p></div>`;
                 document.getElementById('badgeTugasCount').classList.add('hidden');
                 return;
             }
-
             container.innerHTML = todayTasksFiltered.map(t => {
                 const isLama = t.isLama;
                 const isBertumpuk = t.subTugas && t.subTugas.length > 1;
-                
                 const pendingSubs = (t.subTugas || []).filter(sub => !isSubDone(t.taskId, todayStr, sub.nama));
                 totalUnfinishedToday += pendingSubs.length;
-
                 let statusTeks = '';
                 if ((t.subTugas || []).length === 1) {
                     statusTeks = `<div class="text-[10px] font-bold text-rose-500 bg-rose-50 px-3 py-2 rounded-xl text-center mt-2 border border-rose-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-circle-exclamation"></i> Anda belum mengerjakan tugas ini</div>`;
                 } else {
                     statusTeks = `<div class="text-[10px] font-bold text-amber-600 bg-amber-50 px-3 py-2 rounded-xl text-center mt-2 border border-amber-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-clock"></i> Sisa ${pendingSubs.length} gerakan belum dikerjakan</div>`;
                 }
-                
                 let labelTanggal = isLama ? "Sistem Lama" : (t.tipePengumpulan === "Satu Kali" ? `Deadline: ${t.tanggalPengerjaan.replace(' to ', ' s/d ')}` : `Tugas Rutin Hari Ini`);
                 const borderClass = isLama ? 'border-gray-400' : (t.tipePengumpulan === 'Satu Kali' ? 'border-amber-500' : 'border-purple-500');
                 const textClass = isLama ? 'text-gray-400' : (t.tipePengumpulan === 'Satu Kali' ? 'text-amber-500' : 'text-purple-500');
-
                 return `
                     <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden flex flex-col gap-2 pl-5 border-l-[5px] ${borderClass}">
                         <span class="text-[9px] font-extrabold ${textClass} uppercase tracking-wider">${t.tipePengumpulan}</span>
                         <h4 class="text-base font-bold text-gray-800 leading-tight">${t.judulTugas}</h4>
-                        
                         <div class="flex flex-col gap-0.5 text-[10px] font-bold text-blue-600 mb-1">
                             <span><i class="fa-solid fa-calendar mr-1.5"></i>${labelTanggal}</span>
                             ${isBertumpuk ? `<span class="text-amber-600"><i class="fa-solid fa-layer-group mr-1.5"></i>Multitask (${t.subTugas.length} Gerakan)</span>` : ''}
                         </div>
-                        
                         <div class="text-[11px] text-gray-500 bg-gray-50/80 border border-gray-100 p-3 rounded-xl leading-snug">
                             ${t.instruksi}
                             ${statusTeks}
                         </div>
-                        
                         <button onclick="openSetup('${t.taskId}')" class="mt-2 w-full bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-3 rounded-xl text-xs flex justify-center items-center gap-2 active:scale-95 transition-colors"><i class="fa-solid fa-folder-open"></i> Buka Modul Tugas</button>
                     </div>`;
             }).join('');
-
             const badgeBtn = document.getElementById('badgeTugasCount');
             if (totalUnfinishedToday > 0) {
                 badgeBtn.textContent = totalUnfinishedToday;
@@ -932,29 +772,28 @@
             document.getElementById('setupTipeBadge').textContent = selectedTask.tipePengumpulan;
             document.getElementById('setupTaskTitle').textContent = selectedTask.judulTugas;
             document.getElementById('setupTaskDesc').textContent = selectedTask.instruksi;
-            
             const todayStr = getLocalToday();
             selectedDay = todayStr;
             document.getElementById('setupTaskDate').innerHTML = `<i class="fa-regular fa-calendar-check mr-1"></i> Tugas untuk: ${formatDateIndo(todayStr)}`;
-
-            renderSubTasks(); 
+            renderSubTasks();
             document.getElementById('viewSetup').classList.remove('hidden'); document.getElementById('viewSetup').classList.add('flex');
         }
-        
+
         function closeSetup() { document.getElementById('viewSetup').classList.add('hidden'); }
 
         function renderSubTasks() {
             selectedDay = getLocalToday();
             const container = document.getElementById('subTasksContainer');
             container.innerHTML = '';
-
             selectedTask.subTugas.forEach(sub => {
                 const isDone = isSubDone(selectedTask.taskId, selectedDay, sub.nama);
-                
                 const minSec = parseDuration(sub.min);
                 const maxSec = parseDuration(sub.max);
                 const targetTeks = `${formatSecToText(minSec)} - ${formatSecToText(maxSec)}`;
-
+                const hasMetro = sub.metro && sub.metro.on;
+                const metroBadgeHtml = hasMetro
+                    ? `<span class="text-[9px] text-blue-100 bg-blue-900/60 px-1.5 py-0.5 rounded flex items-center gap-0.5"><i class="fa-solid fa-drum text-[8px]"></i> ${parseInt(sub.metro.bpm) || 96}</span>`
+                    : '';
                 if (isDone) {
                     container.innerHTML += `
                         <div class="w-full bg-emerald-500 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 shadow-sm opacity-90 cursor-not-allowed">
@@ -965,9 +804,10 @@
                         </div>`;
                 } else {
                     container.innerHTML += `
-                        <button onclick="prepareCamera('${sub.nama}', ${minSec}, ${maxSec})" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 active:scale-95 shadow-lg group transition-transform">
-                            <span>${sub.nama}</span>
-                            <div class="flex items-center gap-2">
+                        <button onclick="prepareCamera('${sub.nama.replace(/'/g, "\\'")}', ${minSec}, ${maxSec})" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 active:scale-95 shadow-lg group transition-transform">
+                            <span class="truncate pr-2">${sub.nama}</span>
+                            <div class="flex items-center gap-1.5 flex-shrink-0">
+                                ${metroBadgeHtml}
                                 <span class="text-[9px] text-blue-200 bg-blue-800/50 px-1.5 py-0.5 rounded">${targetTeks}</span>
                                 <span class="bg-blue-800 px-2 py-1 rounded text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-video"></i> Rekam</span>
                             </div>
@@ -976,25 +816,40 @@
             });
         }
 
-        // --- SISTEM KAMERA TUGAS (VIDEO) ---
         async function prepareCamera(subName, minSec, maxSec) {
             currentSubTugas = subName;
             currentMinSec = parseInt(minSec);
             currentMaxSec = parseInt(maxSec);
+            const sub = (selectedTask && selectedTask.subTugas) ? selectedTask.subTugas.find(s => s.nama === subName) : null;
+            const metro = (sub && sub.metro) ? sub.metro : { on: false, bpm: 96, sound: 'beep' };
+            currentMetroOn = !!metro.on;
+            currentMetroBpm = parseInt(metro.bpm) || 96;
+            currentMetroSound = metro.sound || 'beep';
+            metroMuted = false;
+            const badge = document.getElementById('metroBadge');
+            const muteBtn = document.getElementById('btnMetroMute');
+            const muteIcon = document.getElementById('metroMuteIcon');
+            if (currentMetroOn) {
+                document.getElementById('metroBadgeText').textContent = currentMetroBpm;
+                badge.classList.remove('hidden');
+                badge.classList.add('flex');
+                muteBtn.classList.remove('hidden');
+                muteBtn.classList.add('flex');
+                muteIcon.className = 'fa-solid fa-volume-high';
+            } else {
+                badge.classList.add('hidden');
+                badge.classList.remove('flex');
+                muteBtn.classList.add('hidden');
+                muteBtn.classList.remove('flex');
+            }
             document.getElementById('kameraSubName').textContent = subName;
             document.getElementById('kameraTarget').textContent = `${formatSecToText(currentMinSec)} - ${formatSecToText(currentMaxSec)}`;
             closeSetup();
             document.getElementById('viewCamera').classList.remove('hidden'); document.getElementById('viewCamera').classList.add('flex');
-            
-            // Reset state
             isMinBeepPlayed = false;
             isCountdownActive = false;
-            
             await startMediaStream();
-            
-            // Tampilkan tombol switch kamera saat masuk mode preview
             document.getElementById('btnSwitchCamera').classList.remove('hidden');
-            
             isPaused = false;
             const btnP = document.getElementById('btnPause');
             btnP.disabled = true;
@@ -1006,12 +861,12 @@
         async function startMediaStream() {
             try {
                 if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
-                mediaStream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: true, 
-                    video: { width: { ideal: 960 }, height: { ideal: 540 }, facingMode: currentFacingMode } 
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    audio: true,
+                    video: { width: { ideal: 960 }, height: { ideal: 540 }, facingMode: currentFacingMode }
                 });
-                const videoEl = document.getElementById('videoPreview'); 
-                videoEl.srcObject = mediaStream; 
+                const videoEl = document.getElementById('videoPreview');
+                videoEl.srcObject = mediaStream;
                 videoEl.muted = true;
             } catch (err) { showToast("Gagal akses kamera", "error"); }
         }
@@ -1023,48 +878,41 @@
             showToast(currentFacingMode === "environment" ? "Kamera Belakang" : "Kamera Depan", "info");
         }
 
-        function toggleRecording() { 
-            if (!isRecording && !isCountdownActive) startCountdown(); 
-            else if (isRecording) stopRecording(false); 
+        function toggleRecording() {
+            if (!isRecording && !isCountdownActive) startCountdown();
+            else if (isRecording) stopRecording(false);
         }
 
-        // --- LOGIKA COUNTDOWN & BEEP ---
         function startCountdown() {
             isCountdownActive = true;
+            if (currentMetroOn) { try { ensureMetroCtx(); } catch(e) {} }
             const overlay = document.getElementById('countdownOverlay');
             const text = document.getElementById('countdownText');
             overlay.classList.remove('hidden');
             overlay.classList.add('flex');
-            
-            // Sembunyikan tombol switch kamera saat mulai rekam
             document.getElementById('btnSwitchCamera').classList.add('hidden');
-            
             let count = 3;
             text.textContent = count;
-            
             const playBeep1 = () => { document.getElementById('beep1').currentTime = 0; document.getElementById('beep1').play().catch(e=>{}); };
             const playBeep2 = () => { document.getElementById('beep2').currentTime = 0; document.getElementById('beep2').play().catch(e=>{}); };
-
-            playBeep1(); // Bunyi saat angka 3 muncul
-
+            playBeep1();
             const interval = setInterval(() => {
                 count--;
                 if (count > 0) {
                     text.textContent = count;
                     text.classList.remove('countdown-anim');
-                    void text.offsetWidth; // trigger reflow
+                    void text.offsetWidth;
                     text.classList.add('countdown-anim');
                     playBeep1();
                 } else {
                     clearInterval(interval);
                     text.textContent = "Mulai!";
-                    playBeep2(); // Bunyi panjang saat mulai
-                    
+                    playBeep2();
                     setTimeout(() => {
                         overlay.classList.add('hidden');
                         overlay.classList.remove('flex');
                         isCountdownActive = false;
-                        startRecording(); // Mulai rekam setelah countdown
+                        startRecording();
                     }, 500);
                 }
             }, 1000);
@@ -1083,11 +931,11 @@
                 document.getElementById('btnRecord').classList.add('recording-pulse');
                 document.getElementById('recIndicator').classList.remove('hidden');
                 document.getElementById('btnCancelCamera').classList.add('hidden');
-                
                 const btnP = document.getElementById('btnPause');
                 btnP.disabled = false;
                 btnP.className = "w-12 h-12 bg-white text-gray-800 rounded-full flex items-center justify-center text-sm shadow-lg active:scale-95 transition-all";
                 startTimer();
+                if (currentMetroOn) startMetronome();
             } catch (e) { abortRecording(); showToast("Error Perekaman", "error"); }
         }
 
@@ -1096,28 +944,28 @@
             const btnP = document.getElementById('btnPause'); const pIcon = document.getElementById('pauseIcon'); const pBadge = document.getElementById('pauseStatusBadge');
             if (!isPaused) {
                 mediaRecorder.pause(); isPaused = true; clearInterval(timerInterval);
+                if (currentMetroOn) stopMetronome();
                 pIcon.className = "fa-solid fa-play"; btnP.className = "w-12 h-12 bg-yellow-500 text-black rounded-full flex items-center justify-center text-sm shadow-lg active:scale-95 transition-all animate-pulse";
                 pBadge.classList.remove('hidden'); showToast("Perekaman dijeda", "info");
             } else {
                 mediaRecorder.resume(); isPaused = false; startTimer();
+                if (currentMetroOn) startMetronome();
                 pIcon.className = "fa-solid fa-pause"; btnP.className = "w-12 h-12 bg-white text-gray-800 rounded-full flex items-center justify-center text-sm shadow-lg active:scale-95 transition-all";
                 pBadge.classList.add('hidden'); showToast("Perekaman dilanjutkan", "info");
             }
         }
 
         function stopRecording(isAborted = false) {
+            if (currentMetroOn) stopMetronome();
             if (mediaRecorder && mediaRecorder.state !== 'inactive') { if (isAborted) { mediaRecorder.onstop = null; recordedChunks = []; } mediaRecorder.stop(); }
-            isRecording = false; isPaused = false; stopTimer(); 
+            isRecording = false; isPaused = false; stopTimer();
             if(mediaStream) { mediaStream.getTracks().forEach(t=>t.stop()); mediaStream = null; document.getElementById('videoPreview').srcObject = null; }
             document.getElementById('viewCamera').classList.add('hidden'); document.getElementById('viewCamera').classList.remove('flex');
             document.getElementById('btnRecordInner').className = "w-14 h-14 bg-rose-500 rounded-full transition-all duration-300";
             document.getElementById('btnRecord').classList.remove('recording-pulse');
             document.getElementById('recIndicator').classList.add('hidden');
             document.getElementById('btnCancelCamera').classList.remove('hidden');
-            
-            // Munculkan lagi tombol switch kamera saat selesai rekam (meski view sudah tertutup, untuk reset state)
             document.getElementById('btnSwitchCamera').classList.remove('hidden');
-            
             document.getElementById('pauseStatusBadge').classList.add('hidden');
         }
 
@@ -1128,18 +976,15 @@
             timerInterval = setInterval(() => { if(!isPaused) { secondsRecorded++; updateTimerDisplay(); } }, 1000);
         }
         function stopTimer() { clearInterval(timerInterval); document.getElementById('timerDisplay').textContent = "00:00"; }
-        
+
         function updateTimerDisplay() {
             const m = String(Math.floor(secondsRecorded / 60)).padStart(2, '0'); const s = String(secondsRecorded % 60).padStart(2, '0');
             document.getElementById('timerDisplay').textContent = `${m}:${s}`;
             let percent = (secondsRecorded / currentMaxSec) * 100; if (percent > 100) percent = 100;
             const pb = document.getElementById('videoProgressBar'); pb.style.width = `${percent}%`;
-            
-            if(secondsRecorded < currentMinSec) { pb.classList.remove('bg-emerald-500'); pb.classList.add('bg-rose-500'); } 
+            if(secondsRecorded < currentMinSec) { pb.classList.remove('bg-emerald-500'); pb.classList.add('bg-rose-500'); }
             else { pb.classList.remove('bg-rose-500'); pb.classList.add('bg-emerald-500'); }
-            
-            // LOGIKA BEEP 5 DETIK SEBELUM MINIMAL
-            if (secondsRecorded === (currentMinSec - 5) && !isMinBeepPlayed) {
+            if (!currentMetroOn && secondsRecorded === (currentMinSec - 5) && !isMinBeepPlayed) {
                 isMinBeepPlayed = true;
                 let beepCount = 0;
                 const beepInterval = setInterval(() => {
@@ -1153,31 +998,26 @@
                     }
                 }, 1000);
             }
-            
-            // BEEP SAAT MENCAPAI MINIMAL
-            if (secondsRecorded === currentMinSec) {
-                 const audio = document.getElementById('beep2');
-                 audio.currentTime = 0;
-                 audio.play().catch(e=>{});
+            const beep2Target = currentMetroOn ? (currentMinSec + 1) : currentMinSec;
+            if (secondsRecorded === beep2Target && beep2Target <= currentMaxSec) {
+                const audio = document.getElementById('beep2');
+                audio.currentTime = 0;
+                audio.play().catch(e=>{});
             }
-
             if(secondsRecorded >= currentMaxSec && isRecording) { stopRecording(false); showToast("Batas maksimal tercapai.", "info"); }
         }
 
         function processUploadBase64() {
             if (recordedChunks.length === 0) return;
             if (secondsRecorded < currentMinSec) { showToast(`Dibatalkan! Waktu minimum adalah ${formatSecToText(currentMinSec)}.`, "error"); return; }
-
             const blob = new Blob(recordedChunks, { type: recordedChunks[0].type });
             const ext = blob.type.includes('mp4') ? '.mp4' : '.webm';
             const cleanName = user.nama.replace(/[^a-zA-Z0-9]/g, '');
             const cleanSub = currentSubTugas.replace(/[^a-zA-Z0-9]/g, '');
             const filename = `Tugas_${cleanName}_${cleanSub}_${Date.now()}${ext}`;
-
             const viewUp = document.getElementById('viewUploading');
             document.getElementById('uploadStatusText').textContent = "Sedang memproses dan membersihkan format agar aman di server...";
             viewUp.classList.remove('hidden'); viewUp.classList.add('flex');
-
             const reader = new FileReader();
             reader.readAsDataURL(blob);
             reader.onloadend = function() {
@@ -1191,11 +1031,11 @@
                     })
                 }).then(r => r.json()).then(d => {
                     viewUp.classList.add('hidden'); viewUp.classList.remove('flex');
-                    if (d.success) { 
+                    if (d.success) {
                         document.getElementById('successUploadModal').classList.remove('hidden'); document.getElementById('successUploadModal').classList.add('flex');
                         const newKey = `${selectedTask.taskId}_${selectedDay}_${currentSubTugas}`;
                         userSubs[newKey] = true;
-                        fetchTasks(); 
+                        fetchTasks();
                         fetchRiwayatSemua();
                     } else { showToast("Gagal: " + d.message, "error"); }
                 }).catch(err => {
@@ -1207,6 +1047,131 @@
 
         function closeSuccessModal() {
             document.getElementById('successUploadModal').classList.add('hidden'); document.getElementById('successUploadModal').classList.remove('flex');
+        }
+
+        // ============ METRONOME (Web Audio API) ============
+        function ensureMetroCtx() {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!metroAudioCtx) {
+                metroAudioCtx = new Ctx();
+                metroMasterGain = metroAudioCtx.createGain();
+                metroMasterGain.gain.value = metroMuted ? 0 : 1;
+                metroMasterGain.connect(metroAudioCtx.destination);
+            }
+            if (metroAudioCtx.state === 'suspended') metroAudioCtx.resume();
+            return metroAudioCtx;
+        }
+
+        function metroPlayBeep(isAccent, when) {
+            const ctx = metroAudioCtx;
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = isAccent ? 1600 : 1000;
+            g.gain.setValueAtTime(0, when);
+            g.gain.linearRampToValueAtTime(isAccent ? 0.4 : 0.28, when + 0.003);
+            g.gain.setValueAtTime(isAccent ? 0.4 : 0.28, when + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.001, when + 0.09);
+            osc.connect(g); g.connect(metroMasterGain);
+            osc.start(when); osc.stop(when + 0.1);
+        }
+
+        function metroPlayClick(isAccent, when) {
+            const ctx = metroAudioCtx;
+            const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.008), ctx.sampleRate);
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < data.length; i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/data.length, 3);
+            const noiseSrc = ctx.createBufferSource(); noiseSrc.buffer = buf;
+            const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 3500;
+            const ng = ctx.createGain(); ng.gain.value = isAccent ? 0.35 : 0.22;
+            noiseSrc.connect(hp); hp.connect(ng); ng.connect(metroMasterGain);
+            noiseSrc.start(when);
+            const osc = ctx.createOscillator(); const og = ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(isAccent ? 2200 : 1500, when);
+            osc.frequency.exponentialRampToValueAtTime(isAccent ? 1400 : 900, when + 0.015);
+            og.gain.setValueAtTime(0, when);
+            og.gain.linearRampToValueAtTime(isAccent ? 0.28 : 0.18, when + 0.001);
+            og.gain.exponentialRampToValueAtTime(0.001, when + 0.025);
+            osc.connect(og); og.connect(metroMasterGain); osc.start(when); osc.stop(when + 0.03);
+        }
+
+        function metroPlayTick(isAccent, when) {
+            const ctx = metroAudioCtx;
+            const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.012), ctx.sampleRate);
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < data.length; i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/data.length, 5);
+            const src = ctx.createBufferSource(); src.buffer = buf;
+            const bp = ctx.createBiquadFilter(); bp.type = 'bandpass';
+            bp.frequency.value = isAccent ? 4500 : 2800; bp.Q.value = 6;
+            const g = ctx.createGain(); g.gain.value = isAccent ? 0.55 : 0.4;
+            src.connect(bp); bp.connect(g); g.connect(metroMasterGain);
+            src.start(when);
+        }
+
+        function metroPlayWoodblock(isAccent, when) {
+            const ctx = metroAudioCtx;
+            const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.015), ctx.sampleRate);
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < data.length; i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/data.length, 4);
+            const src = ctx.createBufferSource(); src.buffer = buf;
+            const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2500; bp.Q.value = 2;
+            const ng = ctx.createGain(); ng.gain.value = isAccent ? 0.5 : 0.32;
+            src.connect(bp); bp.connect(ng); ng.connect(metroMasterGain);
+            src.start(when);
+            const osc = ctx.createOscillator(); const og = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(isAccent ? 1700 : 1100, when);
+            osc.frequency.exponentialRampToValueAtTime(isAccent ? 800 : 550, when + 0.04);
+            og.gain.setValueAtTime(0, when);
+            og.gain.linearRampToValueAtTime(isAccent ? 0.6 : 0.4, when + 0.002);
+            og.gain.exponentialRampToValueAtTime(0.001, when + 0.06);
+            osc.connect(og); og.connect(metroMasterGain); osc.start(when); osc.stop(when + 0.08);
+        }
+
+        function metroScheduleBeat(when, isAccent) {
+            try {
+                if (currentMetroSound === 'click') return metroPlayClick(isAccent, when);
+                if (currentMetroSound === 'tick') return metroPlayTick(isAccent, when);
+                if (currentMetroSound === 'woodblock') return metroPlayWoodblock(isAccent, when);
+                return metroPlayBeep(isAccent, when);
+            } catch(e) { console.error('Metro beat error:', e); }
+        }
+
+        function startMetronome() {
+            if (!currentMetroOn) return;
+            try { ensureMetroCtx(); } catch(e) { return; }
+            metroBeatCount = 0;
+            metroNextBeatTime = metroAudioCtx.currentTime + 0.1;
+            if (metroSchedulerId) clearInterval(metroSchedulerId);
+            metroSchedulerId = setInterval(metroSchedulerTick, 25);
+            metroSchedulerTick();
+        }
+
+        function metroSchedulerTick() {
+            if (!metroAudioCtx) return;
+            const lookahead = 0.1;
+            while (metroNextBeatTime < metroAudioCtx.currentTime + lookahead) {
+                const isAccent = (metroBeatCount % 4) === 0;
+                metroScheduleBeat(metroNextBeatTime, isAccent);
+                metroBeatCount++;
+                metroNextBeatTime += 60 / currentMetroBpm;
+            }
+        }
+
+        function stopMetronome() {
+            if (metroSchedulerId) { clearInterval(metroSchedulerId); metroSchedulerId = null; }
+            metroBeatCount = 0;
+        }
+
+        function toggleMetroMute() {
+            metroMuted = !metroMuted;
+            if (metroMasterGain) {
+                metroMasterGain.gain.value = metroMuted ? 0 : 1;
+            }
+            const icon = document.getElementById('metroMuteIcon');
+            if (icon) icon.className = metroMuted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
+            showToast(metroMuted ? 'Metronome dibisukan' : 'Metronome dibunyikan', 'info');
         }
 
         // --- SISTEM KAMERA ABSEN (FOTO) ---
@@ -1221,8 +1186,8 @@
             try {
                 if (absenStream) absenStream.getTracks().forEach(t => t.stop());
                 absenStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: absenFacingMode } });
-                const videoEl = document.getElementById('absenVideoPreview'); 
-                videoEl.srcObject = absenStream; 
+                const videoEl = document.getElementById('absenVideoPreview');
+                videoEl.srcObject = absenStream;
                 videoEl.muted = true;
             } catch (err) { showToast("Gagal akses kamera", "error"); }
         }
@@ -1243,9 +1208,7 @@
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.8); 
-            
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
             if (currentPhotoType === 'Datang') {
                 fotoDatangBase64 = dataUrl;
                 document.getElementById('fotoDatangPreview').src = dataUrl;
@@ -1257,21 +1220,18 @@
                 document.getElementById('fotoPulangPreviewContainer').classList.remove('hidden');
                 document.getElementById('btnTakePulang').classList.add('hidden');
             }
-            
             document.getElementById('btnSimpanAbsen').classList.remove('hidden');
             closeAbsenCamera();
         }
 
         function checkTodayAbsensiStatus() {
             const today = document.getElementById('absensiDate').value;
-            let hasDatang = localHasDatang; 
+            let hasDatang = localHasDatang;
             let hasPulang = false;
             let savedMateri = "", savedEvaluasi = "";
-            
             if(stateAbsensiHistory && stateAbsensiHistory.length > 0) {
                 const headers = stateAbsensiHistory[0];
                 const colIdx = headers.indexOf(today);
-                
                 if(colIdx !== -1) {
                     let fdRow = -1, fpRow = -1, matRow = -1, evalRow = -1;
                     for(let i=1; i<stateAbsensiHistory.length; i++) {
@@ -1286,7 +1246,6 @@
                     if(evalRow !== -1) savedEvaluasi = stateAbsensiHistory[evalRow][colIdx] || "";
                 }
             }
-
             const boxDatang = document.getElementById('boxDatang');
             const btnDatang = document.getElementById('btnTakeDatang');
             const statusDatang = document.getElementById('statusDatangDone');
@@ -1297,7 +1256,6 @@
             const btnSimpan = document.getElementById('btnSimpanAbsen');
             const dateInput = document.getElementById('absensiDate');
             const formAbsensi = document.getElementById('formAbsensi');
-
             formAbsensi.classList.remove('form-locked');
             dateInput.disabled = false;
             formMateriEval.classList.add('hidden'); formMateriEval.classList.remove('flex');
@@ -1305,7 +1263,6 @@
             statusPulang.classList.add('hidden'); statusPulang.classList.remove('flex');
             boxDatang.classList.remove('opacity-50', 'cursor-not-allowed');
             boxPulang.classList.remove('opacity-50', 'cursor-not-allowed');
-            
             if (hasPulang) {
                 absenLocked = true;
                 btnDatang.classList.add('hidden');
@@ -1313,50 +1270,44 @@
                 statusDatang.classList.remove('hidden'); statusDatang.classList.add('flex');
                 statusPulang.classList.remove('hidden'); statusPulang.classList.add('flex');
                 formMateriEval.classList.remove('hidden'); formMateriEval.classList.add('flex');
-                dateInput.disabled = true; 
+                dateInput.disabled = true;
                 formAbsensi.classList.add('form-locked');
                 btnSimpan.classList.add('hidden');
                 boxDatang.classList.add('opacity-50');
                 boxPulang.classList.add('opacity-50');
-            } 
+            }
             else if (hasDatang) {
                 absenLocked = false;
                 btnDatang.classList.add('hidden');
                 statusDatang.classList.remove('hidden'); statusDatang.classList.add('flex');
-                statusDatang.onclick = function() { openAbsenCamera('Datang'); }; 
+                statusDatang.onclick = function() { openAbsenCamera('Datang'); };
                 statusDatang.classList.add('cursor-pointer', 'hover:bg-emerald-100');
-                
                 boxPulang.classList.remove('opacity-50', 'cursor-not-allowed');
                 btnPulang.disabled = false;
                 btnPulang.classList.remove('hidden');
                 formMateriEval.classList.remove('hidden'); formMateriEval.classList.add('flex');
-                
                 if (savedMateri && !document.getElementById('materiLatihan').value) document.getElementById('materiLatihan').value = savedMateri;
                 if (savedEvaluasi && !document.getElementById('evaluasiLatihan').value) document.getElementById('evaluasiLatihan').value = savedEvaluasi;
-
-                dateInput.disabled = true; 
-            } 
+                dateInput.disabled = true;
+            }
             else {
                 absenLocked = false;
                 btnDatang.classList.remove('hidden');
                 statusDatang.classList.remove('flex'); statusDatang.classList.add('hidden');
                 statusDatang.onclick = null;
                 statusDatang.classList.remove('cursor-pointer', 'hover:bg-emerald-100');
-                
                 btnPulang.classList.add('hidden');
                 boxPulang.classList.add('opacity-50', 'cursor-not-allowed');
                 btnPulang.disabled = true;
-                dateInput.disabled = false; 
+                dateInput.disabled = false;
             }
         }
 
-        // --- RIWAYAT & UPDATE NOTIFIKASI ---
         let stateAbsensiHistory = [];
         function fetchRiwayatSemua() {
             showLoading(true, "Memperbarui riwayat...");
             let req1 = fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAbsensiHistory' }) }).then(r=>r.json());
             let req2 = fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getDashboardData' }) }).then(r=>r.json());
-
             Promise.all([req1, req2]).then(([dAbsen, dDash]) => {
                 showLoading(false);
                 if(dAbsen.success && dAbsen.data.length > 0) {
@@ -1375,25 +1326,22 @@
             const container = document.getElementById('riwayatNilaiContainer');
             if(mySubs.length === 0) { container.innerHTML = `<div class="p-8 text-center text-xs text-gray-400 bg-white rounded-3xl border">Belum ada tugas yang dikumpulkan.</div>`; return; }
             document.getElementById('badgeRiwayatDot').classList.remove('hidden');
-
             const grouped = {};
             mySubs.forEach(s => {
                 const dt = formatDateTime(s.waktuKumpul || s.tanggal);
                 if(!grouped[dt.date]) grouped[dt.date] = [];
                 grouped[dt.date].push({ ...s, formattedTime: dt.time });
             });
-
             const sortedDates = Object.keys(grouped).sort((a,b) => new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-')));
 
             container.innerHTML = sortedDates.map(dateStr => {
-                const itemsForDate = grouped[dateStr].reverse(); 
+                const itemsForDate = grouped[dateStr].reverse();
                 const itemsHtml = itemsForDate.map(s => {
                     const n = s.nilai;
                     const badgeColor = (n==='A')?'bg-emerald-500':(n==='B')?'bg-blue-500':(n==='C')?'bg-amber-500':(n==='D')?'bg-orange-500':(n==='E')?'bg-rose-500':'bg-gray-300';
                     const taskRef = allTasks.find(t => t.taskId === s.taskId);
                     const judul = taskRef ? taskRef.judulTugas : "Tugas Latihan";
                     const komentar = s.komentar ? s.komentar : "Belum ada catatan dari pelatih.";
-
                     return `
                     <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3">
                         <div class="flex justify-between items-start border-b pb-3">
@@ -1407,12 +1355,10 @@
                                 <span class="w-10 h-10 rounded-full ${badgeColor} text-white font-extrabold flex items-center justify-center text-base shadow-sm">${n && n !== '-' ? n : '?'}</span>
                             </div>
                         </div>
-                        
                         <div class="bg-amber-50/60 border border-amber-100 p-3 rounded-2xl text-[11px] text-gray-700">
                             <span class="font-bold text-amber-800 block mb-1"><i class="fa-solid fa-comment-dots mr-1"></i> Catatan Perbaikan:</span>
                             <p class="italic text-gray-600 leading-snug">${komentar}</p>
                         </div>
-
                         <div class="flex gap-2 pt-1">
                             <a href="${s.linkVideo}" target="_blank" class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-2 rounded-xl text-center text-xs flex items-center justify-center gap-1.5 transition-colors">
                                 <i class="fa-solid fa-play"></i> Tonton
@@ -1423,7 +1369,6 @@
                         </div>
                     </div>`;
                 }).join('');
-
                 return `
                     <div class="flex items-center gap-3 mt-4 mb-2">
                         <div class="h-px bg-gray-200 flex-1"></div>
@@ -1447,15 +1392,12 @@
                 }
                 return String(d);
             });
-
             let stat = { Hadir: 0, Izin: 0, Sakit: 0, Alpa: 0 };
             const myHistoryMap = new Map();
-
             let myRowIdx = -1;
-            for(let i=1; i<data.length; i++) { 
-                if(String(data[i][1]).trim().toLowerCase() === user.nama.trim().toLowerCase()) { myRowIdx = i; break; } 
+            for(let i=1; i<data.length; i++) {
+                if(String(data[i][1]).trim().toLowerCase() === user.nama.trim().toLowerCase()) { myRowIdx = i; break; }
             }
-            
             let matRow=-1, evalRow=-1, fdRow=-1, fpRow=-1;
             for(let i=1; i<data.length; i++) {
                 if(data[i][1] === "MATERI LATIHAN:") matRow = i;
@@ -1463,7 +1405,6 @@
                 if(data[i][1] === "FOTO DATANG:") fdRow = i;
                 if(data[i][1] === "FOTO PULANG:") fpRow = i;
             }
-
             dates.forEach((tglStr, index) => {
                 const col = index + 3;
                 let statusKu = "-";
@@ -1474,13 +1415,11 @@
                     else if(st === 'Sakit') { statusKu="Sakit"; }
                     else if(st === 'Alpa') { statusKu="Alpa"; }
                 }
-                
                 if(statusKu !== "-") {
                     const materi = (matRow !== -1 && data[matRow][col]) ? data[matRow][col] : "-";
                     const evaluasi = (evalRow !== -1 && data[evalRow][col]) ? data[evalRow][col] : "";
                     const linkDatang = (fdRow !== -1 && data[fdRow][col]) ? data[fdRow][col] : "";
                     const linkPulang = (fpRow !== -1 && data[fpRow][col]) ? data[fpRow][col] : "";
-                    
                     if (myHistoryMap.has(tglStr)) {
                         const existing = myHistoryMap.get(tglStr);
                         existing.materi = (existing.materi === "-" || !existing.materi) ? materi : existing.materi;
@@ -1492,19 +1431,16 @@
                     }
                 }
             });
-
             myHistoryMap.forEach(h => {
                 if(h.statusKu === 'Hadir') stat.Hadir++;
                 else if(h.statusKu === 'Izin') stat.Izin++;
                 else if(h.statusKu === 'Sakit') stat.Sakit++;
                 else if(h.statusKu === 'Alpa') stat.Alpa++;
             });
-
             document.getElementById('statHadir').textContent = stat.Hadir;
             document.getElementById('statIzin').textContent = stat.Izin;
             document.getElementById('statSakit').textContent = stat.Sakit;
             document.getElementById('statAlpa').textContent = stat.Alpa;
-
             const total = stat.Hadir + stat.Izin + stat.Sakit + stat.Alpa;
             if(total > 0) {
                 document.getElementById('barHadir').style.width = `${(stat.Hadir/total)*100}%`;
@@ -1512,20 +1448,14 @@
                 document.getElementById('barSakit').style.width = `${(stat.Sakit/total)*100}%`;
                 document.getElementById('barAlpa').style.width = `${(stat.Alpa/total)*100}%`;
             }
-
             const container = document.getElementById('riwayatListContainer');
             if(myHistoryMap.size === 0) { container.innerHTML = `<div class="p-5 text-center text-xs text-gray-400">Belum ada riwayat latihan.</div>`; return; }
-
             const myHistory = Array.from(myHistoryMap.values());
-
             container.innerHTML = myHistory.map(h => {
                 const badgeClass = h.statusKu==='Hadir'?'bg-emerald-50 text-emerald-600':h.statusKu==='Alpa'?'bg-rose-50 text-rose-600':'bg-amber-50 text-amber-600';
-                
                 const btnDatang = h.linkDatang ? `<button onclick="openPhotoModal('${h.linkDatang}', 'Foto Datang - ${h.tgl}')" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-xl flex-1 text-center font-bold hover:bg-blue-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-image"></i> Datang</button>` : '';
                 const btnPulang = h.linkPulang ? `<button onclick="openPhotoModal('${h.linkPulang}', 'Foto Pulang - ${h.tgl}')" class="px-3 py-2 bg-emerald-50 text-emerald-600 rounded-xl flex-1 text-center font-bold hover:bg-emerald-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-image"></i> Pulang</button>` : '';
-                
                 const evalHtml = h.evaluasi ? `<p class="text-[10px] text-gray-500 leading-snug bg-amber-50 p-2.5 rounded-xl mt-1"><span class="font-bold text-amber-700">Evaluasi:</span> ${h.evaluasi}</p>` : '';
-
                 return `
                 <div class="p-4 flex flex-col gap-2">
                     <div class="flex justify-between items-center">
@@ -1540,7 +1470,7 @@
         }
 
         function openPhotoModal(url, title) {
-            const directUrl = getDirectImageLink(url); 
+            const directUrl = getDirectImageLink(url);
             document.getElementById('modalPhotoImg').src = directUrl;
             document.getElementById('modalPhotoTitle').textContent = title;
             document.getElementById('modalPhotoDownload').href = directUrl;
@@ -1572,59 +1502,53 @@
         document.getElementById('formAbsensi').addEventListener('submit', (e) => {
             e.preventDefault();
             if(absenLocked) { showToast("Absensi hari ini sudah selesai dan terkunci.", "error"); return; }
-            
             let typeToSubmit = "";
             let b64ToSubmit = "";
             if (fotoDatangBase64) { typeToSubmit = "Datang"; b64ToSubmit = fotoDatangBase64; }
-            else if (fotoPulangBase64) { 
-                typeToSubmit = "Pulang"; b64ToSubmit = fotoPulangBase64; 
+            else if (fotoPulangBase64) {
+                typeToSubmit = "Pulang"; b64ToSubmit = fotoPulangBase64;
                 if(!document.getElementById('materiLatihan').value.trim() || !document.getElementById('evaluasiLatihan').value.trim()) {
                     showToast("Materi & Evaluasi Latihan wajib diisi sebelum pulang!", "error"); return;
                 }
             }
             else { showToast("Ambil foto terlebih dahulu!", "error"); return; }
-            
             if (document.getElementById('tableAbsensiBody').children.length <= 1 || !document.querySelector('#tableAbsensiBody tr[data-nama]')) {
                 showToast("Klik 'Load Data Anggota' terlebih dahulu!", "error"); return;
             }
-
             const absData = Array.from(document.querySelectorAll('#tableAbsensiBody tr[data-nama]')).map(row => ({ nama: row.getAttribute('data-nama'), kelas: row.getAttribute('data-kelas'), status: row.querySelector('select').value }));
-            
             showLoading(true, `Menyimpan Absen ${typeToSubmit}...`);
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ 
-                action: 'saveAbsensi', 
-                type: typeToSubmit, 
-                tanggal: document.getElementById('absensiDate').value, 
-                materi: document.getElementById('materiLatihan').value, 
-                evaluasi: document.getElementById('evaluasiLatihan').value, 
-                absensiData: absData, 
-                fotoBase64: b64ToSubmit 
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({
+                action: 'saveAbsensi',
+                type: typeToSubmit,
+                tanggal: document.getElementById('absensiDate').value,
+                materi: document.getElementById('materiLatihan').value,
+                evaluasi: document.getElementById('evaluasiLatihan').value,
+                absensiData: absData,
+                fotoBase64: b64ToSubmit
             })})
-            .then(r=>r.json()).then(d=>{ 
-                showLoading(false); 
-                if(d.success){ 
+            .then(r=>r.json()).then(d=>{
+                showLoading(false);
+                if(d.success){
                     if(typeToSubmit === 'Datang') {
                         localHasDatang = true;
                         fotoDatangBase64 = null;
                         document.getElementById('fotoDatangPreviewContainer').classList.add('hidden');
                         document.getElementById('btnSimpanAbsen').classList.add('hidden');
-                        checkTodayAbsensiStatus(); 
+                        checkTodayAbsensiStatus();
                     } else {
                         fotoPulangBase64 = null;
                         document.getElementById('fotoPulangPreviewContainer').classList.add('hidden');
-                        document.getElementById('materiLatihan').value=''; 
+                        document.getElementById('materiLatihan').value='';
                         document.getElementById('evaluasiLatihan').value='';
                         document.getElementById('btnSimpanAbsen').classList.add('hidden');
                     }
-                    
                     closeAbsenModal();
                     const textMsg = typeToSubmit === 'Datang' ? 'Absen Masuk' : 'Absen Pulang';
                     document.getElementById('successAbsenText').innerHTML = `${textMsg} berhasil disimpan oleh petugas absen <b>(${user.nama})</b>`;
                     document.getElementById('successAbsenModal').classList.remove('hidden');
                     document.getElementById('successAbsenModal').classList.add('flex');
-
-                    fetchRiwayatSemua(); 
-                } else showToast(d.message, "error"); 
+                    fetchRiwayatSemua();
+                } else showToast(d.message, "error");
             }).catch(e=>{showLoading(false); showToast("Error koneksi", "error");});
         });
 
@@ -1636,19 +1560,19 @@
         function openPasswordModal() { document.getElementById('passwordModal').classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.remove('scale-95'); }
         function closePasswordModal() { document.getElementById('passwordModal').classList.add('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.add('scale-95'); }
         document.getElementById('formGantiPassword').addEventListener('submit', (e) => { e.preventDefault(); showLoading(true, "Verifikasi..."); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'gantiPassword', username: user.username, oldPassword: document.getElementById('oldPass').value, newPassword: document.getElementById('newPass').value })}).then(r=>r.json()).then(d=>{ showLoading(false); if(d.success) { showToast("Password diganti", "success"); closePasswordModal(); } else showToast(d.message, "error"); }).catch(e=>showLoading(false)); });
-        
-        function showLoading(show, txt="Memproses...") { 
-            document.getElementById('loadingText').textContent = txt; 
-            document.getElementById('loadingOverlay').classList[show?'remove':'add']('opacity-0', 'pointer-events-none'); 
+
+        function showLoading(show, txt="Memproses...") {
+            document.getElementById('loadingText').textContent = txt;
+            document.getElementById('loadingOverlay').classList[show?'remove':'add']('opacity-0', 'pointer-events-none');
         }
-        
-        function showToast(msg, type='info') { 
-            const div = document.createElement('div'); 
-            div.className = `p-3 rounded-xl shadow-xl text-xs font-bold text-white flex items-center gap-2 transition-all transform translate-y-4 opacity-0 mt-2 ${type==='success'?'bg-emerald-600':'bg-rose-600'}`; 
-            div.innerHTML = `<i class="fa-solid ${type==='success'?'fa-check':'fa-xmark'}"></i> <span>${msg}</span>`; 
-            document.getElementById('toastContainer').appendChild(div); 
-            setTimeout(() => div.classList.remove('translate-y-4', 'opacity-0'), 50); 
-            setTimeout(() => { div.classList.add('opacity-0'); setTimeout(()=>div.remove(), 300); }, 3000); 
+
+        function showToast(msg, type='info') {
+            const div = document.createElement('div');
+            div.className = `p-3 rounded-xl shadow-xl text-xs font-bold text-white flex items-center gap-2 transition-all transform translate-y-4 opacity-0 mt-2 ${type==='success'?'bg-emerald-600':'bg-rose-600'}`;
+            div.innerHTML = `<i class="fa-solid ${type==='success'?'fa-check':'fa-xmark'}"></i> <span>${msg}</span>`;
+            document.getElementById('toastContainer').appendChild(div);
+            setTimeout(() => div.classList.remove('translate-y-4', 'opacity-0'), 50);
+            setTimeout(() => { div.classList.add('opacity-0'); setTimeout(()=>div.remove(), 300); }, 3000);
         }
     </script>
 </body>
