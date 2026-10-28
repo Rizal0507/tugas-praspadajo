@@ -8,10 +8,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
     <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }</script>
     <script>
         (function checkAuth() {
@@ -29,12 +31,16 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
         .comment-box-anim { transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, margin 0.3s ease-in-out; max-height: 0; opacity: 0; overflow: hidden; }
         .comment-box-anim.open { max-height: 150px; opacity: 1; margin-top: 0.5rem; overflow: visible; }
+
         .drag-handle { cursor: grab; }
         .drag-handle:active { cursor: grabbing; }
         .sortable-ghost { opacity: 0.4; background-color: #eff6ff !important; border: 2px dashed #3b82f6 !important; }
+
         .form-locked { opacity: 0.6; pointer-events: none; }
+
         .sidebar-open { transform: translateX(0) !important; }
     </style>
 </head>
@@ -181,7 +187,7 @@
                             <div class="bg-gray-50 p-3 border-b flex justify-between items-center">
                                 <label class="text-xs font-bold text-gray-600 uppercase flex items-center gap-2">
                                     Daftar Gerakan
-                                    <span class="text-[9px] font-normal text-gray-400 normal-case hidden sm:inline">(Geser ikon untuk ubah urutan · Ikon 🥁 = metronome)</span>
+                                    <span class="text-[9px] font-normal text-gray-400 normal-case hidden sm:inline">(Geser ikon untuk ubah urutan · Ikon drum = metronome)</span>
                                 </label>
                                 <button type="button" onclick="addSubTaskRow()" class="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-blue-200">+ Tambah</button>
                             </div>
@@ -349,30 +355,26 @@
         </main>
     </div>
 
-    <!-- ================= MODAL METRONOME ================= -->
+    <!-- ============ MODAL METRONOME (BARU) ============ -->
     <div id="metroModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2"><i class="fa-solid fa-drum text-blue-600"></i> Pengaturan Metronome</h3>
                 <button onclick="closeMetroModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
             </div>
-
             <div class="flex flex-col gap-3">
                 <label class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer">
                     <span class="text-xs font-bold text-gray-700">Aktifkan Metronome</span>
                     <input type="checkbox" id="metroOnToggle" class="w-5 h-5 accent-blue-600 cursor-pointer">
                 </label>
-
                 <div>
                     <label class="text-[10px] font-bold text-gray-600 uppercase block mb-1">BPM (Tempo)</label>
                     <input type="number" id="metroBpmInput" value="96" min="40" max="240" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold outline-none focus:border-blue-500 text-center">
                     <p class="text-[9px] text-gray-400 mt-1 text-center">Default 96 BPM · 4/4 · Woodblock (ketukan 1 aksen)</p>
                 </div>
-
                 <button type="button" onclick="testMetroSound()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 rounded-xl text-xs active:scale-95 border border-gray-200">
                     <i class="fa-solid fa-volume-high mr-1"></i> Test Suara (4 Ketukan)
                 </button>
-
                 <div class="grid grid-cols-2 gap-2 pt-1">
                     <button type="button" onclick="closeMetroModal()" class="bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs active:scale-95">Batal</button>
                     <button type="button" onclick="saveMetroModal()" class="bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs active:scale-95">Simpan</button>
@@ -575,8 +577,8 @@
             row.dataset.metroBpm = bpmVal;
 
             const metroBtnClass = isMetroOn
-                ? 'metro-btn w-7 h-7 bg-blue-600 text-white rounded flex items-center justify-center hover:bg-blue-700 transition-colors flex-none'
-                : 'metro-btn w-7 h-7 bg-gray-200 text-gray-500 rounded flex items-center justify-center hover:bg-gray-300 transition-colors flex-none';
+                ? 'metro-btn w-8 h-8 bg-blue-600 text-white rounded flex items-center justify-center hover:bg-blue-700 transition-colors flex-none'
+                : 'metro-btn w-8 h-8 bg-gray-200 text-gray-500 rounded flex items-center justify-center hover:bg-gray-300 transition-colors flex-none';
 
             row.innerHTML = `
                 <div class="drag-handle px-1 text-gray-400 hover:text-blue-600 flex items-center justify-center transition-colors flex-none">
@@ -586,10 +588,8 @@
                 <div class="w-16 sm:w-20 flex-none"><input type="text" class="sub-min w-full px-1.5 sm:px-2 py-1.5 border rounded text-xs text-center focus:border-blue-500 outline-none" placeholder="mm:ss" value="${min}" pattern="^[0-9]{1,2}:[0-5][0-9]$" title="Format mm:ss" onblur="formatTimeInput(this)" required></div>
                 <span class="text-xs font-bold text-gray-400 flex-none">-</span>
                 <div class="w-16 sm:w-20 flex-none"><input type="text" class="sub-max w-full px-1.5 sm:px-2 py-1.5 border rounded text-xs text-center focus:border-blue-500 outline-none" placeholder="mm:ss" value="${max}" pattern="^[0-9]{1,2}:[0-5][0-9]$" title="Format mm:ss" onblur="formatTimeInput(this)" required></div>
-                <button type="button" class="${metroBtnClass}" onclick="openMetroModal(this)" title="Pengaturan Metronome">
-                    <i class="fa-solid fa-drum text-xs"></i>
-                </button>
-                <button type="button" onclick="this.parentElement.remove()" class="w-7 h-7 bg-rose-100 text-rose-600 rounded flex items-center justify-center hover:bg-rose-200 transition-colors flex-none"><i class="fa-solid fa-xmark text-xs"></i></button>
+                <button type="button" class="${metroBtnClass}" onclick="openMetroModal(this)" title="Pengaturan Metronome"><i class="fa-solid fa-drum text-xs"></i></button>
+                <button type="button" onclick="this.parentElement.remove()" class="w-8 h-8 bg-rose-100 text-rose-600 rounded flex items-center justify-center hover:bg-rose-200 transition-colors flex-none"><i class="fa-solid fa-xmark text-xs"></i></button>
             `;
             container.appendChild(row);
         }
@@ -599,9 +599,9 @@
             if (!btn) return;
             const isOn = row.dataset.metroOn === 'true';
             if (isOn) {
-                btn.className = 'metro-btn w-7 h-7 bg-blue-600 text-white rounded flex items-center justify-center hover:bg-blue-700 transition-colors flex-none';
+                btn.className = 'metro-btn w-8 h-8 bg-blue-600 text-white rounded flex items-center justify-center hover:bg-blue-700 transition-colors flex-none';
             } else {
-                btn.className = 'metro-btn w-7 h-7 bg-gray-200 text-gray-500 rounded flex items-center justify-center hover:bg-gray-300 transition-colors flex-none';
+                btn.className = 'metro-btn w-8 h-8 bg-gray-200 text-gray-500 rounded flex items-center justify-center hover:bg-gray-300 transition-colors flex-none';
             }
         }
 
@@ -611,10 +611,8 @@
             if (!currentMetroRow) return;
             const isOn = currentMetroRow.dataset.metroOn === 'true';
             const bpm = currentMetroRow.dataset.metroBpm || '96';
-
             document.getElementById('metroOnToggle').checked = isOn;
             document.getElementById('metroBpmInput').value = bpm;
-
             const modal = document.getElementById('metroModal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -633,16 +631,14 @@
             let bpm = parseInt(document.getElementById('metroBpmInput').value) || 96;
             if (bpm < 40) bpm = 40;
             if (bpm > 240) bpm = 240;
-
             currentMetroRow.dataset.metroOn = isOn ? 'true' : 'false';
             currentMetroRow.dataset.metroBpm = bpm;
-
             updateMetroBtnStyle(currentMetroRow);
             closeMetroModal();
             showToast(isOn ? `Metronome ON · ${bpm} BPM` : 'Metronome OFF', 'success');
         }
 
-        // ============ WOODBLOCK SYNTH (Web Audio API) ============
+        // ============ WOODBLOCK SYNTH (versi baru: lebih tegas) ============
         function playWoodblock(isAccent) {
             try {
                 const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -652,19 +648,44 @@
                 const ctx = metroAudioCtx;
                 const now = ctx.currentTime;
 
+                // LAYER 1: Click transient (noise burst) - bunyi "TIK" tajam
+                const clickDur = 0.015;
+                const clickBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * clickDur), ctx.sampleRate);
+                const clickData = clickBuf.getChannelData(0);
+                for (let i = 0; i < clickData.length; i++) {
+                    clickData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / clickData.length, 4);
+                }
+                const clickSrc = ctx.createBufferSource();
+                clickSrc.buffer = clickBuf;
+
+                const clickFilter = ctx.createBiquadFilter();
+                clickFilter.type = 'bandpass';
+                clickFilter.frequency.value = 2500;
+                clickFilter.Q.value = 2;
+
+                const clickGain = ctx.createGain();
+                clickGain.gain.value = isAccent ? 0.55 : 0.35;
+
+                clickSrc.connect(clickFilter);
+                clickFilter.connect(clickGain);
+                clickGain.connect(ctx.destination);
+                clickSrc.start(now);
+
+                // LAYER 2: Wood tone (triangle wave, pitch drop cepat)
                 const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
+                const oscGain = ctx.createGain();
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(isAccent ? 1200 : 800, now);
-                osc.frequency.exponentialRampToValueAtTime(isAccent ? 600 : 400, now + 0.05);
+                osc.frequency.setValueAtTime(isAccent ? 1700 : 1100, now);
+                osc.frequency.exponentialRampToValueAtTime(isAccent ? 800 : 550, now + 0.04);
 
-                gain.gain.setValueAtTime(isAccent ? 0.6 : 0.4, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                oscGain.gain.setValueAtTime(0, now);
+                oscGain.gain.linearRampToValueAtTime(isAccent ? 0.7 : 0.45, now + 0.002);
+                oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
 
-                osc.connect(gain);
-                gain.connect(ctx.destination);
+                osc.connect(oscGain);
+                oscGain.connect(ctx.destination);
                 osc.start(now);
-                osc.stop(now + 0.1);
+                osc.stop(now + 0.08);
             } catch (e) { console.error('Woodblock error:', e); }
         }
 
@@ -832,7 +853,6 @@
             const dateVal = document.getElementById('inputFilterDate').value;
             const memberVal = document.getElementById('selectFilterMember').value;
             const tbody = document.getElementById('tableSubmissionsBody');
-
             let filteredSubs = state.submissions.slice().reverse();
             if(taskId) filteredSubs = filteredSubs.filter(s => s.taskId === taskId);
             if(dateVal) filteredSubs = filteredSubs.filter(s => matchesSubmissionDate(s, dateVal));
@@ -882,8 +902,12 @@
 
         function toggleKomentarBox(subId) {
             const box = document.getElementById(`boxKomentar_${subId}`);
-            if (box.classList.contains('open')) box.classList.remove('open');
-            else { box.classList.add('open'); document.getElementById(`inputKomentar_${subId}`).focus(); }
+            if (box.classList.contains('open')) {
+                box.classList.remove('open');
+            } else {
+                box.classList.add('open');
+                document.getElementById(`inputKomentar_${subId}`).focus();
+            }
         }
 
         function executeSubmitNilai(subId) {
@@ -892,11 +916,15 @@
             const nilaiVal = selectEl.value;
             const komentarVal = komentarEl.value.trim();
             if(!nilaiVal) { showToast("Pilih nilai (A-E) terlebih dahulu!", "error"); return; }
-            selectEl.disabled = true; komentarEl.disabled = true;
+            selectEl.disabled = true;
+            komentarEl.disabled = true;
             showLoading(true, "Menyimpan Evaluasi...");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'nilaiTugas', subId: subId, nilai: nilaiVal, komentar: komentarVal }) })
-            .then(r => r.json()).then(d => {
-                selectEl.disabled = false; komentarEl.disabled = false; showLoading(false);
+            .then(r => r.json())
+            .then(d => {
+                selectEl.disabled = false;
+                komentarEl.disabled = false;
+                showLoading(false);
                 if(d.success) {
                     showToast("Evaluasi Nilai & Catatan berhasil disimpan!", "success");
                     let sub = state.submissions.find(s => s.subId === subId);
@@ -905,7 +933,8 @@
                     if (state.showUngradedOnly) filterSubmissions();
                     selectEl.className = `flex-1 p-2 border rounded-lg text-xs font-bold outline-none cursor-pointer ${nilaiVal==='A'?'text-emerald-600 bg-emerald-50 border-emerald-300':nilaiVal==='B'?'text-blue-600 bg-blue-50 border-blue-300':nilaiVal==='C'?'text-amber-600 bg-amber-50 border-amber-300':nilaiVal==='D'?'text-orange-600 bg-orange-50 border-orange-300':'text-rose-600 bg-rose-50 border-rose-300'}`;
                 } else { showToast(d.message, "error"); }
-            }).catch(e => { selectEl.disabled = false; komentarEl.disabled = false; showLoading(false); showToast("Gagal terhubung ke server", "error"); });
+            })
+            .catch(e => { selectEl.disabled = false; komentarEl.disabled = false; showLoading(false); showToast("Gagal terhubung ke server", "error"); });
         }
 
         function renderCheckboxesAnggota() {
@@ -942,11 +971,14 @@
             if(subTugasJSON === "[]") { showToast("Tambahkan minimal 1 Gerakan/Sub-Tugas!", "error"); return; }
             showLoading(true, "Menyimpan Tugas...");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({
-                action: action, taskId: taskId,
+                action: action,
+                taskId: taskId,
                 judulTugas: document.getElementById('taskTitle').value,
                 instruksi: document.getElementById('taskDesc').value,
                 tipePengumpulan: document.getElementById('tipePengumpulan').value,
-                tanggalPengerjaan: dates, targetMember: targets, jenisTugas: "video",
+                tanggalPengerjaan: dates,
+                targetMember: targets,
+                jenisTugas: "video",
                 subTugas: subTugasJSON
             })}).then(r=>r.json()).then(d=>{
                 showLoading(false);
@@ -994,7 +1026,8 @@
             try { subs = JSON.parse(t.subTugasRaw); } catch(e) {}
             if(subs.length === 0) addSubTaskRow('Tugas Utama', '01:00', '05:00');
             else subs.forEach(s => {
-                let minVal = s.min, maxVal = s.max;
+                let minVal = s.min;
+                let maxVal = s.max;
                 if (typeof minVal === 'number' || (!isNaN(parseInt(minVal)) && !minVal.includes(':'))) {
                     let m = parseInt(minVal) || 0;
                     minVal = `${m.toString().padStart(2, '0')}:00`;
@@ -1031,7 +1064,7 @@
             .then(r=>r.json()).then(d=>{ showLoading(false); if(d.success){ showToast(d.message,"success"); loadDashboardData(); } else showToast(d.message,"error"); }).catch(e=>{showLoading(false); showToast("Koneksi Error","error")});
         }
 
-        // --- ABSENSI ---
+        // --- SISTEM ABSENSI PELATIH ---
         function renderAbsensiTable() {
             const tbody = document.getElementById('tableAbsensiBody');
             const targets = state.members.filter(m => m.role === 'Anggota');
@@ -1142,7 +1175,8 @@
 
             if (hasPulang) {
                 absenLocked = true;
-                btnDatang.classList.add('hidden'); btnPulang.classList.add('hidden');
+                btnDatang.classList.add('hidden');
+                btnPulang.classList.add('hidden');
                 statusDatang.classList.remove('hidden'); statusDatang.classList.add('flex');
                 statusPulang.classList.remove('hidden'); statusPulang.classList.add('flex');
                 formMateriEval.classList.remove('hidden'); formMateriEval.classList.add('flex');
@@ -1180,7 +1214,8 @@
         document.getElementById('formAbsensi').addEventListener('submit', (e) => {
             e.preventDefault();
             if(absenLocked) { showToast("Absensi hari ini sudah selesai dan terkunci.", "error"); return; }
-            let typeToSubmit = "", b64ToSubmit = "";
+            let typeToSubmit = "";
+            let b64ToSubmit = "";
             if (fotoDatangBase64) { typeToSubmit = "Datang"; b64ToSubmit = fotoDatangBase64; }
             else if (fotoPulangBase64) {
                 typeToSubmit = "Pulang"; b64ToSubmit = fotoPulangBase64;
@@ -1189,17 +1224,22 @@
                 }
             }
             else { showToast("Ambil foto terlebih dahulu!", "error"); return; }
+
             if (document.getElementById('tableAbsensiBody').children.length <= 1 || !document.querySelector('#tableAbsensiBody tr[data-nama]')) {
                 showToast("Klik 'Load Data Anggota' terlebih dahulu!", "error"); return;
             }
+
             const absData = Array.from(document.querySelectorAll('#tableAbsensiBody tr[data-nama]')).map(row => ({ nama: row.getAttribute('data-nama'), kelas: row.getAttribute('data-kelas'), status: row.querySelector('select').value }));
+
             showLoading(true, `Menyimpan Absen ${typeToSubmit}...`);
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({
-                action: 'saveAbsensi', type: typeToSubmit,
+                action: 'saveAbsensi',
+                type: typeToSubmit,
                 tanggal: document.getElementById('absensiDate').value,
                 materi: document.getElementById('materiLatihan').value,
                 evaluasi: document.getElementById('evaluasiLatihan').value,
-                absensiData: absData, fotoBase64: b64ToSubmit
+                absensiData: absData,
+                fotoBase64: b64ToSubmit
             })})
             .then(r=>r.json()).then(d=>{
                 showLoading(false);
@@ -1271,7 +1311,9 @@
                     if (!isNaN(dObj.getTime()) && !isNaN(dSel.getTime())) {
                         if (dObj.getFullYear() === dSel.getFullYear() && dObj.getMonth() === dSel.getMonth() && dObj.getDate() === dSel.getDate()) isMatch = true;
                     }
-                } else if (hStr.trim() === date.trim()) { isMatch = true; }
+                } else if (hStr.trim() === date.trim()) {
+                    isMatch = true;
+                }
                 if (isMatch) targetColIndices.push(idx);
             });
             let materi = "-", evaluasi = "-", fDatang = "", fPulang = "";
@@ -1332,11 +1374,13 @@
             const newStatus = !currentStatus;
             showLoading(true, "Memperbarui Hak Absen...");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'toggleHakAbsen', username: username, hakAbsen: newStatus }) })
-            .then(r => r.json()).then(d => {
+            .then(r => r.json())
+            .then(d => {
                 showLoading(false);
                 if(d.success) { showToast("Hak Akses diperbarui", "success"); loadDashboardData(); }
                 else { showToast(d.message, "error"); }
-            }).catch(e => { showLoading(false); showToast("Gagal memperbarui hak akses", "error"); });
+            })
+            .catch(e => { showLoading(false); showToast("Gagal memperbarui hak akses", "error"); });
         }
 
         document.getElementById('formAddMember').addEventListener('submit', (e) => {
@@ -1345,7 +1389,7 @@
             .then(r=>r.json()).then(d=>{ showLoading(false); if(d.success){ showToast("Tersimpan","success"); document.getElementById('formAddMember').reset(); loadDashboardData(); } else showToast(d.message,"error"); }).catch(e=>showLoading(false));
         });
 
-        // --- LAPORAN ---
+        // --- LAPORAN PENGUMPULAN TUGAS ---
         function openReportModal() {
             document.getElementById('reportDate').value = getLocalToday();
             document.getElementById('reportText').value = '';
@@ -1364,7 +1408,9 @@
             sel.innerHTML = '<option value="">Semua Tugas</option>';
             if (!dateVal) return;
             const activeTasks = state.tasks.filter(t => isTaskActiveOnDate(t, dateVal));
-            activeTasks.forEach(t => { sel.innerHTML += `<option value="${t.taskId}">${t.judulTugas}</option>`; });
+            activeTasks.forEach(t => {
+                sel.innerHTML += `<option value="${t.taskId}">${t.judulTugas}</option>`;
+            });
         }
 
         function isTaskActiveOnDate(t, dateVal) {
@@ -1394,7 +1440,9 @@
             const selectedTaskId = document.getElementById('reportTaskSelect').value;
             if (!dateVal) { showToast("Pilih tanggal terlebih dahulu!", "error"); return; }
             let activeTasks = state.tasks.filter(t => isTaskActiveOnDate(t, dateVal));
-            if (selectedTaskId) activeTasks = activeTasks.filter(t => t.taskId === selectedTaskId);
+            if (selectedTaskId) {
+                activeTasks = activeTasks.filter(t => t.taskId === selectedTaskId);
+            }
             const memberData = {};
             activeTasks.forEach(t => {
                 let subs = [];
@@ -1409,7 +1457,8 @@
                     if (!memberData[m.nama]) memberData[m.nama] = { total: 0, submitted: 0 };
                     const totalSubTasks = subs.length;
                     const userSubmissionsForTask = state.submissions.filter(x =>
-                        x.taskId === t.taskId && x.namaAnggota === m.nama &&
+                        x.taskId === t.taskId &&
+                        x.namaAnggota === m.nama &&
                         (t.tipePengumpulan === 'Satu Kali' || matchesSubmissionDate(x, dateVal))
                     );
                     const submittedCount = userSubmissionsForTask.length;
@@ -1417,27 +1466,45 @@
                     memberData[m.nama].submitted += Math.min(submittedCount, totalSubTasks);
                 });
             });
+
             const processedNames = Object.keys(memberData).map(nama => {
                 const data = memberData[nama];
-                let statusStr = "", rank = 0;
+                let statusStr = "";
+                let rank = 0;
                 if (data.submitted === 0) { statusStr = "belum mengerjakan"; rank = 2; }
                 else if (data.submitted >= data.total) { statusStr = "selesai"; rank = 0; }
-                else { const missingCount = data.total - data.submitted; statusStr = `kurang (${missingCount} gerakan)`; rank = 1; }
+                else {
+                    const missingCount = data.total - data.submitted;
+                    statusStr = `kurang (${missingCount} gerakan)`;
+                    rank = 1;
+                }
                 return { nama, statusStr, rank };
             });
-            processedNames.sort((a, b) => { if (a.rank !== b.rank) return a.rank - b.rank; return a.nama.localeCompare(b.nama); });
+
+            processedNames.sort((a, b) => {
+                if (a.rank !== b.rank) return a.rank - b.rank;
+                return a.nama.localeCompare(b.nama);
+            });
+
             const d = new Date(dateVal + 'T00:00:00');
             const pad = (n) => n.toString().padStart(2, '0');
             const tglFmt = `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
             const jam = new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }).replace('.', ':');
+
             let headerTask = "";
             if (selectedTaskId) {
                 const t = state.tasks.find(x => x.taskId === selectedTaskId);
                 if (t) headerTask = ` - ${t.judulTugas}`;
             }
+
             let text = `Pengumpulan Tugas${headerTask} (${tglFmt}, ${jam})\n`;
-            if (processedNames.length === 0) text += 'Tidak ada tugas aktif pada tanggal ini.';
-            else processedNames.forEach((m, i) => { text += `${i+1}. ${m.nama} — ${m.statusStr}\n`; });
+            if (processedNames.length === 0) {
+                text += 'Tidak ada tugas aktif pada tanggal ini.';
+            } else {
+                processedNames.forEach((m, i) => {
+                    text += `${i+1}. ${m.nama} — ${m.statusStr}\n`;
+                });
+            }
             document.getElementById('reportText').value = text.trim();
             showToast("Laporan berhasil dibuat", "success");
         }
@@ -1446,8 +1513,12 @@
             const ta = document.getElementById('reportText');
             if (!ta.value.trim()) { showToast("Buat laporan terlebih dahulu!", "error"); return; }
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(ta.value).then(() => showToast("Teks laporan disalin!", "success")).catch(() => { ta.select(); document.execCommand('copy'); showToast("Teks laporan disalin!", "success"); });
-            } else { ta.select(); document.execCommand('copy'); showToast("Teks laporan disalin!", "success"); }
+                navigator.clipboard.writeText(ta.value)
+                    .then(() => showToast("Teks laporan disalin!", "success"))
+                    .catch(() => { ta.select(); document.execCommand('copy'); showToast("Teks laporan disalin!", "success"); });
+            } else {
+                ta.select(); document.execCommand('copy'); showToast("Teks laporan disalin!", "success");
+            }
         }
 
         function shareReportWA() {
