@@ -400,8 +400,9 @@
             return str;
         }
 
+        // FORCE JAKARTA TIMEZONE (Sama seperti GAS)
         function getLocalToday() {
-            const d = new Date();
+            const d = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Jakarta"}));
             const pad = (n) => String(n).padStart(2, '0');
             return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
         }
@@ -412,25 +413,23 @@
             return match ? `https://lh3.googleusercontent.com/d/${match[0]}` : url;
         }
 
-        // NORMALISASI EKSTREM: Hanya sisakan huruf dan angka, hapus spasi tersembunyi
+        // NORMALISASI EKSTREM (Hapus semua karakter selain huruf/angka)
         function normalizeStr(str) {
             return String(str || "")
-                .replace(/[\u00A0\r\n\t]/g, ' ') // Ganti non-breaking space, enter, tab
-                .replace(/[^a-z0-9]/gi, '')      // Hapus semua karakter selain huruf/angka
+                .replace(/[\u00A0\r\n\t]/g, ' ')
+                .replace(/[^a-z0-9]/gi, '')
                 .toLowerCase();
         }
 
-        // FUNGSI PENGECEK TUGAS
+        // SISTEM PENCOCOKAN KUNCI ANTI GAGAL
         function isSubDone(taskId, tanggal, subName) {
-            const prefix = `${taskId}_${tanggal}_`;
-            const targetNorm = normalizeStr(subName);
-            
+            const searchKey = `${taskId}_${tanggal}_${subName}`;
+            const normSearch = normalizeStr(searchKey);
+
             return Object.keys(userSubs).some(k => {
-                if (k.startsWith(prefix)) {
-                    const subNameInDB = k.replace(prefix, '');
-                    return normalizeStr(subNameInDB) === targetNorm;
-                }
-                return false;
+                // Bersihkan format tanggal ISO (2026-10-28T17:00:00.000Z) menjadi (2026-10-28) jika ada
+                const cleanedK = k.replace(/(\d{4}-\d{2}-\d{2})T\d{2}:\d{2}:\d{2}\.\d{3}Z/g, '$1');
+                return normalizeStr(cleanedK) === normSearch;
             });
         }
 
@@ -500,6 +499,7 @@
                 if (d.success) {
                     activeTasks = d.tasks; 
                     userSubs = d.userSubs || {};
+                    console.log("Data userSubs terbaru:", userSubs); // Cek console jika masih error
                     renderTasks(activeTasks);
                 }
             }).catch(e => container.innerHTML = `<p class="text-center text-xs text-rose-500">Gagal memuat koneksi</p>`);
@@ -557,7 +557,7 @@
             // 2. Render Tugas Hari Ini
             const container = document.getElementById('taskListContainer');
             
-            // Cek keterselesaian tugas (Gunakan Normalisasi Ekstrem per nama sub-tugas!)
+            // Cek keterselesaian tugas
             const todayTasksFiltered = todayTasks.filter(t => {
                 if(t.isLama) return true;
                 const pendingSubs = (t.subTugas || []).filter(sub => !isSubDone(t.taskId, todayStr, sub.nama));
@@ -800,7 +800,7 @@
                     if (d.success) { 
                         document.getElementById('successUploadModal').classList.remove('hidden'); document.getElementById('successUploadModal').classList.add('flex');
                         
-                        // Update state lokal (tambahkan key dengan format yang benar)
+                        // Tambahkan key ke state lokal menggunakan format yang sama persis
                         const newKey = `${selectedTask.taskId}_${selectedDay}_${currentSubTugas}`;
                         userSubs[newKey] = true;
                         
