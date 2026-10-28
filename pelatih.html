@@ -454,7 +454,9 @@
             
             fpInstance = flatpickr(inputEl, {
                 mode: type === 'Satu Kali' ? 'range' : 'multiple',
-                dateFormat: "Y-m-d",
+                dateFormat: "Y-m-d", // Format yang disimpan di database
+                altInput: true,      // Tampilkan format alternatif ke user
+                altFormat: "d/m/Y",  // Format tampilan (DD/MM/YYYY)
                 locale: "id",
                 placeholder: type === 'Satu Kali' ? "Pilih Tgl Mulai s/d Deadline" : "Klik tanggal-tanggal latihan"
             });
@@ -531,21 +533,16 @@
             return `${dateObj.getFullYear()}-${pad(dateObj.getMonth() + 1)}-${pad(dateObj.getDate())}`;
         }
 
-        // --- FUNGSI SAKTI UNTUK MEMBERSIHKAN TANGGAL DARI DATABASE (TIMEZONE WIB) ---
         function extractLocalDate(dateStr) {
             if (!dateStr) return '';
             let str = dateStr.toString().trim();
             if (str.includes('T')) {
-                // Jika string berupa ISO (contoh: 2026-10-27T17:00:00.000Z)
                 const d = new Date(str);
                 if (!isNaN(d.getTime())) {
                     const pad = (n) => String(n).padStart(2, '0');
-                    // Date() otomatis menyesuaikan dengan timezone lokal perangkat (WIB)
-                    // Sehingga 17:00 UTC akan menjadi 00:00 tanggal berikutnya di WIB
                     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-                } else {
-                    return str.split('T')[0]; // Fallback jika gagal parse
                 }
+                return str.split('T')[0]; 
             }
             return str;
         }
@@ -584,20 +581,23 @@
                 let d;
                 if (val.includes('T') || val.includes('Z')) {
                     d = new Date(val);
+                } else if (val.includes('/')) {
+                    // Format dari GAS: DD/MM/YYYY HH:mm:ss
+                    let parts = val.split(' ');
+                    let dateParts = parts[0].split('/');
+                    let timeParts = (parts[1] || '00:00:00').split(':');
+                    d = new Date(dateParts[2], dateParts[1]-1, dateParts[0], timeParts[0], timeParts[1], timeParts[2]);
                 } else {
                     const parts = val.split('-');
                     if (parts.length === 3) d = new Date(parts[0], parts[1]-1, parts[2]);
                     else d = new Date(val);
                 }
+                
                 if (isNaN(d.getTime())) return val;
                 const pad = (n) => n.toString().padStart(2, '0');
                 
-                const dateStr = `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
-                
-                if (!val.includes('T') && val.length <= 10) {
-                    return dateStr;
-                }
-                return `${dateStr} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                // Format: DD/MM/YYYY HH:mm
+                return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
             } catch(e) { return val; }
         }
 
@@ -853,7 +853,6 @@
             document.getElementById('tipePengumpulan').value = t.tipePengumpulan;
             setupFlatpickr();
             
-            // PERBAIKAN: Konversi format waktu (ISO String) ke YYYY-MM-DD berdasarkan zona waktu lokal WIB
             let rawDate = (t.tanggalPengerjaan || "").toString().trim();
             let cleanedDates = [];
             if (rawDate.includes(' to ')) {
@@ -1085,7 +1084,6 @@
             let raw = (t.tanggalPengerjaan || '').toString().trim();
             if (!raw) return false;
             
-            // PERBAIKAN: Sanitasi format tanggal (UTC ke Waktu Lokal)
             if (raw.includes('T')) {
                 if (raw.includes(' to ')) {
                     const parts = raw.split(' to ').map(x => extractLocalDate(x));
@@ -1132,28 +1130,28 @@
                 }
 
                 targets.forEach(m => {
-                    if (!memberData[m.nama]) memberData[m.nama] = { total: 0, submitted: 0, missing: [] };
+                    if (!memberData[m.nama]) memberData[m.nama] = { total: 0, submitted: 0 };
                     
-                    subs.forEach(sub => {
-                        memberData[m.nama].total++;
-                        
-                        const isSubmitted = state.submissions.some(x => 
-                            x.taskId === t.taskId &&
-                            x.namaAnggota === m.nama &&
-                            x.subTugasName === sub.nama &&
-                            (t.tipePengumpulan === 'Satu Kali' || matchesSubmissionDate(x, dateVal))
-                        );
-                        
-                        if (isSubmitted) {
-                            memberData[m.nama].submitted++;
-                        } else {
-                            const label = isMulti ? `${t.judulTugas} - ${sub.nama}` : sub.nama;
-                            memberData[m.nama].missing.push(label);
-                        }
-                    });
+                    // Hitung jumlah sub-tugas yang ditargetkan
+                    const totalSubTasks = subs.length;
+                    
+                    // Hitung berapa kali anggota ini mengumpulkan untuk tugas ini di tanggal ini
+                    // (Abaikan nama sub-tugas agar tidak error jika nama diganti)
+                    const userSubmissionsForTask = state.submissions.filter(x => 
+                        x.taskId === t.taskId &&
+                        x.namaAnggota === m.nama &&
+                        (t.tipePengumpulan === 'Satu Kali' || matchesSubmissionDate(x, dateVal))
+                    );
+                    
+                    const submittedCount = userSubmissionsForTask.length;
+
+                    memberData[m.nama].total += totalSubTasks;
+                    // Cegah nilai berlebih jika anggota iseng upload 2x untuk gerakan yang sama
+                    memberData[m.nama].submitted += Math.min(submittedCount, totalSubTasks); 
                 });
             });
 
+            // Tentukan status string untuk masing-masing anggota
             const processedNames = Object.keys(memberData).map(nama => {
                 const data = memberData[nama];
                 let statusStr = "";
@@ -1162,22 +1160,26 @@
                 if (data.submitted === 0) {
                     statusStr = "belum mengerjakan";
                     rank = 2;
-                } else if (data.missing.length === 0) {
+                } else if (data.submitted >= data.total) {
                     statusStr = "selesai";
                     rank = 0;
                 } else {
-                    statusStr = `kurang (${data.missing.join(', ')})`;
+                    const missingCount = data.total - data.submitted;
+                    statusStr = `kurang (${missingCount} gerakan)`; 
                     rank = 1;
                 }
                 return { nama, statusStr, rank };
             });
 
+            // Urutkan: 1. Selesai (0), 2. Kurang (1), 3. Belum (2). Jika sama, urut abjad.
             processedNames.sort((a, b) => {
                 if (a.rank !== b.rank) return a.rank - b.rank;
                 return a.nama.localeCompare(b.nama);
             });
 
-            const tglFmt = new Date(dateVal + 'T00:00:00').toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
+            const d = new Date(dateVal + 'T00:00:00');
+            const pad = (n) => n.toString().padStart(2, '0');
+            const tglFmt = `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
             const jam = new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }).replace('.', ':');
             
             let headerTask = "";
