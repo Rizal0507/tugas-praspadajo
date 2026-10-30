@@ -477,21 +477,26 @@
             return (parseInt(val) || 0) * 60;
         }
 
-        // Pencocokan status selesai berdasarkan Nama SubTugas dan Nomor Segmen (Set/Sesi)
+        // =========================================================================
+        // FIX BUG: Pencocokan status selesai berdasarkan Nama SubTugas dan Nomor Segmen
+        // =========================================================================
         function isSubDone(taskId, tanggal, subName, segNum = 1, totalSegs = 1) {
             const cleanTaskId = normalizeStr(taskId);
             const cleanSubName = normalizeStr(subName);
-            let expectedSuffix = "";
-            if (totalSegs > 1) {
-                const padNum = String(segNum).padStart(2, '0');
-                // Kita cari string yang mengandung subName dan angka (misal "plank0103" dari "Plank (Set 01/03)")
-                expectedSuffix = padNum; 
-            }
+            
             return Object.keys(userSubs).some(k => {
                 const cleanK = normalizeStr(k);
                 if (!cleanK.includes(cleanTaskId) || !cleanK.includes(cleanSubName)) return false;
-                if (totalSegs > 1 && !cleanK.includes(expectedSuffix)) return false;
-                
+
+                // Cek tag segmen secara eksplisit menggunakan string pencarian persis.
+                // Ini mencegah kecocokan palsu dengan timestamp atau tanggal.
+                if (totalSegs > 1) {
+                    const padNum = String(segNum).padStart(2, '0');
+                    const setTag  = `(Set ${padNum}/${totalSegs})`;
+                    const sesiTag = `(Sesi ${padNum}/${totalSegs})`;
+                    if (!k.includes(setTag) && !k.includes(sesiTag)) return false;
+                }
+
                 let dateInKey = "";
                 const isoMatch = k.match(/(\d{4}-\d{2}-\d{2})/);
                 if (isoMatch) dateInKey = isoMatch[1];
