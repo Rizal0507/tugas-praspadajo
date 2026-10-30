@@ -1122,7 +1122,7 @@
                 const base64data = reader.result;
                 
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 60000);
+                const timeoutId = setTimeout(() => controller.abort(), 240000);
 
                 let subName = currentSubTugas;
                 if(totalSegments > 1) subName += ` (${segmentLabelType} ${String(currentSegment).padStart(2, '0')}/${totalSegments})`;
