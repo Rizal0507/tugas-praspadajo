@@ -742,7 +742,7 @@
                     if (sInput === 1 && mSec > 180) totalSegs = Math.ceil(mSec / 180);
                     
                     for(let i=1; i<=totalSegs; i++) { 
-                        if(!isSubDone(t.taskId, todayStr, sub.nama, i, totalSegs)) return true; 
+                        if(!isSubDone(t.taskId, todayStr, sub.nama, i, totalSegs, t.tipePengumpulan)) return true; 
                     }
                     return false;
                 });
@@ -770,7 +770,7 @@
                     if (sInput === 1 && mSec > 180) totalSegs = Math.ceil(mSec / 180);
                     
                     for(let i=1; i<=totalSegs; i++) { 
-                        if(!isSubDone(t.taskId, todayStr, sub.nama, i, totalSegs)) pendingCount++; 
+                        if(!isSubDone(t.taskId, todayStr, sub.nama, i, totalSegs, t.tipePengumpulan)) pendingCount++; 
                     }
                 });
                 totalUnfinishedToday += pendingCount;
@@ -833,7 +833,7 @@
                 if (sInput === 1 && mSec > 180) totalSegs = Math.ceil(mSec / 180);
                 
                 let doneCount = 0;
-                for(let i=1; i<=totalSegs; i++) { if(isSubDone(selectedTask.taskId, selectedDay, sub.nama, i, totalSegs)) doneCount++; }
+                for(let i=1; i<=totalSegs; i++) { if(isSubDone(selectedTask.taskId, selectedDay, sub.nama, i, totalSegs, selectedTask.tipePengumpulan)) doneCount++; }
                 const isFullyDone = (doneCount === totalSegs);
 
                 const minSec = parseDuration(sub.min);
@@ -903,7 +903,7 @@
             // 2. Cari segmen yang belum selesai
             let nextSeg = 1;
             for(let i=1; i<=totalSegments; i++) {
-                if(!isSubDone(selectedTask.taskId, selectedDay, subName, i, totalSegments)) { nextSeg = i; break; }
+                if(!isSubDone(selectedTask.taskId, selectedDay, subName, i, totalSegments, selectedTask.tipePengumpulan)) { nextSeg = i; break; }
             }
             currentSegment = nextSeg;
 
