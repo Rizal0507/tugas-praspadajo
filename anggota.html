@@ -8,6 +8,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PANGGIL SHARED FILES -->
+    <script src="metronome.js"></script>
+    <script src="shared-utils.js"></script>
+
     <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }</script>
     <script>
         (function checkAuth() {
@@ -26,8 +31,7 @@
         .custom-scroll::-webkit-scrollbar { width: 0px; height: 0px; }
         .custom-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         .form-locked { opacity: 0.6; pointer-events: none; }
-        .sidebar-open { transform: translateX(0) !important; }
-        /* REVISI: Sunflower Rain Animation — dari atas, ditahan di tengah, lalu jatuh */
+        
         @keyframes rain-fall {
             0%   { transform: translateY(-15vh) scale(0.4) rotate(0deg); opacity: 0; }
             8%   { transform: translateY(5vh) scale(1) rotate(45deg); opacity: 1; }
@@ -36,15 +40,7 @@
             95%  { transform: translateY(115vh) scale(0.9) rotate(350deg); opacity: 0.8; }
             100% { transform: translateY(120vh) scale(0.5) rotate(380deg); opacity: 0; }
         }
-        .sunflower {
-            position: fixed;
-            top: -60px;
-            font-size: 2rem;
-            animation: rain-fall 8s cubic-bezier(0.45, 0, 0.55, 1) forwards;
-            z-index: 100;
-            pointer-events: none;
-            will-change: transform, opacity;
-        }
+        .sunflower { position: fixed; top: -60px; font-size: 2rem; animation: rain-fall 8s cubic-bezier(0.45, 0, 0.55, 1) forwards; z-index: 100; pointer-events: none; will-change: transform, opacity; }
         @keyframes pop-in { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
         .countdown-anim { animation: pop-in 0.8s ease-out forwards; }
     </style>
@@ -94,6 +90,7 @@
                 </div>
             </div>
 
+            <!-- VIEW DASHBOARD -->
             <section id="viewDashboard" class="tab-view flex flex-col gap-4 w-full">
                 <div id="upcomingTasksSection" class="hidden"></div>
                 <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center sticky top-0 z-10">
@@ -105,6 +102,7 @@
                 </div>
             </section>
 
+            <!-- VIEW RIWAYAT TUGAS -->
             <section id="viewRiwayatTugas" class="tab-view hidden flex-col gap-4 w-full">
                 <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center sticky top-0 z-10">
                     <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2"><i class="fa-solid fa-medal text-amber-500"></i> Hasil & Catatan Tugas</h3>
@@ -115,6 +113,7 @@
                 </div>
             </section>
 
+            <!-- VIEW RIWAYAT LATIHAN -->
             <section id="viewRiwayatLatihan" class="tab-view hidden flex-col gap-4 w-full">
                 <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
                     <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2"><i class="fa-solid fa-chart-pie text-blue-500"></i> Statistik Kehadiran</h3>
@@ -175,6 +174,7 @@
         </main>
     </div>
 
+    <!-- ABSEN MODAL -->
     <div id="absenModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] hidden flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto custom-scroll">
         <div class="bg-white w-full max-w-md rounded-3xl border border-gray-100 shadow-2xl relative my-auto flex flex-col gap-4 p-5">
             <div class="flex justify-between items-center border-b pb-3">
@@ -241,6 +241,7 @@
         </div>
     </div>
 
+    <!-- SETUP MODAL -->
     <div id="viewSetup" class="fixed inset-0 sm:absolute bg-black/80 backdrop-blur-sm z-40 hidden flex-col justify-end pointer-events-auto">
         <div class="bg-white w-full rounded-t-[2.5rem] p-6 pt-8 pb-10 flex flex-col md:max-w-lg md:mx-auto md:rounded-3xl md:mb-10">
             <div class="flex justify-between items-start mb-4">
@@ -256,6 +257,7 @@
         </div>
     </div>
 
+    <!-- CAMERA MODAL -->
     <div id="viewCamera" class="fixed inset-0 bg-black z-50 hidden flex-col pointer-events-auto">
         <div id="countdownOverlay" class="absolute inset-0 bg-black/80 z-[60] hidden flex-col items-center justify-center">
             <h1 id="countdownText" class="text-white text-8xl font-black countdown-anim">3</h1>
@@ -287,6 +289,7 @@
         </div>
     </div>
 
+    <!-- ABSEN CAMERA -->
     <div id="viewAbsenCamera" class="fixed inset-0 bg-black z-50 hidden flex-col pointer-events-auto">
         <div class="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-20 bg-gradient-to-b from-black/60 to-transparent pt-6">
             <button onclick="closeAbsenCamera()" class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white active:scale-95"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -301,33 +304,67 @@
         </div>
     </div>
 
+    <!-- UPLOADING (GAGAL / RETRY) -->
     <div id="viewUploading" class="fixed inset-0 bg-white z-50 hidden flex-col items-center justify-center pointer-events-auto">
         <div class="relative w-32 h-32 mb-6">
             <svg class="animate-spin w-full h-full text-blue-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-100" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle><path class="opacity-100 text-blue-600" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             <div class="absolute inset-0 flex items-center justify-center"><i class="fa-solid fa-cloud-arrow-up text-4xl text-blue-600"></i></div>
         </div>
-        <h2 class="text-xl font-bold text-gray-800 mb-2">Mengirim Video...</h2>
-        <p id="uploadStatusText" class="text-[11px] text-gray-500 font-medium text-center px-8">Sedang memproses dan membersihkan format agar aman di server...</p>
+        <h2 class="text-xl font-bold text-gray-800 mb-2" id="uploadTitle">Mengirim Video...</h2>
+        <p id="uploadStatusText" class="text-[11px] text-gray-500 font-medium text-center px-8 mb-4">Sedang memproses dan membersihkan format agar aman di server...</p>
+        
+        <!-- Tombol Lapor Error (Tersembunyi by default) -->
+        <div id="errorActionContainer" class="hidden flex-col items-center gap-2 w-full max-w-xs px-4">
+            <button onclick="openErrorModal()" class="w-full bg-rose-600 text-white font-bold py-3 rounded-xl active:scale-95 text-sm shadow-md"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Lapor Error</button>
+            <button onclick="retryUpload()" class="w-full bg-gray-200 text-gray-700 font-bold py-3 rounded-xl active:scale-95 text-sm"><i class="fa-solid fa-rotate-right mr-1"></i> Coba Kirim Ulang</button>
+        </div>
     </div>
 
+    <!-- ERROR MODAL -->
+    <div id="errorModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] hidden flex-col items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 shadow-2xl w-full max-w-sm flex flex-col gap-3">
+            <div class="text-center mb-2">
+                <div class="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-2"><i class="fa-solid fa-triangle-exclamation text-3xl text-rose-500"></i></div>
+                <h3 class="font-bold text-gray-800 text-lg">Lapor Kendala Upload</h3>
+                <p class="text-[10px] text-gray-500">Laporan ini akan diverifikasi oleh sistem. Pastikan Anda mengisi alasan dengan jujur.</p>
+            </div>
+            <div class="bg-gray-50 p-3 rounded-xl border text-[10px] font-mono text-gray-600 flex flex-col gap-1">
+                <div><span class="font-bold">Jenis:</span> <span id="errTypeDisplay">-</span></div>
+                <div><span class="font-bold">Waktu:</span> <span id="errTimeDisplay">-</span></div>
+                <div><span class="font-bold">Status:</span> <span id="errStatusDisplay">-</span></div>
+            </div>
+            <div>
+                <label class="text-xs font-bold text-gray-700 block mb-1">Apa kendalanya? (Wajib)</label>
+                <textarea id="errKomentar" rows="3" placeholder="Contoh: Sinyal tiba-tiba hilang saat mengirim..." class="w-full p-3 border border-gray-200 rounded-xl text-xs outline-none focus:border-blue-500"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mt-2">
+                <button onclick="closeErrorModal()" class="bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs">Batal</button>
+                <button onclick="submitErrorReport()" class="bg-rose-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md">Kirim Laporan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- REST MODAL (ANTAR SET) -->
+    <div id="restModal" class="fixed inset-0 bg-blue-900/90 backdrop-blur-md z-[140] hidden flex-col items-center justify-center p-4">
+        <h3 class="text-white text-lg font-bold mb-2" id="restTitle">Waktu Istirahat!</h3>
+        <p class="text-blue-200 text-xs mb-6">Bersiaplah untuk set berikutnya...</p>
+        <div class="w-32 h-32 bg-white/10 rounded-full flex items-center justify-center border-4 border-blue-400 mb-6">
+            <span id="restTimer" class="text-white text-6xl font-black">30</span>
+        </div>
+        <button onclick="skipRest()" class="text-white/60 text-xs font-bold underline">Lewati Istirahat</button>
+    </div>
+
+    <!-- SUCCESS MODAL -->
     <div id="successUploadModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden flex-col items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-6 shadow-2xl w-full max-w-xs text-center flex flex-col items-center transform scale-100 transition-transform">
             <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-4"><i class="fa-solid fa-check text-4xl text-emerald-500"></i></div>
             <h3 class="font-bold text-gray-800 text-lg mb-1">Berhasil!</h3>
-            <p class="text-xs text-gray-500 mb-5">Video tugas kamu berhasil terkirim dan tersimpan ke server.</p>
-            <button onclick="closeSuccessModal()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl active:scale-95 text-sm">Kembali ke Dashboard</button>
+            <p class="text-xs text-gray-500 mb-5" id="successUploadText">Video tugas kamu berhasil terkirim.</p>
+            <button onclick="closeSuccessModal()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl active:scale-95 text-sm">Lanjut</button>
         </div>
     </div>
 
-    <div id="successAbsenModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden flex-col items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-6 shadow-2xl w-full max-w-xs text-center flex flex-col items-center transform scale-100 transition-transform">
-            <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-4"><i class="fa-solid fa-check text-4xl text-emerald-500"></i></div>
-            <h3 class="font-bold text-gray-800 text-lg mb-1">Absen Disimpan!</h3>
-            <p id="successAbsenText" class="text-xs text-gray-500 mb-5">Absen berhasil disimpan oleh petugas.</p>
-            <button onclick="closeSuccessAbsenModal()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl active:scale-95 text-sm">Selesai</button>
-        </div>
-    </div>
-
+    <!-- EASTER EGG & PHOTO MODAL -->
     <div id="easterEggModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[140] hidden flex-col items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 shadow-2xl w-full max-w-sm text-center flex flex-col items-center transform scale-100 transition-transform relative overflow-hidden">
             <div class="absolute -top-10 -right-10 text-9xl opacity-10">🌻</div>
@@ -375,18 +412,36 @@
         let activeTasks = [], userSubs = {};
         let selectedTask = null, currentSubTugas = "Utama", selectedDay = "1";
         let currentMinSec = 60, currentMaxSec = 300;
+        
+        // STATE REKAM
         let mediaStream = null, mediaRecorder = null, recordedChunks = [];
         let isRecording = false, isPaused = false, timerInterval, secondsRecorded = 0;
         let currentFacingMode = "environment";
         let isMinBeepPlayed = false;
         let isCountdownActive = false;
+        
+        // STATE MULTI-SET
+        let currentSet = 1;
+        let totalSets = 1;
+        let restTimerInterval = null;
+        let currentSubConfig = null; // Menyimpan objek subTugas (min, max, set, rest, metro)
+        
+        // STATE RETRY & ERROR
+        let globalConfig = { jeda_awal_rekam: 3, jeda_antar_set: 30, max_retry_upload: 3, max_file_mb: 30 };
+        let retryCount = 0;
+        let currentBlobToUpload = null;
+        let lastErrorDetail = { type: '', message: '' };
+
+        // STATE LAIN
         let absenStream = null, currentPhotoType = "Datang";
         let absenFacingMode = "user";
         let fotoDatangBase64 = null, fotoPulangBase64 = null;
         let absenLocked = false;
         let localHasDatang = false;
+        let stateAbsensiHistory = [];
+        let easterEggShownToday = false;
 
-        // ============ STATE METRONOME ============
+        // STATE METRONOME
         let currentMetroOn = false;
         let currentMetroBpm = 96;
         let currentMetroSound = 'beep';
@@ -397,7 +452,6 @@
         let metroNextBeatTime = 0;
         let metroBeatCount = 0;
 
-        let easterEggShownToday = false;
         const eggQuotes = [
             "Kamu hebat! Kamu sudah menyelesaikan semua tugas hari ini. Yakinlah semua ini akan membuatmu lebih baik.",
             "Luar biasa! Semua tugas tuntas. Konsistensi hari ini adalah kekuatan untuk esok.",
@@ -419,84 +473,25 @@
             let str = String(val);
             if (str.includes(':')) {
                 let parts = str.split(':');
-                let m = parseInt(parts[0]) || 0;
-                let s = parseInt(parts[1]) || 0;
-                return (m * 60) + s;
+                return ((parseInt(parts[0]) || 0) * 60) + (parseInt(parts[1]) || 0);
             }
             return (parseInt(val) || 0) * 60;
         }
 
-        function formatDateTime(iso) {
-            if(!iso) return { date: "", time: "" };
-            try {
-                if (iso.includes('/')) {
-                    const parts = iso.split(', ');
-                    return { date: parts[0], time: parts[1] || '' };
-                }
-                const d = new Date(iso);
-                if(isNaN(d.getTime())) return { date: iso, time: "" };
-                const pad = (n) => String(n).padStart(2, '0');
-                return { date: `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`, time: `${pad(d.getHours())}.${pad(d.getMinutes())}.${pad(d.getSeconds())}` };
-            } catch(e) { return { date: iso, time: "" }; }
-        }
-
-        function formatDateIndo(dateStr) {
-            if (!dateStr) return "";
-            const parts = dateStr.split('-');
-            if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-            return dateStr;
-        }
-
-        function extractLocalDate(dateStr) {
-            if (!dateStr) return '';
-            let str = dateStr.toString().trim();
-            if (str.includes('T')) {
-                const d = new Date(str);
-                if (!isNaN(d.getTime())) {
-                    const pad = (n) => String(n).padStart(2, '0');
-                    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-                }
-                return str.split('T')[0];
-            }
-            return str;
-        }
-
-        function getLocalToday() {
-            const d = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Jakarta"}));
-            const pad = (n) => String(n).padStart(2, '0');
-            return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-        }
-
-        function getDirectImageLink(url) {
-            if(!url) return "";
-            const match = url.match(/[-\w]{25,}/);
-            return match ? `https://lh3.googleusercontent.com/d/${match[0]}` : url;
-        }
-
-        function normalizeStr(str) {
-            return String(str || "").replace(/[^a-z0-9]/gi, '').toLowerCase();
-        }
-
-        function isSubDone(taskId, tanggal, subName) {
+        function isSubDone(taskId, tanggal, subName, setNum = 1, totalSetsParam = 1) {
             const cleanTaskId = normalizeStr(taskId);
             const cleanSubName = normalizeStr(subName);
+            let expectedName = cleanSubName;
+            if (totalSetsParam > 1) {
+                const padNum = String(setNum).padStart(2, '0');
+                expectedName = `${cleanSubName}set${padNum}`;
+            }
             return Object.keys(userSubs).some(k => {
                 const cleanK = normalizeStr(k);
-                if (!cleanK.includes(cleanTaskId) || !cleanK.includes(cleanSubName)) return false;
+                if (!cleanK.includes(cleanTaskId) || !cleanK.includes(expectedName)) return false;
                 let dateInKey = "";
                 const isoMatch = k.match(/(\d{4}-\d{2}-\d{2})/);
-                if (isoMatch) {
-                    dateInKey = isoMatch[1];
-                } else {
-                    const longDateMatch = k.match(/(Mon|Tue|Wed|Thu|Fri|Sat|Sun) [A-Z][a-z]{2} \d{1,2} \d{4}/);
-                    if (longDateMatch) {
-                        const dateObj = new Date(longDateMatch[0]);
-                        if (!isNaN(dateObj.getTime())) {
-                            const pad = (n) => String(n).padStart(2, '0');
-                            dateInKey = `${dateObj.getFullYear()}-${pad(dateObj.getMonth() + 1)}-${pad(dateObj.getDate())}`;
-                        }
-                    }
-                }
+                if (isoMatch) dateInKey = isoMatch[1];
                 return dateInKey === tanggal;
             });
         }
@@ -513,26 +508,18 @@
             }
         }
 
-        let touchStartX = 0;
-        let touchEndX = 0;
+        let touchStartX = 0, touchEndX = 0;
         document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, false);
         document.addEventListener('touchend', e => { touchEndX = e.changedTouches[0].screenX; handleSwipe(); }, false);
-
         function handleSwipe() {
             if (window.innerWidth >= 768) return;
             const sidebar = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebarBackdrop');
             if (touchEndX - touchStartX > 70 && touchStartX < 50) {
-                if (sidebar.classList.contains('-translate-x-full')) {
-                    sidebar.classList.remove('-translate-x-full');
-                    backdrop.classList.remove('hidden');
-                }
+                if (sidebar.classList.contains('-translate-x-full')) { sidebar.classList.remove('-translate-x-full'); backdrop.classList.remove('hidden'); }
             }
             if (touchStartX - touchEndX > 70) {
-                if (!sidebar.classList.contains('-translate-x-full')) {
-                    sidebar.classList.add('-translate-x-full');
-                    backdrop.classList.add('hidden');
-                }
+                if (!sidebar.classList.contains('-translate-x-full')) { sidebar.classList.add('-translate-x-full'); backdrop.classList.add('hidden'); }
             }
         }
 
@@ -550,14 +537,9 @@
             container.innerHTML = html;
         }
 
-        // REVISI 1: Greeting realtime mengikuti jam
         function updateGreeting() {
             const hour = new Date().getHours();
-            let greeting;
-            if (hour >= 4 && hour < 11) greeting = "Selamat Pagi";
-            else if (hour >= 11 && hour < 15) greeting = "Selamat Siang";
-            else if (hour >= 15 && hour < 18) greeting = "Selamat Sore";
-            else greeting = "Selamat Malam";
+            let greeting = (hour >= 4 && hour < 11) ? "Selamat Pagi" : (hour >= 11 && hour < 15) ? "Selamat Siang" : (hour >= 15 && hour < 18) ? "Selamat Sore" : "Selamat Malam";
             const el = document.getElementById('mobileGreeting');
             if (el) el.textContent = greeting;
         }
@@ -591,7 +573,7 @@
                 document.getElementById('absensiDate').value = getLocalToday();
             }
             renderMenu();
-            fetchTasks();
+            fetchConfigAndTasks();
             fetchRiwayatSemua();
         });
 
@@ -625,13 +607,8 @@
             passVisible = !passVisible;
             const el = document.getElementById('dataPassword');
             const btn = document.getElementById('btnTogglePass');
-            if (passVisible) {
-                el.textContent = user.password || "Password tidak tersedia";
-                btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
-            } else {
-                el.textContent = "••••••••";
-                btn.innerHTML = '<i class="fa-solid fa-eye"></i>';
-            }
+            if (passVisible) { el.textContent = user.password || "Password tidak tersedia"; btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>'; }
+            else { el.textContent = "••••••••"; btn.innerHTML = '<i class="fa-solid fa-eye"></i>'; }
         }
 
         function openAbsenModal() {
@@ -645,7 +622,6 @@
             document.getElementById('absenModal').classList.remove('flex');
         }
 
-        // REVISI 2: Sunflower rain — lebih banyak, lebih lama, ditahan di tengah layar
         function triggerEasterEgg() {
             if (easterEggShownToday) return;
             easterEggShownToday = true;
@@ -678,18 +654,29 @@
             document.getElementById('easterEggModal').classList.remove('flex');
         }
 
-        function fetchTasks() {
+        // ============ FETCH TASKS & CONFIG ============
+        function fetchConfigAndTasks() {
             const container = document.getElementById('taskListContainer');
-            container.innerHTML = `<div class="py-10 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-spinner animate-spin text-3xl text-blue-600 mb-3"></i><p class="text-xs font-semibold text-gray-500">Memuat tugas...</p></div>`;
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getTasks', username: user.username }) })
-            .then(r => r.json()).then(d => {
-                if (d.success) {
-                    activeTasks = d.tasks;
-                    userSubs = d.userSubs || {};
+            container.innerHTML = `<div class="py-10 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-spinner animate-spin text-3xl text-blue-600 mb-3"></i><p class="text-xs font-semibold text-gray-500">Memuat data...</p></div>`;
+            
+            let reqConfig = fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getConfig' }) }).then(r=>r.json());
+            let reqTasks = fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getTasks', username: user.username }) }).then(r=>r.json());
+
+            Promise.all([reqConfig, reqTasks]).then(([dConfig, dTasks]) => {
+                if(dConfig.success && dConfig.config) {
+                    globalConfig = { ...globalConfig, ...dConfig.config };
+                }
+                if (dTasks.success) {
+                    activeTasks = dTasks.tasks;
+                    userSubs = dTasks.userSubs || {};
                     renderTasks(activeTasks);
                 }
-            }).catch(e => container.innerHTML = `<p class="text-center text-xs text-rose-500">Gagal memuat koneksi</p>`);
+            }).catch(e => {
+                container.innerHTML = `<p class="text-center text-xs text-rose-500">Gagal memuat koneksi</p>`;
+            });
         }
+
+        function fetchTasks() { fetchConfigAndTasks(); }
 
         function renderTasks(tasks) {
             const today = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Jakarta"}));
@@ -701,18 +688,14 @@
             const todayTasks = [];
             const tomorrowTasks = [];
             let totalUnfinishedToday = 0;
+
             tasks.forEach(t => {
                 if (t.isLama) { todayTasks.push(t); return; }
                 const rawDates = t.tanggalPengerjaan ? t.tanggalPengerjaan.toString() : "";
-                let dateList = rawDates.includes(' to ')
-                    ? rawDates.split(' to ').map(d => extractLocalDate(d))
-                    : rawDates.split(',').map(d => extractLocalDate(d));
+                let dateList = rawDates.includes(' to ') ? rawDates.split(' to ').map(d => extractLocalDate(d)) : rawDates.split(',').map(d => extractLocalDate(d));
                 if (t.tipePengumpulan === 'Harian') {
-                    if (dateList.includes(todayStr)) {
-                        todayTasks.push(t);
-                    } else if (dateList.includes(tomorrowStr)) {
-                        tomorrowTasks.push(t);
-                    }
+                    if (dateList.includes(todayStr)) todayTasks.push(t);
+                    else if (dateList.includes(tomorrowStr)) tomorrowTasks.push(t);
                 } else if (t.tipePengumpulan === 'Satu Kali') {
                     const dl = dateList[dateList.length - 1];
                     if (dl >= todayStr) todayTasks.push(t);
@@ -720,6 +703,7 @@
                     todayTasks.push(t);
                 }
             });
+
             const upcomingSection = document.getElementById('upcomingTasksSection');
             if (tomorrowTasks.length > 0) {
                 upcomingSection.classList.remove('hidden');
@@ -738,32 +722,46 @@
                         `).join('')}
                     </div>`;
             } else { upcomingSection.classList.add('hidden'); upcomingSection.innerHTML = ''; }
+
             const container = document.getElementById('taskListContainer');
+            
+            // Cek status pending
             const todayTasksFiltered = todayTasks.filter(t => {
                 if(t.isLama) return true;
-                const pendingSubs = (t.subTugas || []).filter(sub => !isSubDone(t.taskId, todayStr, sub.nama));
+                const pendingSubs = (t.subTugas || []).filter(sub => {
+                    const sets = sub.set || 1;
+                    if(sets === 1) return !isSubDone(t.taskId, todayStr, sub.nama, 1, 1);
+                    for(let i=1; i<=sets; i++) { if(!isSubDone(t.taskId, todayStr, sub.nama, i, sets)) return true; }
+                    return false;
+                });
                 return pendingSubs.length > 0;
             });
+
             let totalSubsToday = 0;
             todayTasks.forEach(t => { if(!t.isLama) totalSubsToday += (t.subTugas || []).length; });
-            if (todayTasks.length > 0 && todayTasksFiltered.length === 0 && totalSubsToday > 0) {
-                triggerEasterEgg();
-            }
+            if (todayTasks.length > 0 && todayTasksFiltered.length === 0 && totalSubsToday > 0) triggerEasterEgg();
+
             if (todayTasksFiltered.length === 0) {
                 container.innerHTML = `<div class="bg-white border rounded-3xl p-6 text-center shadow-xs"><i class="fa-solid fa-circle-check text-emerald-400 text-3xl mb-2"></i><p class="text-xs text-gray-500 font-semibold">Mantap! Semua tugas untuk hari ini sudah selesai.</p></div>`;
                 document.getElementById('badgeTugasCount').classList.add('hidden');
                 return;
             }
+
             container.innerHTML = todayTasksFiltered.map(t => {
                 const isLama = t.isLama;
                 const isBertumpuk = t.subTugas && t.subTugas.length > 1;
-                const pendingSubs = (t.subTugas || []).filter(sub => !isSubDone(t.taskId, todayStr, sub.nama));
-                totalUnfinishedToday += pendingSubs.length;
+                let pendingCount = 0;
+                (t.subTugas || []).forEach(sub => {
+                    const sets = sub.set || 1;
+                    for(let i=1; i<=sets; i++) { if(!isSubDone(t.taskId, todayStr, sub.nama, i, sets)) pendingCount++; }
+                });
+                totalUnfinishedToday += pendingCount;
+                
                 let statusTeks = '';
-                if ((t.subTugas || []).length === 1) {
+                if (pendingCount === 1) {
                     statusTeks = `<div class="text-[10px] font-bold text-rose-500 bg-rose-50 px-3 py-2 rounded-xl text-center mt-2 border border-rose-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-circle-exclamation"></i> Anda belum mengerjakan tugas ini</div>`;
                 } else {
-                    statusTeks = `<div class="text-[10px] font-bold text-amber-600 bg-amber-50 px-3 py-2 rounded-xl text-center mt-2 border border-amber-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-clock"></i> Sisa ${pendingSubs.length} gerakan belum dikerjakan</div>`;
+                    statusTeks = `<div class="text-[10px] font-bold text-amber-600 bg-amber-50 px-3 py-2 rounded-xl text-center mt-2 border border-amber-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-clock"></i> Sisa ${pendingCount} sesi/gerakan belum dikerjakan</div>`;
                 }
                 let labelTanggal = isLama ? "Sistem Lama" : (t.tipePengumpulan === "Satu Kali" ? `Deadline: ${t.tanggalPengerjaan.replace(' to ', ' s/d ')}` : `Tugas Rutin Hari Ini`);
                 const borderClass = isLama ? 'border-gray-400' : (t.tipePengumpulan === 'Satu Kali' ? 'border-amber-500' : 'border-purple-500');
@@ -811,27 +809,33 @@
             const container = document.getElementById('subTasksContainer');
             container.innerHTML = '';
             selectedTask.subTugas.forEach(sub => {
-                const isDone = isSubDone(selectedTask.taskId, selectedDay, sub.nama);
+                const sets = sub.set || 1;
+                let doneCount = 0;
+                for(let i=1; i<=sets; i++) { if(isSubDone(selectedTask.taskId, selectedDay, sub.nama, i, sets)) doneCount++; }
+                const isFullyDone = (doneCount === sets);
+
                 const minSec = parseDuration(sub.min);
                 const maxSec = parseDuration(sub.max);
                 const targetTeks = `${formatSecToText(minSec)} - ${formatSecToText(maxSec)}`;
                 const hasMetro = sub.metro && sub.metro.on;
-                const metroBadgeHtml = hasMetro
-                    ? `<span class="text-[9px] text-blue-100 bg-blue-900/60 px-1.5 py-0.5 rounded flex items-center gap-0.5"><i class="fa-solid fa-drum text-[8px]"></i> ${parseInt(sub.metro.bpm) || 96}</span>`
-                    : '';
-                if (isDone) {
+                const metroBadgeHtml = hasMetro ? `<span class="text-[9px] text-blue-100 bg-blue-900/60 px-1.5 py-0.5 rounded flex items-center gap-0.5"><i class="fa-solid fa-drum text-[8px]"></i> ${parseInt(sub.metro.bpm) || 96}</span>` : '';
+                const setBadgeHtml = sets > 1 ? `<span class="text-[9px] text-amber-100 bg-amber-900/60 px-1.5 py-0.5 rounded font-bold">${doneCount}/${sets} Set</span>` : '';
+
+                if (isFullyDone) {
                     container.innerHTML += `
                         <div class="w-full bg-emerald-500 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 shadow-sm opacity-90 cursor-not-allowed">
                             <span class="line-through decoration-white/50">${sub.nama}</span>
                             <div class="flex items-center gap-2">
+                                ${setBadgeHtml}
                                 <span class="text-[10px] bg-emerald-700 px-2 py-1 rounded font-bold"><i class="fa-solid fa-check mr-1"></i> Selesai</span>
                             </div>
                         </div>`;
                 } else {
                     container.innerHTML += `
-                        <button onclick="prepareCamera('${sub.nama.replace(/'/g, "\\'")}', ${minSec}, ${maxSec})" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 active:scale-95 shadow-lg group transition-transform">
-                            <span class="truncate pr-2">${sub.nama}</span>
+                        <button onclick="prepareCamera('${sub.nama.replace(/'/g, "\\'")}')" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 active:scale-95 shadow-lg group transition-transform">
+                            <span class="truncate pr-2 text-left">${sub.nama}</span>
                             <div class="flex items-center gap-1.5 flex-shrink-0">
+                                ${setBadgeHtml}
                                 ${metroBadgeHtml}
                                 <span class="text-[9px] text-blue-200 bg-blue-800/50 px-1.5 py-0.5 rounded">${targetTeks}</span>
                                 <span class="bg-blue-800 px-2 py-1 rounded text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-video"></i> Rekam</span>
@@ -841,34 +845,47 @@
             });
         }
 
-        async function prepareCamera(subName, minSec, maxSec) {
+        // ============ ALUR REKAM MULTI-SET ============
+        async function prepareCamera(subName) {
+            const sub = selectedTask.subTugas.find(s => s.nama === subName);
+            currentSubConfig = sub;
             currentSubTugas = subName;
-            currentMinSec = parseInt(minSec);
-            currentMaxSec = parseInt(maxSec);
-            const sub = (selectedTask && selectedTask.subTugas) ? selectedTask.subTugas.find(s => s.nama === subName) : null;
+            currentMinSec = parseDuration(sub.min);
+            currentMaxSec = parseDuration(sub.max);
+            totalSets = sub.set || 1;
+
+            // Cari set yang belum selesai
+            let nextSet = 1;
+            for(let i=1; i<=totalSets; i++) {
+                if(!isSubDone(selectedTask.taskId, selectedDay, subName, i, totalSets)) { nextSet = i; break; }
+            }
+            currentSet = nextSet;
+
+            // Set Metro Config
             const metro = (sub && sub.metro) ? sub.metro : { on: false, bpm: 96, sound: 'beep' };
             currentMetroOn = !!metro.on;
             currentMetroBpm = parseInt(metro.bpm) || 96;
             currentMetroSound = metro.sound || 'beep';
             metroMuted = false;
+            
             const badge = document.getElementById('metroBadge');
             const muteBtn = document.getElementById('btnMetroMute');
             const muteIcon = document.getElementById('metroMuteIcon');
             if (currentMetroOn) {
                 document.getElementById('metroBadgeText').textContent = currentMetroBpm;
-                badge.classList.remove('hidden');
-                badge.classList.add('flex');
-                muteBtn.classList.remove('hidden');
-                muteBtn.classList.add('flex');
+                badge.classList.remove('hidden'); badge.classList.add('flex');
+                muteBtn.classList.remove('hidden'); muteBtn.classList.add('flex');
                 muteIcon.className = 'fa-solid fa-volume-high';
             } else {
-                badge.classList.add('hidden');
-                badge.classList.remove('flex');
-                muteBtn.classList.add('hidden');
-                muteBtn.classList.remove('flex');
+                badge.classList.add('hidden'); badge.classList.remove('flex');
+                muteBtn.classList.add('hidden'); muteBtn.classList.remove('flex');
             }
-            document.getElementById('kameraSubName').textContent = subName;
+
+            let displayName = subName;
+            if (totalSets > 1) displayName += ` (Set ${currentSet}/${totalSets})`;
+            document.getElementById('kameraSubName').textContent = displayName;
             document.getElementById('kameraTarget').textContent = `${formatSecToText(currentMinSec)} - ${formatSecToText(currentMaxSec)}`;
+
             closeSetup();
             document.getElementById('viewCamera').classList.remove('hidden'); document.getElementById('viewCamera').classList.add('flex');
             isMinBeepPlayed = false;
@@ -888,7 +905,7 @@
                 if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
                 mediaStream = await navigator.mediaDevices.getUserMedia({
                     audio: true,
-                    video: { width: { ideal: 960 }, height: { ideal: 540 }, facingMode: currentFacingMode }
+                    video: { width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 24 }, facingMode: currentFacingMode }
                 });
                 const videoEl = document.getElementById('videoPreview');
                 videoEl.srcObject = mediaStream;
@@ -913,29 +930,29 @@
             if (currentMetroOn) { try { ensureMetroCtx(); } catch(e) {} }
             const overlay = document.getElementById('countdownOverlay');
             const text = document.getElementById('countdownText');
-            overlay.classList.remove('hidden');
-            overlay.classList.add('flex');
+            overlay.classList.remove('hidden'); overlay.classList.add('flex');
             document.getElementById('btnSwitchCamera').classList.add('hidden');
-            let count = 3;
+            
+            // Gunakan jeda_awal_rekam dari config
+            let count = parseInt(globalConfig.jeda_awal_rekam) || 3;
             text.textContent = count;
+            
             const playBeep1 = () => { document.getElementById('beep1').currentTime = 0; document.getElementById('beep1').play().catch(e=>{}); };
             const playBeep2 = () => { document.getElementById('beep2').currentTime = 0; document.getElementById('beep2').play().catch(e=>{}); };
+            
             playBeep1();
             const interval = setInterval(() => {
                 count--;
                 if (count > 0) {
                     text.textContent = count;
-                    text.classList.remove('countdown-anim');
-                    void text.offsetWidth;
-                    text.classList.add('countdown-anim');
+                    text.classList.remove('countdown-anim'); void text.offsetWidth; text.classList.add('countdown-anim');
                     playBeep1();
                 } else {
                     clearInterval(interval);
                     text.textContent = "Mulai!";
-                    playBeep2();
+                    playBeep2(); // Beep 2 untuk mulai
                     setTimeout(() => {
-                        overlay.classList.add('hidden');
-                        overlay.classList.remove('flex');
+                        overlay.classList.add('hidden'); overlay.classList.remove('flex');
                         isCountdownActive = false;
                         startRecording();
                     }, 500);
@@ -946,9 +963,9 @@
         function startRecording() {
             if (!mediaStream) return; 
             recordedChunks = [];
-            secondsRecorded = 0;   // ← BARIS BARU: reset timer ke 0 di tiap rekaman
+            secondsRecorded = 0;
             try {
-                let options = { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 1000000 };
+                let options = { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 1200000 };
                 if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/mp4' };
                 mediaRecorder = new MediaRecorder(mediaStream, options);
                 mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
@@ -1015,175 +1032,247 @@
                 isMinBeepPlayed = true;
                 let beepCount = 0;
                 const beepInterval = setInterval(() => {
-                    if(beepCount < 5) {
-                        const audio = document.getElementById('beep1');
-                        audio.currentTime = 0;
-                        audio.play().catch(e=>{});
-                        beepCount++;
-                    } else {
-                        clearInterval(beepInterval);
-                    }
+                    if(beepCount < 5) { const audio = document.getElementById('beep1'); audio.currentTime = 0; audio.play().catch(e=>{}); beepCount++; }
+                    else { clearInterval(beepInterval); }
                 }, 1000);
             }
             const beep2Target = currentMetroOn ? (currentMinSec + 1) : currentMinSec;
             if (secondsRecorded === beep2Target && beep2Target <= currentMaxSec) {
-                const audio = document.getElementById('beep2');
-                audio.currentTime = 0;
-                audio.play().catch(e=>{});
+                const audio = document.getElementById('beep2'); audio.currentTime = 0; audio.play().catch(e=>{});
             }
             if(secondsRecorded >= currentMaxSec && isRecording) { stopRecording(false); showToast("Batas maksimal tercapai.", "info"); }
         }
 
+        // ============ UPLOAD & RETRY & ERROR LOGIC ============
         function processUploadBase64() {
             if (recordedChunks.length === 0) return;
             if (secondsRecorded < currentMinSec) { showToast(`Dibatalkan! Waktu minimum adalah ${formatSecToText(currentMinSec)}.`, "error"); return; }
-            const blob = new Blob(recordedChunks, { type: recordedChunks[0].type });
-            const ext = blob.type.includes('mp4') ? '.mp4' : '.webm';
-            const cleanName = user.nama.replace(/[^a-zA-Z0-9]/g, '');
-            const cleanSub = currentSubTugas.replace(/[^a-zA-Z0-9]/g, '');
-            const filename = `Tugas_${cleanName}_${cleanSub}_${Date.now()}${ext}`;
+            
+            currentBlobToUpload = new Blob(recordedChunks, { type: recordedChunks[0].type });
+            
+            // Cek Ukuran File
+            const maxSize = (globalConfig.max_file_mb || 30) * 1024 * 1024;
+            if(currentBlobToUpload.size > maxSize) {
+                showToast(`File terlalu besar (${(currentBlobToUpload.size/1024/1024).toFixed(1)}MB). Maksimal ${globalConfig.max_file_mb || 30}MB.`, "error");
+                return;
+            }
+
+            retryCount = 0;
+            doUploadProcess();
+        }
+
+        function doUploadProcess() {
             const viewUp = document.getElementById('viewUploading');
-            document.getElementById('uploadStatusText').textContent = "Sedang memproses dan membersihkan format agar aman di server...";
+            const uploadTitle = document.getElementById('uploadTitle');
+            const uploadText = document.getElementById('uploadStatusText');
+            const errorAction = document.getElementById('errorActionContainer');
+            
             viewUp.classList.remove('hidden'); viewUp.classList.add('flex');
+            errorAction.classList.add('hidden'); errorAction.classList.remove('flex');
+            uploadTitle.textContent = retryCount === 0 ? "Mengirim Video..." : `Mencoba Ulang (${retryCount}/${globalConfig.max_retry_upload})...`;
+            uploadText.textContent = "Sedang memproses dan membersihkan format agar aman di server...";
+
             const reader = new FileReader();
-            reader.readAsDataURL(blob);
+            reader.readAsDataURL(currentBlobToUpload);
             reader.onloadend = function() {
                 const base64data = reader.result;
+                
+                // AbortController untuk Timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 detik timeout
+
+                let subName = currentSubTugas;
+                if(totalSets > 1) subName += ` (Set ${String(currentSet).padStart(2, '0')}/${totalSets})`;
+
                 fetch(GAS_URL, {
                     method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    signal: controller.signal,
                     body: JSON.stringify({
                         action: 'submitVideoBase64', taskFolderId: selectedTask.folderId, taskId: selectedTask.taskId,
                         subId: 'SUB_' + Date.now(), namaAnggota: user.nama, tanggal: selectedDay, hariKe: selectedDay,
-                        subTugasName: currentSubTugas, filename: filename, mimeType: blob.type, base64Data: base64data
+                        subTugasName: subName, filename: `Tugas_${user.nama.replace(/[^a-zA-Z0-9]/g, '')}_${currentSubTugas.replace(/[^a-zA-Z0-9]/g, '')}_Set${currentSet}_${Date.now()}.webm`, 
+                        mimeType: currentBlobToUpload.type, base64Data: base64data
                     })
-                }).then(r => r.json()).then(d => {
-                    viewUp.classList.add('hidden'); viewUp.classList.remove('flex');
+                }).then(r => {
+                    clearTimeout(timeoutId);
+                    if(!r.ok) throw new Error("HTTP " + r.status);
+                    return r.json();
+                }).then(d => {
                     if (d.success) {
-                        document.getElementById('successUploadModal').classList.remove('hidden'); document.getElementById('successUploadModal').classList.add('flex');
-                        const newKey = `${selectedTask.taskId}_${selectedDay}_${currentSubTugas}`;
-                        userSubs[newKey] = true;
-                        fetchTasks();
-                        fetchRiwayatSemua();
-                    } else { showToast("Gagal: " + d.message, "error"); }
+                        handleUploadSuccess(subName);
+                    } else {
+                        throw new Error(d.message || "Server menolak data.");
+                    }
                 }).catch(err => {
-                    viewUp.classList.add('hidden'); viewUp.classList.remove('flex');
-                    showToast("Gagal mengirim data.", "error");
+                    clearTimeout(timeoutId);
+                    handleUploadError(err);
                 });
             }
         }
 
+        function handleUploadSuccess(subName) {
+            document.getElementById('viewUploading').classList.add('hidden'); document.getElementById('viewUploading').classList.remove('flex');
+            
+            // Tandai lokal sudah selesai
+            const newKey = `${selectedTask.taskId}_${selectedDay}_${subName}`;
+            userSubs[newKey] = true;
+
+            if (currentSet < totalSets) {
+                // Tampilkan Layar Istirahat
+                const restMins = parseInt(currentSubConfig.rest) || parseInt(globalConfig.jeda_antar_set) || 30;
+                showRestScreen(restMins);
+            } else {
+                // Semua set selesai
+                document.getElementById('successUploadText').textContent = `Video ${currentSubTugas} (${totalSets} Set) berhasil terkirim.`;
+                document.getElementById('successUploadModal').classList.remove('hidden'); document.getElementById('successUploadModal').classList.add('flex');
+                fetchTasks();
+                fetchRiwayatSemua();
+            }
+        }
+
+        function handleUploadError(err) {
+            lastErrorDetail = { 
+                type: err.name === 'AbortError' ? 'TIMEOUT' : (navigator.onLine ? 'NETWORK' : 'OFFLINE'), 
+                message: err.message 
+            };
+            
+            retryCount++;
+            if (retryCount < globalConfig.max_retry_upload) {
+                // Jeda lalu auto retry
+                document.getElementById('uploadTitle').textContent = `Gagal. Mencoba lagi dalam 3 detik...`;
+                setTimeout(() => doUploadProcess(), 3000);
+            } else {
+                // Gagal total, tampilkan tombol
+                document.getElementById('uploadTitle').textContent = `Upload Gagal`;
+                document.getElementById('uploadStatusText').textContent = `Sistem sudah mencoba ${globalConfig.max_retry_upload}x namun gagal. Silakan coba lagi atau laporkan.`;
+                const errorAction = document.getElementById('errorActionContainer');
+                errorAction.classList.remove('hidden'); errorAction.classList.add('flex');
+            }
+        }
+
+        function retryUpload() {
+            retryCount = 0; // Reset counter untuk manual retry
+            doUploadProcess();
+        }
+
+        // ============ LAPOR ERROR MODAL ============
+        function openErrorModal() {
+            document.getElementById('errTypeDisplay').textContent = lastErrorDetail.type;
+            document.getElementById('errTimeDisplay').textContent = formatDateTime(new Date().toISOString()).time;
+            document.getElementById('errStatusDisplay').textContent = navigator.onLine ? 'Online' : 'Offline';
+            document.getElementById('errKomentar').value = '';
+            document.getElementById('errorModal').classList.remove('hidden');
+            document.getElementById('errorModal').classList.add('flex');
+        }
+
+        function closeErrorModal() {
+            document.getElementById('errorModal').classList.add('hidden');
+            document.getElementById('errorModal').classList.remove('flex');
+        }
+
+        function submitErrorReport() {
+            const komentar = document.getElementById('errKomentar').value.trim();
+            if (komentar.length < 10) {
+                showToast("Komentar wajib diisi minimal 10 karakter!", "error");
+                return;
+            }
+
+            let subName = currentSubTugas;
+            if(totalSets > 1) subName += ` (Set ${currentSet}/${totalSets})`;
+
+            const payload = {
+                action: 'logError',
+                nama: user.nama,
+                tugas: selectedTask.judulTugas,
+                sesi: subName,
+                jenis: lastErrorDetail.type,
+                pesan: lastErrorDetail.message,
+                komentar: komentar,
+                userAgent: navigator.userAgent,
+                online: navigator.onLine,
+                retryCount: retryCount,
+                fileSize: currentBlobToUpload ? currentBlobToUpload.size : 0
+            };
+
+            closeErrorModal();
+            showLoading(true, "Mengirim Laporan...");
+            
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+            .then(r => r.json()).then(d => {
+                showLoading(false);
+                if(d.success) {
+                    showToast("Laporan terkirim. Terima kasih!", "success");
+                    document.getElementById('viewUploading').classList.add('hidden');
+                    document.getElementById('viewUploading').classList.remove('flex');
+                    // Video tetap ada di RAM (currentBlobToUpload), biarkan user memutuskan
+                } else {
+                    showToast("Gagal kirim laporan: " + d.message, "error");
+                }
+            }).catch(e => {
+                showLoading(false);
+                showToast("Koneksi terputus saat mengirim laporan.", "error");
+            });
+        }
+
+        // ============ LAYAR ISTIRAHAT (REST) ============
+        function showRestScreen(duration) {
+            const modal = document.getElementById('restModal');
+            const timerEl = document.getElementById('restTimer');
+            const titleEl = document.getElementById('restTitle');
+            
+            titleEl.textContent = `Set ${currentSet} Selesai!`;
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            
+            let count = duration;
+            timerEl.textContent = count;
+            
+            const playBeep2 = () => { const b = document.getElementById('beep2'); b.currentTime = 0; b.play().catch(e=>{}); };
+            
+            if(restTimerInterval) clearInterval(restTimerInterval);
+            restTimerInterval = setInterval(() => {
+                count--;
+                if (count <= 0) {
+                    clearInterval(restTimerInterval);
+                    playBeep2(); // Bunyi saat mulai set berikutnya
+                    startNextSet();
+                } else {
+                    timerEl.textContent = count;
+                }
+            }, 1000);
+        }
+
+        function skipRest() {
+            if(restTimerInterval) clearInterval(restTimerInterval);
+            startNextSet();
+        }
+
+        function startNextSet() {
+            document.getElementById('restModal').classList.add('hidden');
+            document.getElementById('restModal').classList.remove('flex');
+            currentSet++;
+            // Panggil prepareCamera lagi untuk set berikutnya
+            prepareCamera(currentSubTugas);
+        }
+
         function closeSuccessModal() {
             document.getElementById('successUploadModal').classList.add('hidden'); document.getElementById('successUploadModal').classList.remove('flex');
+            // Reload tasks untuk update status UI
+            fetchTasks();
+            renderSubTasks();
         }
 
-        // ============ METRONOME (Web Audio API) ============
-        function ensureMetroCtx() {
-            const Ctx = window.AudioContext || window.webkitAudioContext;
-            if (!metroAudioCtx) {
-                metroAudioCtx = new Ctx();
-                metroMasterGain = metroAudioCtx.createGain();
-                metroMasterGain.gain.value = metroMuted ? 0 : 1;
-                metroMasterGain.connect(metroAudioCtx.destination);
-            }
-            if (metroAudioCtx.state === 'suspended') metroAudioCtx.resume();
-            return metroAudioCtx;
-        }
-
-        function metroPlayBeep(isAccent, when) {
-            const ctx = metroAudioCtx;
-            const osc = ctx.createOscillator();
-            const g = ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.value = isAccent ? 1600 : 1000;
-            g.gain.setValueAtTime(0, when);
-            g.gain.linearRampToValueAtTime(isAccent ? 0.4 : 0.28, when + 0.003);
-            g.gain.setValueAtTime(isAccent ? 0.4 : 0.28, when + 0.02);
-            g.gain.exponentialRampToValueAtTime(0.001, when + 0.09);
-            osc.connect(g); g.connect(metroMasterGain);
-            osc.start(when); osc.stop(when + 0.1);
-        }
-
-        function metroPlayClick(isAccent, when) {
-            const ctx = metroAudioCtx;
-            const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.008), ctx.sampleRate);
-            const data = buf.getChannelData(0);
-            for (let i = 0; i < data.length; i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/data.length, 3);
-            const noiseSrc = ctx.createBufferSource(); noiseSrc.buffer = buf;
-            const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 3500;
-            const ng = ctx.createGain(); ng.gain.value = isAccent ? 0.35 : 0.22;
-            noiseSrc.connect(hp); hp.connect(ng); ng.connect(metroMasterGain);
-            noiseSrc.start(when);
-            const osc = ctx.createOscillator(); const og = ctx.createGain();
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(isAccent ? 2200 : 1500, when);
-            osc.frequency.exponentialRampToValueAtTime(isAccent ? 1400 : 900, when + 0.015);
-            og.gain.setValueAtTime(0, when);
-            og.gain.linearRampToValueAtTime(isAccent ? 0.28 : 0.18, when + 0.001);
-            og.gain.exponentialRampToValueAtTime(0.001, when + 0.025);
-            osc.connect(og); og.connect(metroMasterGain); osc.start(when); osc.stop(when + 0.03);
-        }
-
-        function metroPlayTick(isAccent, when) {
-            const ctx = metroAudioCtx;
-            const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.012), ctx.sampleRate);
-            const data = buf.getChannelData(0);
-            for (let i = 0; i < data.length; i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/data.length, 5);
-            const src = ctx.createBufferSource(); src.buffer = buf;
-            const bp = ctx.createBiquadFilter(); bp.type = 'bandpass';
-            bp.frequency.value = isAccent ? 4500 : 2800; bp.Q.value = 6;
-            const g = ctx.createGain(); g.gain.value = isAccent ? 0.55 : 0.4;
-            src.connect(bp); bp.connect(g); g.connect(metroMasterGain);
-            src.start(when);
-        }
-
-        function metroPlayWoodblock(isAccent, when) {
-            const ctx = metroAudioCtx;
-            const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.015), ctx.sampleRate);
-            const data = buf.getChannelData(0);
-            for (let i = 0; i < data.length; i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/data.length, 4);
-            const src = ctx.createBufferSource(); src.buffer = buf;
-            const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2500; bp.Q.value = 2;
-            const ng = ctx.createGain(); ng.gain.value = isAccent ? 0.5 : 0.32;
-            src.connect(bp); bp.connect(ng); ng.connect(metroMasterGain);
-            src.start(when);
-            const osc = ctx.createOscillator(); const og = ctx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(isAccent ? 1700 : 1100, when);
-            osc.frequency.exponentialRampToValueAtTime(isAccent ? 800 : 550, when + 0.04);
-            og.gain.setValueAtTime(0, when);
-            og.gain.linearRampToValueAtTime(isAccent ? 0.6 : 0.4, when + 0.002);
-            og.gain.exponentialRampToValueAtTime(0.001, when + 0.06);
-            osc.connect(og); og.connect(metroMasterGain); osc.start(when); osc.stop(when + 0.08);
-        }
-
-        function metroScheduleBeat(when, isAccent) {
-            try {
-                if (currentMetroSound === 'click') return metroPlayClick(isAccent, when);
-                if (currentMetroSound === 'tick') return metroPlayTick(isAccent, when);
-                if (currentMetroSound === 'woodblock') return metroPlayWoodblock(isAccent, when);
-                return metroPlayBeep(isAccent, when);
-            } catch(e) { console.error('Metro beat error:', e); }
-        }
+        // ============ METRONOME (Dipanggil dari metronome.js) ============
+        function ensureMetroCtx() { Metronome.play('beep', false, 0); } // warm up
 
         function startMetronome() {
             if (!currentMetroOn) return;
-            try { ensureMetroCtx(); } catch(e) { return; }
-            metroBeatCount = 0;
-            metroNextBeatTime = metroAudioCtx.currentTime + 0.1;
             if (metroSchedulerId) clearInterval(metroSchedulerId);
-            metroSchedulerId = setInterval(metroSchedulerTick, 25);
-            metroSchedulerTick();
-        }
-
-        function metroSchedulerTick() {
-            if (!metroAudioCtx) return;
-            const lookahead = 0.1;
-            while (metroNextBeatTime < metroAudioCtx.currentTime + lookahead) {
+            metroBeatCount = 0;
+            metroSchedulerId = setInterval(() => {
                 const isAccent = (metroBeatCount % 4) === 0;
-                metroScheduleBeat(metroNextBeatTime, isAccent);
+                Metronome.play(currentMetroSound, isAccent);
                 metroBeatCount++;
-                metroNextBeatTime += 60 / currentMetroBpm;
-            }
+            }, 60000 / currentMetroBpm);
         }
 
         function stopMetronome() {
@@ -1193,15 +1282,13 @@
 
         function toggleMetroMute() {
             metroMuted = !metroMuted;
-            if (metroMasterGain) {
-                metroMasterGain.gain.value = metroMuted ? 0 : 1;
-            }
+            Metronome.setMute(metroMuted);
             const icon = document.getElementById('metroMuteIcon');
             if (icon) icon.className = metroMuted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
             showToast(metroMuted ? 'Metronome dibisukan' : 'Metronome dibunyikan', 'info');
         }
 
-        // --- SISTEM KAMERA ABSEN (FOTO) ---
+        // --- SISTEM KAMERA ABSEN (FOTO) & SISANYA (SAMA SEPERTI SEBELUMNYA) ---
         async function openAbsenCamera(type) {
             currentPhotoType = type;
             document.getElementById('absenCamTitle').textContent = type === 'Datang' ? 'Foto Datang' : 'Foto Pulang';
@@ -1214,8 +1301,7 @@
                 if (absenStream) absenStream.getTracks().forEach(t => t.stop());
                 absenStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: absenFacingMode } });
                 const videoEl = document.getElementById('absenVideoPreview');
-                videoEl.srcObject = absenStream;
-                videoEl.muted = true;
+                videoEl.srcObject = absenStream; videoEl.muted = true;
             } catch (err) { showToast("Gagal akses kamera", "error"); }
         }
 
@@ -1253,9 +1339,7 @@
 
         function checkTodayAbsensiStatus() {
             const today = document.getElementById('absensiDate').value;
-            let hasDatang = localHasDatang;
-            let hasPulang = false;
-            let savedMateri = "", savedEvaluasi = "";
+            let hasDatang = localHasDatang, hasPulang = false, savedMateri = "", savedEvaluasi = "";
             if(stateAbsensiHistory && stateAbsensiHistory.length > 0) {
                 const headers = stateAbsensiHistory[0];
                 const colIdx = headers.indexOf(today);
@@ -1283,6 +1367,7 @@
             const btnSimpan = document.getElementById('btnSimpanAbsen');
             const dateInput = document.getElementById('absensiDate');
             const formAbsensi = document.getElementById('formAbsensi');
+
             formAbsensi.classList.remove('form-locked');
             dateInput.disabled = false;
             formMateriEval.classList.add('hidden'); formMateriEval.classList.remove('flex');
@@ -1290,34 +1375,29 @@
             statusPulang.classList.add('hidden'); statusPulang.classList.remove('flex');
             boxDatang.classList.remove('opacity-50', 'cursor-not-allowed');
             boxPulang.classList.remove('opacity-50', 'cursor-not-allowed');
+
             if (hasPulang) {
                 absenLocked = true;
-                btnDatang.classList.add('hidden');
-                btnPulang.classList.add('hidden');
+                btnDatang.classList.add('hidden'); btnPulang.classList.add('hidden');
                 statusDatang.classList.remove('hidden'); statusDatang.classList.add('flex');
                 statusPulang.classList.remove('hidden'); statusPulang.classList.add('flex');
                 formMateriEval.classList.remove('hidden'); formMateriEval.classList.add('flex');
-                dateInput.disabled = true;
-                formAbsensi.classList.add('form-locked');
+                dateInput.disabled = true; formAbsensi.classList.add('form-locked');
                 btnSimpan.classList.add('hidden');
-                boxDatang.classList.add('opacity-50');
-                boxPulang.classList.add('opacity-50');
-            }
-            else if (hasDatang) {
+                boxDatang.classList.add('opacity-50'); boxPulang.classList.add('opacity-50');
+            } else if (hasDatang) {
                 absenLocked = false;
                 btnDatang.classList.add('hidden');
                 statusDatang.classList.remove('hidden'); statusDatang.classList.add('flex');
                 statusDatang.onclick = function() { openAbsenCamera('Datang'); };
                 statusDatang.classList.add('cursor-pointer', 'hover:bg-emerald-100');
                 boxPulang.classList.remove('opacity-50', 'cursor-not-allowed');
-                btnPulang.disabled = false;
-                btnPulang.classList.remove('hidden');
+                btnPulang.disabled = false; btnPulang.classList.remove('hidden');
                 formMateriEval.classList.remove('hidden'); formMateriEval.classList.add('flex');
                 if (savedMateri && !document.getElementById('materiLatihan').value) document.getElementById('materiLatihan').value = savedMateri;
                 if (savedEvaluasi && !document.getElementById('evaluasiLatihan').value) document.getElementById('evaluasiLatihan').value = savedEvaluasi;
                 dateInput.disabled = true;
-            }
-            else {
+            } else {
                 absenLocked = false;
                 btnDatang.classList.remove('hidden');
                 statusDatang.classList.remove('flex'); statusDatang.classList.add('hidden');
@@ -1330,7 +1410,6 @@
             }
         }
 
-        let stateAbsensiHistory = [];
         function fetchRiwayatSemua() {
             showLoading(true, "Memperbarui riwayat...");
             let req1 = fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAbsensiHistory' }) }).then(r=>r.json());
@@ -1387,12 +1466,8 @@
                             <p class="italic text-gray-600 leading-snug">${komentar}</p>
                         </div>
                         <div class="flex gap-2 pt-1">
-                            <a href="${s.linkVideo}" target="_blank" class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-2 rounded-xl text-center text-xs flex items-center justify-center gap-1.5 transition-colors">
-                                <i class="fa-solid fa-play"></i> Tonton
-                            </a>
-                            <a href="${s.linkVideo}" download target="_blank" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 py-2 rounded-xl text-center text-xs flex items-center justify-center gap-1.5 transition-colors">
-                                <i class="fa-solid fa-download"></i>
-                            </a>
+                            <a href="${s.linkVideo}" target="_blank" class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-2 rounded-xl text-center text-xs flex items-center justify-center gap-1.5 transition-colors"><i class="fa-solid fa-play"></i> Tonton</a>
+                            <a href="${s.linkVideo}" download target="_blank" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 py-2 rounded-xl text-center text-xs flex items-center justify-center gap-1.5 transition-colors"><i class="fa-solid fa-download"></i></a>
                         </div>
                     </div>`;
                 }).join('');
@@ -1412,19 +1487,14 @@
                 if(!d) return "-";
                 if(typeof d === 'object' || String(d).includes('T')) {
                     const dt = new Date(d);
-                    if(!isNaN(dt.getTime())) {
-                        const pad = (n) => String(n).padStart(2, '0');
-                        return `${pad(dt.getDate())}/${pad(dt.getMonth()+1)}/${dt.getFullYear()}`;
-                    }
+                    if(!isNaN(dt.getTime())) { const pad = (n) => String(n).padStart(2, '0'); return `${pad(dt.getDate())}/${pad(dt.getMonth()+1)}/${dt.getFullYear()}`; }
                 }
                 return String(d);
             });
             let stat = { Hadir: 0, Izin: 0, Sakit: 0, Alpa: 0 };
             const myHistoryMap = new Map();
             let myRowIdx = -1;
-            for(let i=1; i<data.length; i++) {
-                if(String(data[i][1]).trim().toLowerCase() === user.nama.trim().toLowerCase()) { myRowIdx = i; break; }
-            }
+            for(let i=1; i<data.length; i++) { if(String(data[i][1]).trim().toLowerCase() === user.nama.trim().toLowerCase()) { myRowIdx = i; break; } }
             let matRow=-1, evalRow=-1, fdRow=-1, fpRow=-1;
             for(let i=1; i<data.length; i++) {
                 if(data[i][1] === "MATERI LATIHAN:") matRow = i;
@@ -1437,10 +1507,7 @@
                 let statusKu = "-";
                 if(myRowIdx !== -1) {
                     const st = data[myRowIdx][col];
-                    if(st === 'Hadir') { statusKu="Hadir"; }
-                    else if(st === 'Izin') { statusKu="Izin"; }
-                    else if(st === 'Sakit') { statusKu="Sakit"; }
-                    else if(st === 'Alpa') { statusKu="Alpa"; }
+                    if(st === 'Hadir') statusKu="Hadir"; else if(st === 'Izin') statusKu="Izin"; else if(st === 'Sakit') statusKu="Sakit"; else if(st === 'Alpa') statusKu="Alpa";
                 }
                 if(statusKu !== "-") {
                     const materi = (matRow !== -1 && data[matRow][col]) ? data[matRow][col] : "-";
@@ -1459,10 +1526,7 @@
                 }
             });
             myHistoryMap.forEach(h => {
-                if(h.statusKu === 'Hadir') stat.Hadir++;
-                else if(h.statusKu === 'Izin') stat.Izin++;
-                else if(h.statusKu === 'Sakit') stat.Sakit++;
-                else if(h.statusKu === 'Alpa') stat.Alpa++;
+                if(h.statusKu === 'Hadir') stat.Hadir++; else if(h.statusKu === 'Izin') stat.Izin++; else if(h.statusKu === 'Sakit') stat.Sakit++; else if(h.statusKu === 'Alpa') stat.Alpa++;
             });
             document.getElementById('statHadir').textContent = stat.Hadir;
             document.getElementById('statIzin').textContent = stat.Izin;
@@ -1557,16 +1621,14 @@
                 showLoading(false);
                 if(d.success){
                     if(typeToSubmit === 'Datang') {
-                        localHasDatang = true;
-                        fotoDatangBase64 = null;
+                        localHasDatang = true; fotoDatangBase64 = null;
                         document.getElementById('fotoDatangPreviewContainer').classList.add('hidden');
                         document.getElementById('btnSimpanAbsen').classList.add('hidden');
                         checkTodayAbsensiStatus();
                     } else {
                         fotoPulangBase64 = null;
                         document.getElementById('fotoPulangPreviewContainer').classList.add('hidden');
-                        document.getElementById('materiLatihan').value='';
-                        document.getElementById('evaluasiLatihan').value='';
+                        document.getElementById('materiLatihan').value=''; document.getElementById('evaluasiLatihan').value='';
                         document.getElementById('btnSimpanAbsen').classList.add('hidden');
                     }
                     closeAbsenModal();
@@ -1587,20 +1649,6 @@
         function openPasswordModal() { document.getElementById('passwordModal').classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.remove('scale-95'); }
         function closePasswordModal() { document.getElementById('passwordModal').classList.add('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.add('scale-95'); }
         document.getElementById('formGantiPassword').addEventListener('submit', (e) => { e.preventDefault(); showLoading(true, "Verifikasi..."); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'gantiPassword', username: user.username, oldPassword: document.getElementById('oldPass').value, newPassword: document.getElementById('newPass').value })}).then(r=>r.json()).then(d=>{ showLoading(false); if(d.success) { showToast("Password diganti", "success"); closePasswordModal(); } else showToast(d.message, "error"); }).catch(e=>showLoading(false)); });
-
-        function showLoading(show, txt="Memproses...") {
-            document.getElementById('loadingText').textContent = txt;
-            document.getElementById('loadingOverlay').classList[show?'remove':'add']('opacity-0', 'pointer-events-none');
-        }
-
-        function showToast(msg, type='info') {
-            const div = document.createElement('div');
-            div.className = `p-3 rounded-xl shadow-xl text-xs font-bold text-white flex items-center gap-2 transition-all transform translate-y-4 opacity-0 mt-2 ${type==='success'?'bg-emerald-600':'bg-rose-600'}`;
-            div.innerHTML = `<i class="fa-solid ${type==='success'?'fa-check':'fa-xmark'}"></i> <span>${msg}</span>`;
-            document.getElementById('toastContainer').appendChild(div);
-            setTimeout(() => div.classList.remove('translate-y-4', 'opacity-0'), 50);
-            setTimeout(() => { div.classList.add('opacity-0'); setTimeout(()=>div.remove(), 300); }, 3000);
-        }
     </script>
 </body>
 </html>
