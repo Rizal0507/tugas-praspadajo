@@ -344,10 +344,10 @@
         </div>
     </div>
 
-    <!-- REST MODAL (ANTAR SET) -->
+    <!-- REST MODAL (ANTAR SET / SESI) -->
     <div id="restModal" class="fixed inset-0 bg-blue-900/90 backdrop-blur-md z-[140] hidden flex-col items-center justify-center p-4">
         <h3 class="text-white text-lg font-bold mb-2" id="restTitle">Waktu Istirahat!</h3>
-        <p class="text-blue-200 text-xs mb-6">Bersiaplah untuk set berikutnya...</p>
+        <p class="text-blue-200 text-xs mb-6" id="restSubtitle">Bersiaplah untuk set berikutnya...</p>
         <div class="w-32 h-32 bg-white/10 rounded-full flex items-center justify-center border-4 border-blue-400 mb-6">
             <span id="restTimer" class="text-white text-6xl font-black">30</span>
         </div>
@@ -411,28 +411,30 @@
         let user = JSON.parse(localStorage.getItem('userSession') || sessionStorage.getItem('userSession'));
         let activeTasks = [], userSubs = {};
         let selectedTask = null, currentSubTugas = "Utama", selectedDay = "1";
-        let currentMinSec = 60, currentMaxSec = 300;
         
-        // STATE REKAM
+        // State Rekam (Dinamis)
+        let currentMinSec = 60, currentMaxSec = 300;
+        let totalSegments = 1;
+        let currentSegment = 1;
+        let segmentLabelType = "Set"; // "Set" atau "Sesi"
+        let currentRestDuration = 0;
+        let currentSubConfig = null;
+        
+        // State Perekaman
         let mediaStream = null, mediaRecorder = null, recordedChunks = [];
         let isRecording = false, isPaused = false, timerInterval, secondsRecorded = 0;
         let currentFacingMode = "environment";
         let isMinBeepPlayed = false;
         let isCountdownActive = false;
-        
-        // STATE MULTI-SET
-        let currentSet = 1;
-        let totalSets = 1;
         let restTimerInterval = null;
-        let currentSubConfig = null; // Menyimpan objek subTugas (min, max, set, rest, metro)
         
-        // STATE RETRY & ERROR
+        // State Retry & Error
         let globalConfig = { jeda_awal_rekam: 3, jeda_antar_set: 30, max_retry_upload: 3, max_file_mb: 30 };
         let retryCount = 0;
         let currentBlobToUpload = null;
         let lastErrorDetail = { type: '', message: '' };
 
-        // STATE LAIN
+        // State Absen
         let absenStream = null, currentPhotoType = "Datang";
         let absenFacingMode = "user";
         let fotoDatangBase64 = null, fotoPulangBase64 = null;
@@ -441,15 +443,12 @@
         let stateAbsensiHistory = [];
         let easterEggShownToday = false;
 
-        // STATE METRONOME
+        // State Metronome
         let currentMetroOn = false;
         let currentMetroBpm = 96;
         let currentMetroSound = 'beep';
         let metroMuted = false;
-        let metroAudioCtx = null;
-        let metroMasterGain = null;
         let metroSchedulerId = null;
-        let metroNextBeatTime = 0;
         let metroBeatCount = 0;
 
         const eggQuotes = [
@@ -478,17 +477,21 @@
             return (parseInt(val) || 0) * 60;
         }
 
-        function isSubDone(taskId, tanggal, subName, setNum = 1, totalSetsParam = 1) {
+        // Pencocokan status selesai berdasarkan Nama SubTugas dan Nomor Segmen (Set/Sesi)
+        function isSubDone(taskId, tanggal, subName, segNum = 1, totalSegs = 1) {
             const cleanTaskId = normalizeStr(taskId);
             const cleanSubName = normalizeStr(subName);
-            let expectedName = cleanSubName;
-            if (totalSetsParam > 1) {
-                const padNum = String(setNum).padStart(2, '0');
-                expectedName = `${cleanSubName}set${padNum}`;
+            let expectedSuffix = "";
+            if (totalSegs > 1) {
+                const padNum = String(segNum).padStart(2, '0');
+                // Kita cari string yang mengandung subName dan angka (misal "plank0103" dari "Plank (Set 01/03)")
+                expectedSuffix = padNum; 
             }
             return Object.keys(userSubs).some(k => {
                 const cleanK = normalizeStr(k);
-                if (!cleanK.includes(cleanTaskId) || !cleanK.includes(expectedName)) return false;
+                if (!cleanK.includes(cleanTaskId) || !cleanK.includes(cleanSubName)) return false;
+                if (totalSegs > 1 && !cleanK.includes(expectedSuffix)) return false;
+                
                 let dateInKey = "";
                 const isoMatch = k.match(/(\d{4}-\d{2}-\d{2})/);
                 if (isoMatch) dateInKey = isoMatch[1];
@@ -654,7 +657,6 @@
             document.getElementById('easterEggModal').classList.remove('flex');
         }
 
-        // ============ FETCH TASKS & CONFIG ============
         function fetchConfigAndTasks() {
             const container = document.getElementById('taskListContainer');
             container.innerHTML = `<div class="py-10 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-spinner animate-spin text-3xl text-blue-600 mb-3"></i><p class="text-xs font-semibold text-gray-500">Memuat data...</p></div>`;
@@ -725,13 +727,18 @@
 
             const container = document.getElementById('taskListContainer');
             
-            // Cek status pending
             const todayTasksFiltered = todayTasks.filter(t => {
                 if(t.isLama) return true;
                 const pendingSubs = (t.subTugas || []).filter(sub => {
-                    const sets = sub.set || 1;
-                    if(sets === 1) return !isSubDone(t.taskId, todayStr, sub.nama, 1, 1);
-                    for(let i=1; i<=sets; i++) { if(!isSubDone(t.taskId, todayStr, sub.nama, i, sets)) return true; }
+                    // Hitung segmen dinamis
+                    let mSec = parseDuration(sub.max);
+                    let sInput = parseInt(sub.set) || 1;
+                    let totalSegs = sInput;
+                    if (sInput === 1 && mSec > 180) totalSegs = Math.ceil(mSec / 180);
+                    
+                    for(let i=1; i<=totalSegs; i++) { 
+                        if(!isSubDone(t.taskId, todayStr, sub.nama, i, totalSegs)) return true; 
+                    }
                     return false;
                 });
                 return pendingSubs.length > 0;
@@ -752,8 +759,14 @@
                 const isBertumpuk = t.subTugas && t.subTugas.length > 1;
                 let pendingCount = 0;
                 (t.subTugas || []).forEach(sub => {
-                    const sets = sub.set || 1;
-                    for(let i=1; i<=sets; i++) { if(!isSubDone(t.taskId, todayStr, sub.nama, i, sets)) pendingCount++; }
+                    let mSec = parseDuration(sub.max);
+                    let sInput = parseInt(sub.set) || 1;
+                    let totalSegs = sInput;
+                    if (sInput === 1 && mSec > 180) totalSegs = Math.ceil(mSec / 180);
+                    
+                    for(let i=1; i<=totalSegs; i++) { 
+                        if(!isSubDone(t.taskId, todayStr, sub.nama, i, totalSegs)) pendingCount++; 
+                    }
                 });
                 totalUnfinishedToday += pendingCount;
                 
@@ -809,17 +822,20 @@
             const container = document.getElementById('subTasksContainer');
             container.innerHTML = '';
             selectedTask.subTugas.forEach(sub => {
-                const sets = sub.set || 1;
+                let mSec = parseDuration(sub.max);
+                let sInput = parseInt(sub.set) || 1;
+                let totalSegs = sInput;
+                if (sInput === 1 && mSec > 180) totalSegs = Math.ceil(mSec / 180);
+                
                 let doneCount = 0;
-                for(let i=1; i<=sets; i++) { if(isSubDone(selectedTask.taskId, selectedDay, sub.nama, i, sets)) doneCount++; }
-                const isFullyDone = (doneCount === sets);
+                for(let i=1; i<=totalSegs; i++) { if(isSubDone(selectedTask.taskId, selectedDay, sub.nama, i, totalSegs)) doneCount++; }
+                const isFullyDone = (doneCount === totalSegs);
 
                 const minSec = parseDuration(sub.min);
-                const maxSec = parseDuration(sub.max);
-                const targetTeks = `${formatSecToText(minSec)} - ${formatSecToText(maxSec)}`;
+                const targetTeks = `${formatSecToText(minSec)} - ${formatSecToText(mSec)}`;
                 const hasMetro = sub.metro && sub.metro.on;
                 const metroBadgeHtml = hasMetro ? `<span class="text-[9px] text-blue-100 bg-blue-900/60 px-1.5 py-0.5 rounded flex items-center gap-0.5"><i class="fa-solid fa-drum text-[8px]"></i> ${parseInt(sub.metro.bpm) || 96}</span>` : '';
-                const setBadgeHtml = sets > 1 ? `<span class="text-[9px] text-amber-100 bg-amber-900/60 px-1.5 py-0.5 rounded font-bold">${doneCount}/${sets} Set</span>` : '';
+                const setBadgeHtml = totalSegs > 1 ? `<span class="text-[9px] text-amber-100 bg-amber-900/60 px-1.5 py-0.5 rounded font-bold">${doneCount}/${totalSegs} Sesi</span>` : '';
 
                 if (isFullyDone) {
                     container.innerHTML += `
@@ -845,23 +861,48 @@
             });
         }
 
-        // ============ ALUR REKAM MULTI-SET ============
+        // ============ LOGIKA AUTO-SEGMENTASI & SET ============
         async function prepareCamera(subName) {
             const sub = selectedTask.subTugas.find(s => s.nama === subName);
             currentSubConfig = sub;
             currentSubTugas = subName;
-            currentMinSec = parseDuration(sub.min);
-            currentMaxSec = parseDuration(sub.max);
-            totalSets = sub.set || 1;
+            
+            const inputMinSec = parseDuration(sub.min);
+            const inputMaxSec = parseDuration(sub.max);
+            const setInput = parseInt(sub.set) || 1;
 
-            // Cari set yang belum selesai
-            let nextSet = 1;
-            for(let i=1; i<=totalSets; i++) {
-                if(!isSubDone(selectedTask.taskId, selectedDay, subName, i, totalSets)) { nextSet = i; break; }
+            // 1. Tentukan Total Segmen & Durasi per Segmen
+            if (setInput > 1) {
+                // Mode Workout (Manual Set)
+                totalSegments = setInput;
+                currentMaxSec = inputMaxSec;
+                currentMinSec = inputMinSec;
+                currentRestDuration = parseInt(sub.rest) || 0;
+                segmentLabelType = "Set";
+            } else if (inputMaxSec > 180) {
+                // Mode Auto-Segmentasi (Pecah otomatis jadi max 3 menit / 180 dtk)
+                totalSegments = Math.ceil(inputMaxSec / 180);
+                currentMaxSec = Math.ceil(inputMaxSec / totalSegments);
+                currentMinSec = Math.floor(inputMinSec / totalSegments);
+                currentRestDuration = parseInt(globalConfig.jeda_antar_set) || 30; // Pakai default global
+                segmentLabelType = "Sesi";
+            } else {
+                // Mode Normal (Di bawah 3 menit, 1 sesi saja)
+                totalSegments = 1;
+                currentMaxSec = inputMaxSec;
+                currentMinSec = inputMinSec;
+                currentRestDuration = 0;
+                segmentLabelType = "Sesi";
             }
-            currentSet = nextSet;
 
-            // Set Metro Config
+            // 2. Cari segmen yang belum selesai
+            let nextSeg = 1;
+            for(let i=1; i<=totalSegments; i++) {
+                if(!isSubDone(selectedTask.taskId, selectedDay, subName, i, totalSegments)) { nextSeg = i; break; }
+            }
+            currentSegment = nextSeg;
+
+            // 3. Set Metro Config
             const metro = (sub && sub.metro) ? sub.metro : { on: false, bpm: 96, sound: 'beep' };
             currentMetroOn = !!metro.on;
             currentMetroBpm = parseInt(metro.bpm) || 96;
@@ -882,7 +923,7 @@
             }
 
             let displayName = subName;
-            if (totalSets > 1) displayName += ` (Set ${currentSet}/${totalSets})`;
+            if (totalSegments > 1) displayName += ` (${segmentLabelType} ${currentSegment}/${totalSegments})`;
             document.getElementById('kameraSubName').textContent = displayName;
             document.getElementById('kameraTarget').textContent = `${formatSecToText(currentMinSec)} - ${formatSecToText(currentMaxSec)}`;
 
@@ -933,7 +974,6 @@
             overlay.classList.remove('hidden'); overlay.classList.add('flex');
             document.getElementById('btnSwitchCamera').classList.add('hidden');
             
-            // Gunakan jeda_awal_rekam dari config
             let count = parseInt(globalConfig.jeda_awal_rekam) || 3;
             text.textContent = count;
             
@@ -1050,7 +1090,6 @@
             
             currentBlobToUpload = new Blob(recordedChunks, { type: recordedChunks[0].type });
             
-            // Cek Ukuran File
             const maxSize = (globalConfig.max_file_mb || 30) * 1024 * 1024;
             if(currentBlobToUpload.size > maxSize) {
                 showToast(`File terlalu besar (${(currentBlobToUpload.size/1024/1024).toFixed(1)}MB). Maksimal ${globalConfig.max_file_mb || 30}MB.`, "error");
@@ -1077,12 +1116,11 @@
             reader.onloadend = function() {
                 const base64data = reader.result;
                 
-                // AbortController untuk Timeout
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 detik timeout
+                const timeoutId = setTimeout(() => controller.abort(), 60000);
 
                 let subName = currentSubTugas;
-                if(totalSets > 1) subName += ` (Set ${String(currentSet).padStart(2, '0')}/${totalSets})`;
+                if(totalSegments > 1) subName += ` (${segmentLabelType} ${String(currentSegment).padStart(2, '0')}/${totalSegments})`;
 
                 fetch(GAS_URL, {
                     method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1090,7 +1128,7 @@
                     body: JSON.stringify({
                         action: 'submitVideoBase64', taskFolderId: selectedTask.folderId, taskId: selectedTask.taskId,
                         subId: 'SUB_' + Date.now(), namaAnggota: user.nama, tanggal: selectedDay, hariKe: selectedDay,
-                        subTugasName: subName, filename: `Tugas_${user.nama.replace(/[^a-zA-Z0-9]/g, '')}_${currentSubTugas.replace(/[^a-zA-Z0-9]/g, '')}_Set${currentSet}_${Date.now()}.webm`, 
+                        subTugasName: subName, filename: `Tugas_${user.nama.replace(/[^a-zA-Z0-9]/g, '')}_${currentSubTugas.replace(/[^a-zA-Z0-9]/g, '')}_Seg${currentSegment}_${Date.now()}.webm`, 
                         mimeType: currentBlobToUpload.type, base64Data: base64data
                     })
                 }).then(r => {
@@ -1113,17 +1151,13 @@
         function handleUploadSuccess(subName) {
             document.getElementById('viewUploading').classList.add('hidden'); document.getElementById('viewUploading').classList.remove('flex');
             
-            // Tandai lokal sudah selesai
             const newKey = `${selectedTask.taskId}_${selectedDay}_${subName}`;
             userSubs[newKey] = true;
 
-            if (currentSet < totalSets) {
-                // Tampilkan Layar Istirahat
-                const restMins = parseInt(currentSubConfig.rest) || parseInt(globalConfig.jeda_antar_set) || 30;
-                showRestScreen(restMins);
+            if (currentSegment < totalSegments) {
+                showRestScreen(currentRestDuration);
             } else {
-                // Semua set selesai
-                document.getElementById('successUploadText').textContent = `Video ${currentSubTugas} (${totalSets} Set) berhasil terkirim.`;
+                document.getElementById('successUploadText').textContent = `Video ${currentSubTugas} (${totalSegments} ${segmentLabelType}) berhasil terkirim.`;
                 document.getElementById('successUploadModal').classList.remove('hidden'); document.getElementById('successUploadModal').classList.add('flex');
                 fetchTasks();
                 fetchRiwayatSemua();
@@ -1138,11 +1172,9 @@
             
             retryCount++;
             if (retryCount < globalConfig.max_retry_upload) {
-                // Jeda lalu auto retry
                 document.getElementById('uploadTitle').textContent = `Gagal. Mencoba lagi dalam 3 detik...`;
                 setTimeout(() => doUploadProcess(), 3000);
             } else {
-                // Gagal total, tampilkan tombol
                 document.getElementById('uploadTitle').textContent = `Upload Gagal`;
                 document.getElementById('uploadStatusText').textContent = `Sistem sudah mencoba ${globalConfig.max_retry_upload}x namun gagal. Silakan coba lagi atau laporkan.`;
                 const errorAction = document.getElementById('errorActionContainer');
@@ -1151,7 +1183,7 @@
         }
 
         function retryUpload() {
-            retryCount = 0; // Reset counter untuk manual retry
+            retryCount = 0;
             doUploadProcess();
         }
 
@@ -1178,7 +1210,7 @@
             }
 
             let subName = currentSubTugas;
-            if(totalSets > 1) subName += ` (Set ${currentSet}/${totalSets})`;
+            if(totalSegments > 1) subName += ` (${segmentLabelType} ${currentSegment}/${totalSegments})`;
 
             const payload = {
                 action: 'logError',
@@ -1204,7 +1236,6 @@
                     showToast("Laporan terkirim. Terima kasih!", "success");
                     document.getElementById('viewUploading').classList.add('hidden');
                     document.getElementById('viewUploading').classList.remove('flex');
-                    // Video tetap ada di RAM (currentBlobToUpload), biarkan user memutuskan
                 } else {
                     showToast("Gagal kirim laporan: " + d.message, "error");
                 }
@@ -1219,8 +1250,10 @@
             const modal = document.getElementById('restModal');
             const timerEl = document.getElementById('restTimer');
             const titleEl = document.getElementById('restTitle');
+            const subTitleEl = document.getElementById('restSubtitle');
             
-            titleEl.textContent = `Set ${currentSet} Selesai!`;
+            titleEl.textContent = `${segmentLabelType} ${currentSegment} Selesai!`;
+            subTitleEl.textContent = `Bersiaplah untuk ${segmentLabelType} berikutnya...`;
             modal.classList.remove('hidden'); modal.classList.add('flex');
             
             let count = duration;
@@ -1233,8 +1266,8 @@
                 count--;
                 if (count <= 0) {
                     clearInterval(restTimerInterval);
-                    playBeep2(); // Bunyi saat mulai set berikutnya
-                    startNextSet();
+                    playBeep2(); 
+                    startNextSegment();
                 } else {
                     timerEl.textContent = count;
                 }
@@ -1243,26 +1276,24 @@
 
         function skipRest() {
             if(restTimerInterval) clearInterval(restTimerInterval);
-            startNextSet();
+            startNextSegment();
         }
 
-        function startNextSet() {
+        function startNextSegment() {
             document.getElementById('restModal').classList.add('hidden');
             document.getElementById('restModal').classList.remove('flex');
-            currentSet++;
-            // Panggil prepareCamera lagi untuk set berikutnya
-            prepareCamera(currentSubTugas);
+            currentSegment++;
+            prepareCamera(currentSubTugas); // Panggil ulang untuk segmen berikutnya
         }
 
         function closeSuccessModal() {
             document.getElementById('successUploadModal').classList.add('hidden'); document.getElementById('successUploadModal').classList.remove('flex');
-            // Reload tasks untuk update status UI
             fetchTasks();
             renderSubTasks();
         }
 
-        // ============ METRONOME (Dipanggil dari metronome.js) ============
-        function ensureMetroCtx() { Metronome.play('beep', false, 0); } // warm up
+        // ============ METRONOME ============
+        function ensureMetroCtx() { Metronome.play('beep', false, 0); }
 
         function startMetronome() {
             if (!currentMetroOn) return;
@@ -1288,7 +1319,7 @@
             showToast(metroMuted ? 'Metronome dibisukan' : 'Metronome dibunyikan', 'info');
         }
 
-        // --- SISTEM KAMERA ABSEN (FOTO) & SISANYA (SAMA SEPERTI SEBELUMNYA) ---
+        // --- SISTEM KAMERA ABSEN (FOTO) ---
         async function openAbsenCamera(type) {
             currentPhotoType = type;
             document.getElementById('absenCamTitle').textContent = type === 'Datang' ? 'Foto Datang' : 'Foto Pulang';
