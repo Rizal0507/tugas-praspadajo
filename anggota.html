@@ -311,7 +311,11 @@
             <div class="absolute inset-0 flex items-center justify-center"><i class="fa-solid fa-cloud-arrow-up text-4xl text-blue-600"></i></div>
         </div>
         <h2 class="text-xl font-bold text-gray-800 mb-2" id="uploadTitle">Mengirim Video...</h2>
-        <p id="uploadStatusText" class="text-[11px] text-gray-500 font-medium text-center px-8 mb-4">Sedang memproses dan membersihkan format agar aman di server...</p>
+        <p id="uploadStatusText" class="text-[11px] text-gray-500 font-medium text-center px-8 mb-4">Jangan tutup atau keluar dari halaman ini sampai selesai.</p>
+        <div id="uploadProgressWrap" class="w-full max-w-xs px-8 mb-4">
+            <div class="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden"><div id="uploadProgressBar" class="h-full bg-blue-600 transition-all duration-300" style="width:0%"></div></div>
+            <p id="uploadProgressText" class="text-[10px] font-bold text-gray-500 text-center mt-1.5"></p>
+        </div>
         
         <!-- Tombol Lapor Error (Tersembunyi by default) -->
         <div id="errorActionContainer" class="hidden flex-col items-center gap-2 w-full max-w-xs px-4">
@@ -361,6 +365,16 @@
             <h3 class="font-bold text-gray-800 text-lg mb-1">Berhasil!</h3>
             <p class="text-xs text-gray-500 mb-5" id="successUploadText">Video tugas kamu berhasil terkirim.</p>
             <button onclick="closeSuccessModal()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl active:scale-95 text-sm">Lanjut</button>
+        </div>
+    </div>
+
+    <!-- SUCCESS ABSEN MODAL -->
+    <div id="successAbsenModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden flex-col items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 shadow-2xl w-full max-w-xs text-center flex flex-col items-center">
+            <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-4"><i class="fa-solid fa-check text-4xl text-emerald-500"></i></div>
+            <h3 class="font-bold text-gray-800 text-lg mb-1">Berhasil!</h3>
+            <p class="text-xs text-gray-500 mb-5" id="successAbsenText">Absensi berhasil disimpan.</p>
+            <button onclick="closeSuccessAbsenModal()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl active:scale-95 text-sm">Lanjut</button>
         </div>
     </div>
 
@@ -416,7 +430,7 @@
         let currentMinSec = 60, currentMaxSec = 300;
         let totalSegments = 1;
         let currentSegment = 1;
-        let segmentLabelType = "Set"; // "Set" atau "Sesi"
+        const segmentLabelType = "Set"; // hanya untuk Set manual dari pelatih (tidak ada pemecahan otomatis)
         let currentRestDuration = 0;
         let currentSubConfig = null;
         
@@ -432,6 +446,10 @@
         let globalConfig = { jeda_awal_rekam: 3, jeda_antar_set: 30, max_retry_upload: 3, max_file_mb: 30 };
         let retryCount = 0;
         let currentBlobToUpload = null;
+        let currentBase64 = null;      // di-cache supaya tidak di-encode ulang saat kirim ulang
+        let currentSubId = null;       // tetap sama selama kirim ulang
+        let localDoneKeys = {};        // penanda selesai lokal agar tidak hilang saat refresh
+        let wakeLockSentinel = null;
         let lastErrorDetail = { type: '', message: '' };
 
         // State Absen
@@ -477,31 +495,38 @@
             return (parseInt(val) || 0) * 60;
         }
 
-        // =========================================================================
-        // FIX BUG: Pencocokan status selesai berdasarkan Nama SubTugas dan Nomor Segmen
-        // =========================================================================
+        // ============ STATUS SELESAI (berpatokan pada Tugas & Sub Tugas) ============
+        // Jumlah Set hanya dari pengaturan pelatih. Tanpa pemecahan otomatis: 1 sub tugas = 1 video (atau N video jika pelatih mengatur N set).
+        function getSegCount(sub) {
+            const s = parseInt(sub && sub.set) || 1;
+            return s > 1 ? s : 1;
+        }
+
         function isSubDone(taskId, tanggal, subName, segNum = 1, totalSegs = 1) {
             const cleanTaskId = normalizeStr(taskId);
             const cleanSubName = normalizeStr(subName);
-            
+            const setRegex = totalSegs > 1 ? new RegExp(`set\\s*0*${segNum}\\s*/\\s*0*${totalSegs}`, 'i') : null;
             return Object.keys(userSubs).some(k => {
                 const cleanK = normalizeStr(k);
                 if (!cleanK.includes(cleanTaskId) || !cleanK.includes(cleanSubName)) return false;
-
-                // Cek tag segmen secara eksplisit menggunakan string pencarian persis.
-                // Ini mencegah kecocokan palsu dengan timestamp atau tanggal.
-                if (totalSegs > 1) {
-                    const padNum = String(segNum).padStart(2, '0');
-                    const setTag  = `(Set ${padNum}/${totalSegs})`;
-                    const sesiTag = `(Sesi ${padNum}/${totalSegs})`;
-                    if (!k.includes(setTag) && !k.includes(sesiTag)) return false;
-                }
-
-                let dateInKey = "";
+                if (setRegex && !setRegex.test(k)) return false;
                 const isoMatch = k.match(/(\d{4}-\d{2}-\d{2})/);
-                if (isoMatch) dateInKey = isoMatch[1];
-                return dateInKey === tanggal;
+                return !!isoMatch && isoMatch[1] === tanggal;
             });
+        }
+
+        function getSubProgress(taskId, tanggal, sub) {
+            const total = getSegCount(sub);
+            let done = 0;
+            for (let i = 1; i <= total; i++) { if (isSubDone(taskId, tanggal, sub.nama, i, total)) done++; }
+            return { total, done, full: done === total };
+        }
+
+        function getTaskProgress(task, tanggal) {
+            const subs = task.subTugas || [];
+            let done = 0;
+            subs.forEach(sub => { if (getSubProgress(task.taskId, tanggal, sub).full) done++; });
+            return { total: subs.length, done, pending: subs.length - done, allDone: subs.length > 0 && done === subs.length };
         }
 
         function toggleSidebar() {
@@ -662,28 +687,29 @@
             document.getElementById('easterEggModal').classList.remove('flex');
         }
 
-        function fetchConfigAndTasks() {
+        function fetchConfigAndTasks(silent = false) {
             const container = document.getElementById('taskListContainer');
-            container.innerHTML = `<div class="py-10 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-spinner animate-spin text-3xl text-blue-600 mb-3"></i><p class="text-xs font-semibold text-gray-500">Memuat data...</p></div>`;
-            
-            let reqConfig = fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getConfig' }) }).then(r=>r.json());
-            let reqTasks = fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getTasks', username: user.username }) }).then(r=>r.json());
+            if (!silent) container.innerHTML = `<div class="py-10 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-spinner animate-spin text-3xl text-blue-600 mb-3"></i><p class="text-xs font-semibold text-gray-500">Memuat data...</p></div>`;
+
+            const reqConfig = fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getConfig' }) }).then(r => r.json()).catch(() => ({ success: false }));
+            const reqTasks = fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getTasks', username: user.username }) }).then(r => r.json());
 
             Promise.all([reqConfig, reqTasks]).then(([dConfig, dTasks]) => {
-                if(dConfig.success && dConfig.config) {
-                    globalConfig = { ...globalConfig, ...dConfig.config };
-                }
+                if (dConfig.success && dConfig.config) globalConfig = { ...globalConfig, ...dConfig.config };
                 if (dTasks.success) {
-                    activeTasks = dTasks.tasks;
-                    userSubs = dTasks.userSubs || {};
+                    activeTasks = dTasks.tasks || [];
+                    // gabungkan dengan penanda lokal supaya tugas yang baru terkirim tidak "mundur" saat server belum sempat memperbarui
+                    userSubs = Object.assign({}, dTasks.userSubs || {}, localDoneKeys);
                     renderTasks(activeTasks);
+                } else if (!silent) {
+                    container.innerHTML = `<p class="text-center text-xs text-rose-500">${dTasks.message || 'Gagal memuat tugas'}</p>`;
                 }
             }).catch(e => {
-                container.innerHTML = `<p class="text-center text-xs text-rose-500">Gagal memuat koneksi</p>`;
+                if (!silent) container.innerHTML = `<p class="text-center text-xs text-rose-500">Gagal memuat koneksi</p>`;
             });
         }
 
-        function fetchTasks() { fetchConfigAndTasks(); }
+        function fetchTasks(silent) { fetchConfigAndTasks(silent === true); }
 
         function renderTasks(tasks) {
             const today = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Jakarta"}));
@@ -694,7 +720,6 @@
             const tomorrowStr = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth()+1)}-${pad(tomorrow.getDate())}`;
             const todayTasks = [];
             const tomorrowTasks = [];
-            let totalUnfinishedToday = 0;
 
             tasks.forEach(t => {
                 if (t.isLama) { todayTasks.push(t); return; }
@@ -731,75 +756,67 @@
             } else { upcomingSection.classList.add('hidden'); upcomingSection.innerHTML = ''; }
 
             const container = document.getElementById('taskListContainer');
-            
-            const todayTasksFiltered = todayTasks.filter(t => {
-                if(t.isLama) return true;
-                const pendingSubs = (t.subTugas || []).filter(sub => {
-                    // Hitung segmen dinamis
-                    let mSec = parseDuration(sub.max);
-                    let sInput = parseInt(sub.set) || 1;
-                    let totalSegs = sInput;
-                    if (sInput === 1 && mSec > 180) totalSegs = Math.ceil(mSec / 180);
-                    
-                    for(let i=1; i<=totalSegs; i++) { 
-                        if(!isSubDone(t.taskId, todayStr, sub.nama, i, totalSegs, t.tipePengumpulan)) return true; 
-                    }
-                    return false;
-                });
-                return pendingSubs.length > 0;
-            });
+            const badgeBtn = document.getElementById('badgeTugasCount');
 
-            let totalSubsToday = 0;
-            todayTasks.forEach(t => { if(!t.isLama) totalSubsToday += (t.subTugas || []).length; });
-            if (todayTasks.length > 0 && todayTasksFiltered.length === 0 && totalSubsToday > 0) triggerEasterEgg();
-
-            if (todayTasksFiltered.length === 0) {
-                container.innerHTML = `<div class="bg-white border rounded-3xl p-6 text-center shadow-xs"><i class="fa-solid fa-circle-check text-emerald-400 text-3xl mb-2"></i><p class="text-xs text-gray-500 font-semibold">Mantap! Semua tugas untuk hari ini sudah selesai.</p></div>`;
-                document.getElementById('badgeTugasCount').classList.add('hidden');
+            if (todayTasks.length === 0) {
+                container.innerHTML = `<div class="bg-white border rounded-3xl p-6 text-center shadow-xs"><i class="fa-regular fa-calendar-check text-blue-300 text-3xl mb-2"></i><p class="text-xs text-gray-500 font-semibold">Belum ada tugas untuk hari ini.</p></div>`;
+                badgeBtn.classList.add('hidden');
                 return;
             }
 
-            container.innerHTML = todayTasksFiltered.map(t => {
+            // Tugas utama TIDAK dihapus dari daftar walau semua sub tugasnya sudah terkirim; hanya ditandai "Selesai" dan diurutkan ke bawah.
+            const items = todayTasks.map(t => ({ t, p: getTaskProgress(t, todayStr) }));
+            const trackable = items.filter(x => !x.t.isLama && x.p.total > 0);
+            if (trackable.length > 0 && trackable.every(x => x.p.allDone)) triggerEasterEgg();
+            items.sort((a, b) => (a.p.allDone ? 1 : 0) - (b.p.allDone ? 1 : 0));
+
+            let totalUnfinishedToday = 0;
+            container.innerHTML = items.map(({ t, p }) => {
                 const isLama = t.isLama;
-                const isBertumpuk = t.subTugas && t.subTugas.length > 1;
-                let pendingCount = 0;
-                (t.subTugas || []).forEach(sub => {
-                    let mSec = parseDuration(sub.max);
-                    let sInput = parseInt(sub.set) || 1;
-                    let totalSegs = sInput;
-                    if (sInput === 1 && mSec > 180) totalSegs = Math.ceil(mSec / 180);
-                    
-                    for(let i=1; i<=totalSegs; i++) { 
-                        if(!isSubDone(t.taskId, todayStr, sub.nama, i, totalSegs, t.tipePengumpulan)) pendingCount++; 
-                    }
-                });
-                totalUnfinishedToday += pendingCount;
-                
+                const isDone = !isLama && p.allDone;
+                const isBertumpuk = p.total > 1;
+                if (!isLama) totalUnfinishedToday += p.pending;
+
                 let statusTeks = '';
-                if (pendingCount === 1) {
+                if (isLama) {
+                    statusTeks = '';
+                } else if (isDone) {
+                    statusTeks = `<div class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl text-center mt-2 border border-emerald-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-circle-check"></i> ${isBertumpuk ? `Semua sub tugas (${p.total}) sudah terkirim` : 'Tugas ini sudah dikumpulkan'}</div>`;
+                } else if (p.total <= 1) {
                     statusTeks = `<div class="text-[10px] font-bold text-rose-500 bg-rose-50 px-3 py-2 rounded-xl text-center mt-2 border border-rose-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-circle-exclamation"></i> Anda belum mengerjakan tugas ini</div>`;
                 } else {
-                    statusTeks = `<div class="text-[10px] font-bold text-amber-600 bg-amber-50 px-3 py-2 rounded-xl text-center mt-2 border border-amber-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-clock"></i> Sisa ${pendingCount} sesi/gerakan belum dikerjakan</div>`;
+                    const pct = Math.round((p.done / p.total) * 100);
+                    statusTeks = `<div class="text-[10px] font-bold text-amber-600 bg-amber-50 px-3 py-2 rounded-xl mt-2 border border-amber-100">
+                        <div class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-clock"></i> Selesai ${p.done}/${p.total} sub tugas &bull; sisa ${p.pending}</div>
+                        <div class="w-full bg-amber-100 h-1.5 rounded-full mt-1.5 overflow-hidden"><div class="bg-amber-500 h-full" style="width:${pct}%"></div></div>
+                    </div>`;
                 }
-                let labelTanggal = isLama ? "Sistem Lama" : (t.tipePengumpulan === "Satu Kali" ? `Deadline: ${t.tanggalPengerjaan.replace(' to ', ' s/d ')}` : `Tugas Rutin Hari Ini`);
-                const borderClass = isLama ? 'border-gray-400' : (t.tipePengumpulan === 'Satu Kali' ? 'border-amber-500' : 'border-purple-500');
+
+                const labelTanggal = isLama ? "Sistem Lama" : (t.tipePengumpulan === "Satu Kali" ? `Deadline: ${(t.tanggalPengerjaan || '').replace(' to ', ' s/d ')}` : `Tugas Rutin Hari Ini`);
+                const borderClass = isDone ? 'border-emerald-500' : (isLama ? 'border-gray-400' : (t.tipePengumpulan === 'Satu Kali' ? 'border-amber-500' : 'border-purple-500'));
                 const textClass = isLama ? 'text-gray-400' : (t.tipePengumpulan === 'Satu Kali' ? 'text-amber-500' : 'text-purple-500');
+                const doneChip = isDone ? `<span class="text-[9px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md"><i class="fa-solid fa-check mr-1"></i>Selesai</span>` : '';
+                const btnClass = isDone ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600' : 'bg-blue-50 hover:bg-blue-100 text-blue-600';
+                const btnLabel = isDone ? '<i class="fa-solid fa-circle-check"></i> Lihat Modul Tugas' : '<i class="fa-solid fa-folder-open"></i> Buka Modul Tugas';
                 return `
                     <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden flex flex-col gap-2 pl-5 border-l-[5px] ${borderClass}">
-                        <span class="text-[9px] font-extrabold ${textClass} uppercase tracking-wider">${t.tipePengumpulan}</span>
+                        <div class="flex justify-between items-center">
+                            <span class="text-[9px] font-extrabold ${textClass} uppercase tracking-wider">${t.tipePengumpulan}</span>
+                            ${doneChip}
+                        </div>
                         <h4 class="text-base font-bold text-gray-800 leading-tight">${t.judulTugas}</h4>
                         <div class="flex flex-col gap-0.5 text-[10px] font-bold text-blue-600 mb-1">
                             <span><i class="fa-solid fa-calendar mr-1.5"></i>${labelTanggal}</span>
-                            ${isBertumpuk ? `<span class="text-amber-600"><i class="fa-solid fa-layer-group mr-1.5"></i>Multitask (${t.subTugas.length} Gerakan)</span>` : ''}
+                            ${isBertumpuk ? `<span class="text-amber-600"><i class="fa-solid fa-layer-group mr-1.5"></i>Multitask (${p.total} Sub Tugas)</span>` : ''}
                         </div>
                         <div class="text-[11px] text-gray-500 bg-gray-50/80 border border-gray-100 p-3 rounded-xl leading-snug">
                             ${t.instruksi}
                             ${statusTeks}
                         </div>
-                        <button onclick="openSetup('${t.taskId}')" class="mt-2 w-full bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-3 rounded-xl text-xs flex justify-center items-center gap-2 active:scale-95 transition-colors"><i class="fa-solid fa-folder-open"></i> Buka Modul Tugas</button>
+                        <button onclick="openSetup('${t.taskId}')" class="mt-2 w-full ${btnClass} font-bold py-3 rounded-xl text-xs flex justify-center items-center gap-2 active:scale-95 transition-colors">${btnLabel}</button>
                     </div>`;
             }).join('');
-            const badgeBtn = document.getElementById('badgeTugasCount');
+
             if (totalUnfinishedToday > 0) {
                 badgeBtn.textContent = totalUnfinishedToday;
                 badgeBtn.classList.remove('hidden');
@@ -809,7 +826,9 @@
         }
 
         function openSetup(taskId) {
-            selectedTask = activeTasks.find(t => t.taskId === taskId);
+            const found = activeTasks.find(t => t.taskId === taskId);
+            if (!found) return;
+            selectedTask = found;
             document.getElementById('setupTipeBadge').textContent = selectedTask.tipePengumpulan;
             document.getElementById('setupTaskTitle').textContent = selectedTask.judulTugas;
             document.getElementById('setupTaskDesc').textContent = selectedTask.instruksi;
@@ -820,30 +839,25 @@
             document.getElementById('viewSetup').classList.remove('hidden'); document.getElementById('viewSetup').classList.add('flex');
         }
 
-        function closeSetup() { document.getElementById('viewSetup').classList.add('hidden'); }
+        function closeSetup() { document.getElementById('viewSetup').classList.add('hidden'); document.getElementById('viewSetup').classList.remove('flex'); }
 
         function renderSubTasks() {
             selectedDay = getLocalToday();
             const container = document.getElementById('subTasksContainer');
-            container.innerHTML = '';
-            selectedTask.subTugas.forEach(sub => {
-                let mSec = parseDuration(sub.max);
-                let sInput = parseInt(sub.set) || 1;
-                let totalSegs = sInput;
-                if (sInput === 1 && mSec > 180) totalSegs = Math.ceil(mSec / 180);
-                
-                let doneCount = 0;
-                for(let i=1; i<=totalSegs; i++) { if(isSubDone(selectedTask.taskId, selectedDay, sub.nama, i, totalSegs, selectedTask.tipePengumpulan)) doneCount++; }
-                const isFullyDone = (doneCount === totalSegs);
-
+            const subs = selectedTask.subTugas || [];
+            let html = '';
+            subs.forEach(sub => {
+                const prog = getSubProgress(selectedTask.taskId, selectedDay, sub);
+                const totalSegs = prog.total, doneCount = prog.done;
+                const mSec = parseDuration(sub.max);
                 const minSec = parseDuration(sub.min);
                 const targetTeks = `${formatSecToText(minSec)} - ${formatSecToText(mSec)}`;
                 const hasMetro = sub.metro && sub.metro.on;
                 const metroBadgeHtml = hasMetro ? `<span class="text-[9px] text-blue-100 bg-blue-900/60 px-1.5 py-0.5 rounded flex items-center gap-0.5"><i class="fa-solid fa-drum text-[8px]"></i> ${parseInt(sub.metro.bpm) || 96}</span>` : '';
-                const setBadgeHtml = totalSegs > 1 ? `<span class="text-[9px] text-amber-100 bg-amber-900/60 px-1.5 py-0.5 rounded font-bold">${doneCount}/${totalSegs} Sesi</span>` : '';
+                const setBadgeHtml = totalSegs > 1 ? `<span class="text-[9px] text-amber-100 bg-amber-900/60 px-1.5 py-0.5 rounded font-bold">${doneCount}/${totalSegs} Set</span>` : '';
 
-                if (isFullyDone) {
-                    container.innerHTML += `
+                if (prog.full) {
+                    html += `
                         <div class="w-full bg-emerald-500 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 shadow-sm opacity-90 cursor-not-allowed">
                             <span class="line-through decoration-white/50">${sub.nama}</span>
                             <div class="flex items-center gap-2">
@@ -852,7 +866,7 @@
                             </div>
                         </div>`;
                 } else {
-                    container.innerHTML += `
+                    html += `
                         <button onclick="prepareCamera('${sub.nama.replace(/'/g, "\\'")}')" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 active:scale-95 shadow-lg group transition-transform">
                             <span class="truncate pr-2 text-left">${sub.nama}</span>
                             <div class="flex items-center gap-1.5 flex-shrink-0">
@@ -864,6 +878,7 @@
                         </button>`;
                 }
             });
+            container.innerHTML = html || '<p class="text-xs text-gray-400 text-center py-4">Tidak ada sub tugas.</p>';
         }
 
         // ============ LOGIKA AUTO-SEGMENTASI & SET ============
@@ -874,36 +889,16 @@
             
             const inputMinSec = parseDuration(sub.min);
             const inputMaxSec = parseDuration(sub.max);
-            const setInput = parseInt(sub.set) || 1;
-
-            // 1. Tentukan Total Segmen & Durasi per Segmen
-            if (setInput > 1) {
-                // Mode Workout (Manual Set)
-                totalSegments = setInput;
-                currentMaxSec = inputMaxSec;
-                currentMinSec = inputMinSec;
-                currentRestDuration = parseInt(sub.rest) || 0;
-                segmentLabelType = "Set";
-            } else if (inputMaxSec > 180) {
-                // Mode Auto-Segmentasi (Pecah otomatis jadi max 3 menit / 180 dtk)
-                totalSegments = Math.ceil(inputMaxSec / 180);
-                currentMaxSec = Math.ceil(inputMaxSec / totalSegments);
-                currentMinSec = Math.floor(inputMinSec / totalSegments);
-                currentRestDuration = parseInt(globalConfig.jeda_antar_set) || 30; // Pakai default global
-                segmentLabelType = "Sesi";
-            } else {
-                // Mode Normal (Di bawah 3 menit, 1 sesi saja)
-                totalSegments = 1;
-                currentMaxSec = inputMaxSec;
-                currentMinSec = inputMinSec;
-                currentRestDuration = 0;
-                segmentLabelType = "Sesi";
-            }
+            // 1. Tanpa pemecahan otomatis: 1 sub tugas = 1 video. Set hanya jika pelatih mengaturnya.
+            totalSegments = getSegCount(sub);
+            currentMaxSec = inputMaxSec;
+            currentMinSec = inputMinSec;
+            currentRestDuration = totalSegments > 1 ? (parseInt(sub.rest) || 0) : 0;
 
             // 2. Cari segmen yang belum selesai
             let nextSeg = 1;
             for(let i=1; i<=totalSegments; i++) {
-                if(!isSubDone(selectedTask.taskId, selectedDay, subName, i, totalSegments, selectedTask.tipePengumpulan)) { nextSeg = i; break; }
+                if(!isSubDone(selectedTask.taskId, selectedDay, subName, i, totalSegments)) { nextSeg = i; break; }
             }
             currentSegment = nextSeg;
 
@@ -1010,8 +1005,13 @@
             recordedChunks = [];
             secondsRecorded = 0;
             try {
-                let options = { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 1200000 };
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/mp4' };
+                // Bitrate disesuaikan dengan durasi maksimal supaya video panjang tetap di bawah batas ukuran file
+                const maxMB = parseFloat(globalConfig.max_file_mb) || 30;
+                const audioBps = 64000;
+                const totalBps = (maxMB * 1024 * 1024 * 0.8 * 8) / Math.max(currentMaxSec, 1);
+                const videoBps = Math.round(Math.max(250000, Math.min(1200000, totalBps - audioBps)));
+                let options = { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: videoBps, audioBitsPerSecond: audioBps };
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/mp4', videoBitsPerSecond: videoBps, audioBitsPerSecond: audioBps };
                 mediaRecorder = new MediaRecorder(mediaStream, options);
                 mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
                 mediaRecorder.onstop = processUploadBase64;
@@ -1088,100 +1088,192 @@
             if(secondsRecorded >= currentMaxSec && isRecording) { stopRecording(false); showToast("Batas maksimal tercapai.", "info"); }
         }
 
-        // ============ UPLOAD & RETRY & ERROR LOGIC ============
+        // ============ UPLOAD (progress nyata + timeout berbasis aktivitas) ============
+        function getSubLabel() {
+            let n = currentSubTugas;
+            if (totalSegments > 1) n += ` (${segmentLabelType} ${String(currentSegment).padStart(2, '0')}/${totalSegments})`;
+            return n;
+        }
+
+        async function acquireWakeLock() {
+            try { if ('wakeLock' in navigator) wakeLockSentinel = await navigator.wakeLock.request('screen'); } catch (e) {}
+        }
+        function releaseWakeLock() {
+            try { if (wakeLockSentinel) { wakeLockSentinel.release(); wakeLockSentinel = null; } } catch (e) {}
+        }
+
+        function blobToDataURL(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => reader.error ? reject(reader.error) : resolve(reader.result);
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        function setUploadProgress(pct, text) {
+            document.getElementById('uploadProgressBar').style.width = `${pct}%`;
+            document.getElementById('uploadProgressText').textContent = text || '';
+        }
+
+        // Timeout tidak lagi 60 detik tetap. Batas waktu hanya berlaku jika:
+        //  - pengiriman macet (tidak ada kemajuan sama sekali) selama 90 dtk, atau
+        //  - setelah terkirim 100%, server tidak membalas dalam 5 menit, atau
+        //  - total melebihi 20 menit.
+        // Selama data masih berjalan, upload TIDAK dihentikan, berapa pun panjang videonya.
+        function postJsonWithProgress(url, bodyStr, onProgress) {
+            return new Promise((resolve, reject) => {
+                const STALL_UPLOAD_MS = 90 * 1000;
+                const SERVER_WAIT_MS = 5 * 60 * 1000;
+                const HARD_CAP_MS = 20 * 60 * 1000;
+                const xhr = new XMLHttpRequest();
+                const startedAt = Date.now();
+                let lastProgressAt = startedAt, uploadDone = false, uploadDoneAt = 0, finished = false;
+
+                const finish = (fn, v) => { if (finished) return; finished = true; clearInterval(watchdog); fn(v); };
+                const timeoutErr = (msg) => { const e = new Error(msg); e.name = 'TimeoutError'; return e; };
+
+                const watchdog = setInterval(() => {
+                    const now = Date.now();
+                    let reason = null;
+                    if (!uploadDone && now - lastProgressAt > STALL_UPLOAD_MS) reason = 'Pengiriman terhenti (tidak ada kemajuan).';
+                    else if (uploadDone && now - uploadDoneAt > SERVER_WAIT_MS) reason = 'Server terlalu lama membalas.';
+                    else if (now - startedAt > HARD_CAP_MS) reason = 'Melebihi batas waktu maksimal.';
+                    if (reason) { const err = timeoutErr(reason); try { xhr.abort(); } catch (e) {} finish(reject, err); }
+                }, 2000);
+
+                xhr.open('POST', url, true);
+                xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
+                xhr.upload.onprogress = (e) => { lastProgressAt = Date.now(); if (e.lengthComputable) onProgress(e.loaded, e.total, false); };
+                xhr.upload.onload = () => { uploadDone = true; uploadDoneAt = Date.now(); onProgress(0, 0, true); };
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try { finish(resolve, JSON.parse(xhr.responseText)); }
+                        catch (e) { const err = new Error('Balasan server tidak valid'); err.name = 'ParseError'; finish(reject, err); }
+                    } else finish(reject, new Error('HTTP ' + xhr.status));
+                };
+                xhr.onerror = () => finish(reject, new Error('Koneksi terputus'));
+                xhr.onabort = () => { const err = new Error('Dibatalkan'); err.name = 'AbortError'; finish(reject, err); };
+                xhr.send(bodyStr);
+            });
+        }
+
         function processUploadBase64() {
             if (recordedChunks.length === 0) return;
             if (secondsRecorded < currentMinSec) { showToast(`Dibatalkan! Waktu minimum adalah ${formatSecToText(currentMinSec)}.`, "error"); return; }
-            
+
             currentBlobToUpload = new Blob(recordedChunks, { type: recordedChunks[0].type });
-            
+
             const maxSize = (globalConfig.max_file_mb || 30) * 1024 * 1024;
-            if(currentBlobToUpload.size > maxSize) {
+            if (currentBlobToUpload.size > maxSize) {
                 showToast(`File terlalu besar (${(currentBlobToUpload.size/1024/1024).toFixed(1)}MB). Maksimal ${globalConfig.max_file_mb || 30}MB.`, "error");
                 return;
             }
 
+            currentBase64 = null;
+            currentSubId = 'SUB_' + Date.now();
             retryCount = 0;
             doUploadProcess();
         }
 
-        function doUploadProcess() {
+        async function doUploadProcess() {
             const viewUp = document.getElementById('viewUploading');
             const uploadTitle = document.getElementById('uploadTitle');
             const uploadText = document.getElementById('uploadStatusText');
             const errorAction = document.getElementById('errorActionContainer');
-            
+            const maxRetry = parseInt(globalConfig.max_retry_upload) || 3;
+
             viewUp.classList.remove('hidden'); viewUp.classList.add('flex');
             errorAction.classList.add('hidden'); errorAction.classList.remove('flex');
-            uploadTitle.textContent = retryCount === 0 ? "Mengirim Video..." : `Mencoba Ulang (${retryCount}/${globalConfig.max_retry_upload})...`;
-            uploadText.textContent = "Sedang memproses dan membersihkan format agar aman di server...";
+            uploadTitle.textContent = retryCount === 0 ? "Mengirim Video..." : `Mencoba Ulang (${retryCount}/${maxRetry})...`;
+            setUploadProgress(0, '');
+            acquireWakeLock();
 
-            const reader = new FileReader();
-            reader.readAsDataURL(currentBlobToUpload);
-            reader.onloadend = function() {
-                const base64data = reader.result;
-                
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 240000);
+            const subName = getSubLabel();
+            try {
+                if (!currentBase64) {
+                    uploadText.textContent = "Menyiapkan video...";
+                    currentBase64 = await blobToDataURL(currentBlobToUpload);
+                }
+                uploadText.textContent = "Jangan tutup atau keluar dari halaman ini sampai selesai.";
 
-                let subName = currentSubTugas;
-                if(totalSegments > 1) subName += ` (${segmentLabelType} ${String(currentSegment).padStart(2, '0')}/${totalSegments})`;
-
-                fetch(GAS_URL, {
-                    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    signal: controller.signal,
-                    body: JSON.stringify({
-                        action: 'submitVideoBase64', taskFolderId: selectedTask.folderId, taskId: selectedTask.taskId,
-                        subId: 'SUB_' + Date.now(), namaAnggota: user.nama, tanggal: selectedDay, hariKe: selectedDay,
-                        subTugasName: subName, filename: `Tugas_${user.nama.replace(/[^a-zA-Z0-9]/g, '')}_${currentSubTugas.replace(/[^a-zA-Z0-9]/g, '')}_Seg${currentSegment}_${Date.now()}.webm`, 
-                        mimeType: currentBlobToUpload.type, base64Data: base64data
-                    })
-                }).then(r => {
-                    clearTimeout(timeoutId);
-                    if(!r.ok) throw new Error("HTTP " + r.status);
-                    return r.json();
-                }).then(d => {
-                    if (d.success) {
-                        handleUploadSuccess(subName);
-                    } else {
-                        throw new Error(d.message || "Server menolak data.");
-                    }
-                }).catch(err => {
-                    clearTimeout(timeoutId);
-                    handleUploadError(err);
+                const ext = (currentBlobToUpload.type || '').includes('mp4') ? 'mp4' : 'webm';
+                const stamp = currentSubId.replace('SUB_', '');
+                const bodyStr = JSON.stringify({
+                    action: 'submitVideoBase64', taskFolderId: selectedTask.folderId, taskId: selectedTask.taskId,
+                    subId: currentSubId, namaAnggota: user.nama, tanggal: selectedDay, hariKe: selectedDay,
+                    subTugasName: subName,
+                    filename: `Tugas_${user.nama.replace(/[^a-zA-Z0-9]/g, '')}_${currentSubTugas.replace(/[^a-zA-Z0-9]/g, '')}_Seg${currentSegment}_${stamp}.${ext}`,
+                    mimeType: currentBlobToUpload.type, base64Data: currentBase64
                 });
+
+                const d = await postJsonWithProgress(GAS_URL, bodyStr, (loaded, total, uploadFinished) => {
+                    if (uploadFinished) { setUploadProgress(100, 'Terkirim. Menunggu konfirmasi server (video panjang butuh waktu)...'); return; }
+                    const pct = total ? Math.floor((loaded / total) * 100) : 0;
+                    setUploadProgress(pct, `Mengunggah ${pct}% • ${(loaded / 1048576).toFixed(1)} / ${(total / 1048576).toFixed(1)} MB`);
+                });
+
+                if (d && d.success) { releaseWakeLock(); handleUploadSuccess(subName); }
+                else throw new Error((d && d.message) || "Server menolak data.");
+            } catch (err) {
+                await handleUploadError(err, subName);
             }
+        }
+
+        // Jika balasan server tidak sampai tapi file sebenarnya sudah tersimpan, jangan kirim dobel.
+        async function checkAlreadySavedOnServer() {
+            try {
+                const ctrl = new AbortController();
+                const t = setTimeout(() => ctrl.abort(), 20000);
+                const r = await fetch(GAS_URL, { method: 'POST', signal: ctrl.signal, body: JSON.stringify({ action: 'getTasks', username: user.username }) });
+                clearTimeout(t);
+                const d = await r.json();
+                if (!d.success) return false;
+                userSubs = Object.assign({}, d.userSubs || {}, localDoneKeys);
+                return isSubDone(selectedTask.taskId, selectedDay, currentSubTugas, currentSegment, totalSegments);
+            } catch (e) { return false; }
         }
 
         function handleUploadSuccess(subName) {
             document.getElementById('viewUploading').classList.add('hidden'); document.getElementById('viewUploading').classList.remove('flex');
-            
+
             const newKey = `${selectedTask.taskId}_${selectedDay}_${subName}`;
             userSubs[newKey] = true;
+            localDoneKeys[newKey] = true;
+            currentBase64 = null; currentBlobToUpload = null;
 
             if (currentSegment < totalSegments) {
                 showRestScreen(currentRestDuration);
             } else {
-                document.getElementById('successUploadText').textContent = `Video ${currentSubTugas} (${totalSegments} ${segmentLabelType}) berhasil terkirim.`;
+                document.getElementById('successUploadText').textContent = `Video "${currentSubTugas}"${totalSegments > 1 ? ` (${totalSegments} ${segmentLabelType})` : ''} berhasil terkirim.`;
                 document.getElementById('successUploadModal').classList.remove('hidden'); document.getElementById('successUploadModal').classList.add('flex');
-                fetchTasks();
+                renderTasks(activeTasks);   // langsung perbarui kartu tugas (tetap tampil, ditandai selesai)
+                fetchTasks(true);           // sinkron ke server tanpa mengosongkan daftar
                 fetchRiwayatSemua();
             }
         }
 
-        function handleUploadError(err) {
-            lastErrorDetail = { 
-                type: err.name === 'AbortError' ? 'TIMEOUT' : (navigator.onLine ? 'NETWORK' : 'OFFLINE'), 
-                message: err.message 
+        async function handleUploadError(err, subName) {
+            const timedOut = err && err.name === 'TimeoutError';
+            lastErrorDetail = {
+                type: timedOut ? 'TIMEOUT' : (navigator.onLine ? 'NETWORK' : 'OFFLINE'),
+                message: (err && err.message) || String(err)
             };
-            
             retryCount++;
-            if (retryCount < globalConfig.max_retry_upload) {
+
+            if (navigator.onLine && await checkAlreadySavedOnServer()) {
+                releaseWakeLock();
+                handleUploadSuccess(subName);
+                return;
+            }
+
+            const maxRetry = parseInt(globalConfig.max_retry_upload) || 3;
+            if (retryCount < maxRetry) {
                 document.getElementById('uploadTitle').textContent = `Gagal. Mencoba lagi dalam 3 detik...`;
                 setTimeout(() => doUploadProcess(), 3000);
             } else {
+                releaseWakeLock();
                 document.getElementById('uploadTitle').textContent = `Upload Gagal`;
-                document.getElementById('uploadStatusText').textContent = `Sistem sudah mencoba ${globalConfig.max_retry_upload}x namun gagal. Silakan coba lagi atau laporkan.`;
+                document.getElementById('uploadStatusText').textContent = `Sistem sudah mencoba ${maxRetry}x namun gagal. Silakan coba lagi atau laporkan.`;
                 const errorAction = document.getElementById('errorActionContainer');
                 errorAction.classList.remove('hidden'); errorAction.classList.add('flex');
             }
@@ -1293,8 +1385,13 @@
 
         function closeSuccessModal() {
             document.getElementById('successUploadModal').classList.add('hidden'); document.getElementById('successUploadModal').classList.remove('flex');
-            fetchTasks();
-            renderSubTasks();
+            renderTasks(activeTasks);
+            if (selectedTask) {
+                const prog = getTaskProgress(selectedTask, getLocalToday());
+                // masih ada sub tugas lain -> kembali ke modul tugas yang sama
+                if (prog.pending > 0) openSetup(selectedTask.taskId);
+            }
+            fetchTasks(true);
         }
 
         // ============ METRONOME ============
