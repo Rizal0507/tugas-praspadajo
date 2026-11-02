@@ -155,6 +155,21 @@
 
             <!-- VIEW BUAT TUGAS -->
             <section id="viewBuatTugas" class="tab-view hidden flex-col gap-5 w-full">
+                
+                <!-- 1. DAFTAR TUGAS AKTIF (DIPINDAH KE ATAS) -->
+                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+                    <h3 class="p-4 border-b font-bold text-gray-800 text-sm"><i class="fa-solid fa-list-check text-blue-500 mr-1"></i> Daftar Tugas Aktif</h3>
+                    <div class="overflow-x-auto max-h-60 overflow-y-auto custom-scroll">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead class="bg-gray-50 text-gray-400 uppercase text-[10px] font-bold sticky top-0 z-10">
+                                <tr><th class="py-2 px-4 w-10">No</th><th class="py-2 px-4">Judul Tugas</th><th class="py-2 px-4 text-center">Tipe</th><th class="py-2 px-4 text-center">Tanggal</th><th class="py-2 px-4 text-center">Aksi</th></tr>
+                            </thead>
+                            <tbody id="tableTaskListBody" class="divide-y divide-gray-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 2. FORM BUAT TUGAS -->
                 <div class="bg-white p-5 sm:p-6 rounded-3xl border border-gray-100 shadow-sm relative">
                     <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
                         <h2 id="formTaskHeader" class="text-lg font-bold text-gray-800">Buat Tugas Baru</h2>
@@ -205,7 +220,7 @@
                         </div>
 
                         <div class="bg-gray-50 p-3 rounded-xl border border-gray-200">
-                            <label class="text-xs font-bold text-gray-600 uppercase mb-2 block flex justify-between">Target Anggota <span class="text-[10px] text-blue-600 font-normal cursor-pointer" onclick="toggleAllTarget(true)">Pilih Semua</span></label>
+                            <label class="text-xs font-bold text-gray-600 uppercase mb-2 block flex justify-between">Target Anggota <span class="text-[10px] text-blue-600 font-normal cursor-pointer hover:underline" onclick="toggleAllTarget()">Pilih Semua / Batal</span></label>
                             <div id="targetAnggotaCheckboxes" class="custom-scroll max-h-24 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] font-semibold text-gray-700"></div>
                         </div>
 
@@ -213,19 +228,20 @@
                     </form>
                 </div>
 
-                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-                    <h3 class="p-4 border-b font-bold text-gray-800 text-sm">Daftar Tugas Aktif</h3>
+                <!-- 3. DAFTAR TUGAS KADALUARSA (BARU) -->
+                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col mb-4">
+                    <h3 class="p-4 border-b font-bold text-gray-800 text-sm bg-gray-50"><i class="fa-solid fa-box-archive text-gray-400 mr-1"></i> Tugas Kadaluarsa / Nonaktif</h3>
                     <div class="overflow-x-auto max-h-60 overflow-y-auto custom-scroll">
                         <table class="w-full text-left border-collapse text-xs">
                             <thead class="bg-gray-50 text-gray-400 uppercase text-[10px] font-bold sticky top-0 z-10">
-                                <tr><th class="py-2 px-4 w-10">No</th><th class="py-2 px-4">Judul Tugas</th><th class="py-2 px-4 text-center">Tipe</th><th class="py-2 px-4 text-center">Aksi</th></tr>
+                                <tr><th class="py-2 px-4 w-10">No</th><th class="py-2 px-4">Judul Tugas</th><th class="py-2 px-4 text-center">Tipe</th><th class="py-2 px-4 text-center">Tanggal</th><th class="py-2 px-4 text-center">Aksi</th></tr>
                             </thead>
-                            <tbody id="tableTaskListBody" class="divide-y divide-gray-100"></tbody>
+                            <tbody id="tableTaskListExpiredBody" class="divide-y divide-gray-100 text-gray-400"></tbody>
                         </table>
                     </div>
                 </div>
-            </section>
 
+            </section>
             <!-- VIEW PENGATURAN -->
             <section id="viewPengaturan" class="tab-view hidden flex-col gap-5 w-full max-w-md mx-auto">
                 <div class="bg-white p-5 sm:p-6 rounded-3xl border border-gray-100 shadow-sm relative">
@@ -913,11 +929,9 @@
             if(dateVal) filteredSubs = filteredSubs.filter(s => matchesSubmissionDate(s, dateVal));
             if(memberVal) filteredSubs = filteredSubs.filter(s => s.namaAnggota === memberVal);
             
-            // GROUPING LOGIC BARU: Pisahkan berdasarkan Nama Dasar Sub-Tugas
             const groupedData = {};
             filteredSubs.forEach(s => {
                 const dateKey = extractLocalDate(s.tanggal || s.waktuKumpul);
-                // Hapus embel-embel (Sesi 01/03) atau (Set 01/03) untuk mendapatkan nama dasar
                 const baseName = (s.subTugasName || '').replace(/\s*\((Sesi|Set)\s*\d+\/\d+\)/i, '').trim();
                 const groupKey = `${s.taskId}_${s.namaAnggota}_${dateKey}_${baseName}`;
                 
@@ -934,13 +948,8 @@
             });
 
             let groups = Object.values(groupedData);
-
-            // FILTER TAB PENILAIAN
-            if (state.tabPenilaian === 'belum') {
-                groups = groups.filter(g => !isGraded(g));
-            } else if (state.tabPenilaian === 'sudah') {
-                groups = groups.filter(g => isGraded(g));
-            }
+            if (state.tabPenilaian === 'belum') groups = groups.filter(g => !isGraded(g));
+            else if (state.tabPenilaian === 'sudah') groups = groups.filter(g => isGraded(g));
 
             if(groups.length === 0) { 
                 tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-gray-400">Belum ada pengumpulan pada filter ini.</td></tr>`; 
@@ -949,33 +958,27 @@
 
             tbody.innerHTML = groups.map((g, idx) => {
                 const totalSessions = g.sessions.length;
-                
-                // Kirim parameter terpisah ke openVideoModal agar tidak error
                 const safeAnggota = g.namaAnggota.replace(/'/g, "\\'");
                 const safeBaseName = g.baseName.replace(/'/g, "\\'");
                 const dateKey = extractLocalDate(g.tanggal || g.waktuKumpul);
-                const btnLihatVideo = `<button onclick="openVideoModal('${g.taskId}', '${safeAnggota}', '${dateKey}', '${safeBaseName}')" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-[10px] font-bold border border-blue-200 flex items-center justify-center gap-1 w-full"><i class="fa-solid fa-play"></i> Lihat Video (${totalSessions} Sesi)</button>`;
+                const btnLihatVideo = `<button onclick="openVideoModal('${g.taskId}', '${safeAnggota}', '${dateKey}', '${safeBaseName}')" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-[10px] font-bold border border-blue-200 flex items-center justify-center gap-1 w-full"><i class="fa-solid fa-play"></i> Lihat Video (${totalSessions})</button>`;
                 
-                const taskRef = state.tasks.find(t => t.taskId === g.taskId);
-                const judul = taskRef ? taskRef.judulTugas : "Tugas Latihan";
                 const nilaiVal = isGraded(g) ? g.nilai : '';
-                const komentarVal = g.komentar || '';
                 const colorClass = nilaiVal==='A'?'text-emerald-600 bg-emerald-50 border-emerald-300':nilaiVal==='B'?'text-blue-600 bg-blue-50 border-blue-300':nilaiVal==='C'?'text-amber-600 bg-amber-50 border-amber-300':nilaiVal==='D'?'text-orange-600 bg-orange-50 border-orange-300':nilaiVal==='E'?'text-rose-600 bg-rose-50 border-rose-300':'text-gray-600 bg-white border-gray-300';
-                
                 const allSubIds = g.sessions.map(x => x.subId).join(',');
 
                 return `<tr class="hover:bg-gray-50 border-b group">
                     <td class="py-3 px-4 text-center text-gray-400 align-top">${idx + 1}</td>
-                    <td class="py-3 px-4 align-top">
-                        <div class="font-bold text-gray-800 text-sm mb-0.5">${g.namaAnggota}</div>
-                        <div class="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded inline-block mb-1">${totalSessions} Sesi/Set</div>
-                        <div class="text-[9px] text-gray-500 italic mt-1 line-clamp-1">${judul}</div>
+                    <td class="py-3 px-4 align-top w-64">
+                        <div class="font-bold text-gray-800 text-sm mb-1">${g.namaAnggota}</div>
+                        <!-- NAMA SUB TUGAS DIPINDAH KE SINI -->
+                        <div class="text-[10px] text-gray-700 font-semibold mb-1 line-clamp-2">${g.baseName}</div>
+                        <div class="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded inline-block">${totalSessions} Sesi/Set</div>
                     </td>
-                    <td class="py-3 px-4 text-center align-top"><div class="text-[10px] font-bold text-gray-600">${formatDisplayTime(g.waktuKumpul || g.tanggal)}</div></td>
-                    <td class="py-3 px-4 text-center align-top pt-5 w-32">${btnLihatVideo}</td>
+                    <td class="py-3 px-4 text-center align-top pt-4"><div class="text-[10px] font-bold text-gray-600">${formatDisplayTime(g.waktuKumpul || g.tanggal)}</div></td>
+                    <td class="py-3 px-4 text-center align-top pt-4 w-28">${btnLihatVideo}</td>
                     <td class="py-3 px-4 align-top">
                         <div class="bg-gray-100/50 p-2.5 rounded-xl border border-gray-200">
-                            <div class="font-bold text-xs text-gray-700 mb-1.5 px-1 truncate">${g.baseName}</div>
                             <div class="flex gap-2 items-center">
                                 <select id="selNilai_${g.sessions[0].subId}" class="flex-1 p-2 border rounded-lg text-xs font-bold outline-none cursor-pointer ${colorClass}">
                                     <option value="">-- Beri Nilai --</option>
@@ -988,8 +991,8 @@
                                 <button type="button" onclick="toggleKomentarBox('${g.sessions[0].subId}')" class="px-2.5 py-2 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 text-[10px] font-bold"><i class="fa-solid fa-comment-dots"></i></button>
                                 <button type="button" onclick="executeSubmitNilaiBatch('${allSubIds}', '${g.sessions[0].subId}')" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs font-bold active:scale-95 transition-transform">Simpan</button>
                             </div>
-                            <div id="boxKomentar_${g.sessions[0].subId}" class="comment-box-anim ${komentarVal ? 'open' : ''}">
-                                <textarea id="inputKomentar_${g.sessions[0].subId}" rows="2" placeholder="Tulis catatan perbaikan..." class="w-full p-2 border border-blue-200 rounded-lg text-[10px] bg-blue-50/30 outline-none focus:border-blue-500">${komentarVal}</textarea>
+                            <div id="boxKomentar_${g.sessions[0].subId}" class="comment-box-anim ${g.komentar ? 'open' : ''}">
+                                <textarea id="inputKomentar_${g.sessions[0].subId}" rows="2" placeholder="Tulis catatan..." class="w-full p-2 border border-blue-200 rounded-lg text-[10px] bg-blue-50/30 outline-none focus:border-blue-500">${g.komentar || ''}</textarea>
                             </div>
                         </div>
                     </td>
@@ -1076,7 +1079,11 @@
                 </label>
             `).join('');
         }
-        function toggleAllTarget(check) { document.querySelectorAll('.chk-target').forEach(c => c.checked = check); }
+        function toggleAllTarget() {
+            const boxes = document.querySelectorAll('.chk-target');
+            const allChecked = Array.from(boxes).every(c => c.checked);
+            boxes.forEach(c => c.checked = !allChecked);
+        }
         function getSelectedTargets() {
             const boxes = document.querySelectorAll('.chk-target:checked');
             if (boxes.length === document.querySelectorAll('.chk-target').length) return "Semua";
@@ -1116,18 +1123,63 @@
         });
 
         function renderTaskList() {
-            const tbody = document.getElementById('tableTaskListBody');
-            tbody.innerHTML = state.tasks.map((t, i) => `
-                <tr class="hover:bg-gray-50 border-b">
-                    <td class="py-2 px-4">${i+1}</td>
-                    <td class="py-2 px-4 font-bold text-gray-800">${t.judulTugas}</td>
-                    <td class="py-2 px-4 text-center font-semibold text-[10px] text-blue-600 uppercase">${t.jenisTugas} - ${t.tipePengumpulan}</td>
-                    <td class="py-2 px-4 text-center flex justify-center gap-2">
-                        <button onclick='editTaskData(${JSON.stringify(t).replace(/'/g, "&#39;")})' class="bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="deleteTaskData('${t.taskId}')" class="bg-rose-50 text-rose-600 px-2 py-1 rounded hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
+            const todayStr = getLocalToday();
+            const activeTasks = [];
+            const expiredTasks = [];
+
+            // Pisahkan tugas aktif dan kadaluarsa
+            state.tasks.forEach(t => {
+                let isExpired = false;
+                if (t.tipePengumpulan === 'Satu Kali') {
+                    const raw = t.tanggalPengerjaan ? t.tanggalPengerjaan.toString() : "";
+                    const list = raw.includes(' to ') ? raw.split(' to ') : raw.split(',');
+                    const deadline = extractLocalDate(list[list.length - 1]);
+                    if (deadline < todayStr) isExpired = true;
+                } else if (t.tipePengumpulan === 'Harian') {
+                    const raw = t.tanggalPengerjaan ? t.tanggalPengerjaan.toString() : "";
+                    const list = raw.split(',').map(d => extractLocalDate(d)).sort();
+                    if (list[list.length - 1] < todayStr) isExpired = true;
+                }
+                if (isExpired) expiredTasks.push(t);
+                else activeTasks.push(t);
+            });
+
+            // Render Tugas Aktif
+            const tbodyActive = document.getElementById('tableTaskListBody');
+            if (activeTasks.length === 0) {
+                tbodyActive.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-gray-400">Tidak ada tugas aktif.</td></tr>`;
+            } else {
+                tbodyActive.innerHTML = activeTasks.map((t, i) => `
+                    <tr class="hover:bg-gray-50 border-b">
+                        <td class="py-2 px-4">${i+1}</td>
+                        <td class="py-2 px-4 font-bold text-gray-800">${t.judulTugas}</td>
+                        <td class="py-2 px-4 text-center font-semibold text-[10px] text-blue-600 uppercase">${t.jenisTugas} - ${t.tipePengumpulan}</td>
+                        <td class="py-2 px-4 text-center text-[10px] font-bold text-amber-600">${t.tanggalPengerjaan.replace(' to ', ' s/d ')}</td>
+                        <td class="py-2 px-4 text-center flex justify-center gap-2">
+                            <button onclick='editTaskData(${JSON.stringify(t).replace(/'/g, "&#39;")})' class="bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteTaskData('${t.taskId}')" class="bg-rose-50 text-rose-600 px-2 py-1 rounded hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            // Render Tugas Kadaluarsa
+            const tbodyExpired = document.getElementById('tableTaskListExpiredBody');
+            if (expiredTasks.length === 0) {
+                tbodyExpired.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-gray-400">Belum ada tugas kadaluarsa.</td></tr>`;
+            } else {
+                tbodyExpired.innerHTML = expiredTasks.map((t, i) => `
+                    <tr class="hover:bg-gray-50 border-b">
+                        <td class="py-2 px-4">${i+1}</td>
+                        <td class="py-2 px-4 font-bold text-gray-600">${t.judulTugas}</td>
+                        <td class="py-2 px-4 text-center font-semibold text-[10px] text-gray-500 uppercase">${t.jenisTugas} - ${t.tipePengumpulan}</td>
+                        <td class="py-2 px-4 text-center text-[10px] font-bold text-gray-500">${t.tanggalPengerjaan.replace(' to ', ' s/d ')}</td>
+                        <td class="py-2 px-4 text-center flex justify-center gap-2">
+                            <button onclick="deleteTaskData('${t.taskId}')" class="bg-rose-50 text-rose-600 px-2 py-1 rounded hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
         }
 
         function editTaskData(t) {
