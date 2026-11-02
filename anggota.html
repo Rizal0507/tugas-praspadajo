@@ -579,24 +579,6 @@
                 return nameMatches(s.subTugasName);
             });
         }
-            const keys = Object.keys(userSubs).concat(Object.keys(window.__localDoneSubs || {}));
-            return keys.some(k => {
-                const cleanK = normalizeStr(k);
-
-                if (!cleanK.includes(cleanTaskId)) return false;
-
-                // Nama: cocok penuh, atau fallback 15 karakter pertama
-                const nameOk = cleanK.includes(cleanSubName) || cleanK.includes(cleanSubName.slice(0, 15));
-                if (!nameOk) return false;
-
-                if (segRegex && !segRegex.test(alnum(k))) return false;
-
-                // Tanggal toleran: YYYY-MM-DD ATAU DD/MM/YYYY
-                const rawK = String(k);
-                const dateOk = rawK.includes(tglIso) || (tglIndo !== '' && rawK.includes(tglIndo));
-                return dateOk;
-            });
-        }
 
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
