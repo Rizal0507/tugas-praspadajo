@@ -913,14 +913,16 @@
             if(dateVal) filteredSubs = filteredSubs.filter(s => matchesSubmissionDate(s, dateVal));
             if(memberVal) filteredSubs = filteredSubs.filter(s => s.namaAnggota === memberVal);
             
-            // GROUPING LOGIC
+            // GROUPING LOGIC BARU: Pisahkan berdasarkan Nama Dasar Sub-Tugas
             const groupedData = {};
             filteredSubs.forEach(s => {
                 const dateKey = extractLocalDate(s.tanggal || s.waktuKumpul);
-                const groupKey = `${s.taskId}_${s.namaAnggota}_${dateKey}`;
+                // Hapus embel-embel (Sesi 01/03) atau (Set 01/03) untuk mendapatkan nama dasar
+                const baseName = (s.subTugasName || '').replace(/\s*\((Sesi|Set)\s*\d+\/\d+\)/i, '').trim();
+                const groupKey = `${s.taskId}_${s.namaAnggota}_${dateKey}_${baseName}`;
                 
                 if (!groupedData[groupKey]) {
-                    groupedData[groupKey] = { ...s, sessions: [] };
+                    groupedData[groupKey] = { ...s, sessions: [], baseName: baseName };
                 }
                 groupedData[groupKey].sessions.push(s);
                 
@@ -947,7 +949,12 @@
 
             tbody.innerHTML = groups.map((g, idx) => {
                 const totalSessions = g.sessions.length;
-                const btnLihatVideo = `<button onclick="openVideoModal('${g.taskId}_${g.namaAnggota}_${extractLocalDate(g.tanggal || g.waktuKumpul)}')" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-[10px] font-bold border border-blue-200 flex items-center justify-center gap-1 w-full"><i class="fa-solid fa-play"></i> Lihat Video (${totalSessions} Sesi)</button>`;
+                
+                // Kirim parameter terpisah ke openVideoModal agar tidak error
+                const safeAnggota = g.namaAnggota.replace(/'/g, "\\'");
+                const safeBaseName = g.baseName.replace(/'/g, "\\'");
+                const dateKey = extractLocalDate(g.tanggal || g.waktuKumpul);
+                const btnLihatVideo = `<button onclick="openVideoModal('${g.taskId}', '${safeAnggota}', '${dateKey}', '${safeBaseName}')" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-[10px] font-bold border border-blue-200 flex items-center justify-center gap-1 w-full"><i class="fa-solid fa-play"></i> Lihat Video (${totalSessions} Sesi)</button>`;
                 
                 const taskRef = state.tasks.find(t => t.taskId === g.taskId);
                 const judul = taskRef ? taskRef.judulTugas : "Tugas Latihan";
@@ -968,6 +975,7 @@
                     <td class="py-3 px-4 text-center align-top pt-5 w-32">${btnLihatVideo}</td>
                     <td class="py-3 px-4 align-top">
                         <div class="bg-gray-100/50 p-2.5 rounded-xl border border-gray-200">
+                            <div class="font-bold text-xs text-gray-700 mb-1.5 px-1 truncate">${g.baseName}</div>
                             <div class="flex gap-2 items-center">
                                 <select id="selNilai_${g.sessions[0].subId}" class="flex-1 p-2 border rounded-lg text-xs font-bold outline-none cursor-pointer ${colorClass}">
                                     <option value="">-- Beri Nilai --</option>
@@ -989,19 +997,18 @@
             }).join('');
         }
 
-        function openVideoModal(groupKey) {
-            const parts = groupKey.split('_');
-            const taskId = parts[0];
-            const namaAnggota = parts.slice(1, parts.length - 1).join('_');
-            const tanggal = parts[parts.length - 1];
+                function openVideoModal(taskId, namaAnggota, tanggal, baseName) {
+            // Filter video berdasarkan ID, Nama, Tanggal, dan Nama Dasar Sub-Tugas
+            const sessions = state.submissions.filter(s => {
+                const sDate = extractLocalDate(s.tanggal || s.waktuKumpul);
+                const sBaseName = (s.subTugasName || '').replace(/\s*\((Sesi|Set)\s*\d+\/\d+\)/i, '').trim();
+                return s.taskId === taskId && 
+                       s.namaAnggota === namaAnggota && 
+                       sDate === tanggal &&
+                       sBaseName === baseName;
+            }).sort((a,b) => (a.subTugasName || '').localeCompare(b.subTugasName || '')); // Urutkan Sesi 01, 02, dst
 
-            const sessions = state.submissions.filter(s => 
-                s.taskId === taskId && 
-                s.namaAnggota === namaAnggota && 
-                extractLocalDate(s.tanggal || s.waktuKumpul) === tanggal
-            );
-
-            document.getElementById('videoModalTitle').textContent = `Video: ${namaAnggota}`;
+            document.getElementById('videoModalTitle').textContent = `Video: ${baseName}`;
             document.getElementById('videoListContainer').innerHTML = sessions.map((s, i) => `
                 <div class="flex items-center justify-between p-3 bg-gray-50 border rounded-xl">
                     <span class="text-xs font-bold text-gray-700">${s.subTugasName}</span>
@@ -1012,7 +1019,7 @@
             document.getElementById('viewVideoModal').classList.remove('hidden');
             document.getElementById('viewVideoModal').classList.add('flex');
         }
-
+        
         function closeVideoModal() {
             document.getElementById('viewVideoModal').classList.add('hidden');
             document.getElementById('viewVideoModal').classList.remove('flex');
