@@ -8,11 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- PANGGIL SHARED FILES -->
     <script src="metronome.js"></script>
     <script src="shared-utils.js"></script>
-
     <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }</script>
     <script>
         (function checkAuth() {
@@ -31,7 +28,7 @@
         .custom-scroll::-webkit-scrollbar { width: 0px; height: 0px; }
         .custom-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         .form-locked { opacity: 0.6; pointer-events: none; }
-        
+
         @keyframes rain-fall {
             0%   { transform: translateY(-15vh) scale(0.4) rotate(0deg); opacity: 0; }
             8%   { transform: translateY(5vh) scale(1) rotate(45deg); opacity: 1; }
@@ -43,6 +40,21 @@
         .sunflower { position: fixed; top: -60px; font-size: 2rem; animation: rain-fall 8s cubic-bezier(0.45, 0, 0.55, 1) forwards; z-index: 100; pointer-events: none; will-change: transform, opacity; }
         @keyframes pop-in { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
         .countdown-anim { animation: pop-in 0.8s ease-out forwards; }
+
+        /* === Motivation Card Glow (deadline warning) === */
+        @keyframes glow-yellow {
+            0%, 100% { box-shadow: 0 0 10px rgba(251, 191, 36, 0.4), 0 2px 8px rgba(0,0,0,0.05); }
+            50% { box-shadow: 0 0 28px rgba(251, 191, 36, 0.95), 0 2px 8px rgba(0,0,0,0.05); }
+        }
+        @keyframes glow-red {
+            0%, 100% { box-shadow: 0 0 12px rgba(239, 68, 68, 0.55), 0 2px 8px rgba(0,0,0,0.05); }
+            50% { box-shadow: 0 0 34px rgba(239, 68, 68, 1), 0 2px 8px rgba(0,0,0,0.05); }
+        }
+        .motiv-yellow { animation: glow-yellow 2.4s ease-in-out infinite; }
+        .motiv-red { animation: glow-red 1.6s ease-in-out infinite; }
+
+        /* Prevent body scroll during recording (safety) */
+        body.locked-scroll { overflow: hidden !important; position: fixed; width: 100%; height: 100%; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans text-gray-800 antialiased flex flex-col items-center relative overflow-hidden">
@@ -79,13 +91,15 @@
 
         <main class="flex-grow p-4 sm:p-6 bg-gray-50 flex flex-col h-screen md:h-[850px] overflow-y-auto custom-scroll relative w-full">
 
-            <div class="md:hidden flex items-center justify-between bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100 flex-none w-full">
+            <!-- === Motivation Card (warna dinamis sesuai deadline) === -->
+            <div id="mobileGreetingCard" class="md:hidden flex items-center justify-between bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100 flex-none w-full transition-colors duration-500">
                 <div class="flex items-center gap-3 w-full min-w-0">
                     <button onclick="toggleSidebar()" class="bg-blue-50 text-blue-600 p-2 rounded-lg shadow-sm flex-shrink-0"><i class="fa-solid fa-bars text-sm"></i></button>
                     <div class="flex flex-col flex-1 min-w-0">
                         <span id="mobileGreeting" class="text-[10px] font-extrabold text-blue-500 uppercase tracking-widest">Selamat Pagi</span>
                         <span id="mobileName" class="font-extrabold text-gray-800 text-sm leading-tight truncate">Nama</span>
                         <span id="mobileMotivation" class="text-[10px] text-gray-500 italic mt-0.5 leading-snug whitespace-normal">"Motivasi..."</span>
+                        <span id="mobileDeadlineBadge" class="hidden text-[9px] font-bold mt-1 px-2 py-0.5 rounded-full"></span>
                     </div>
                 </div>
             </div>
@@ -241,19 +255,19 @@
         </div>
     </div>
 
-    <!-- SETUP MODAL -->
-    <div id="viewSetup" class="fixed inset-0 sm:absolute bg-black/80 backdrop-blur-sm z-40 hidden flex-col justify-end pointer-events-auto">
-        <div class="bg-white w-full rounded-t-[2.5rem] p-6 pt-8 pb-10 flex flex-col md:max-w-lg md:mx-auto md:rounded-3xl md:mb-10">
-            <div class="flex justify-between items-start mb-4">
-                <div>
+    <!-- SETUP MODAL (diubah: popup card di tengah, scroll, lebih lebar) -->
+    <div id="viewSetup" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[95] hidden items-center justify-center p-3 sm:p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl p-5 sm:p-6 flex flex-col shadow-2xl" style="max-height: 88vh;">
+            <div class="flex justify-between items-start mb-3 flex-none">
+                <div class="pr-2">
                     <span id="setupTipeBadge" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100 uppercase">Panel Tugas</span>
                     <p id="setupTaskDate" class="text-[11px] font-bold text-amber-600 mt-1"></p>
                     <h3 id="setupTaskTitle" class="text-lg font-bold text-gray-800 mt-1 leading-snug">Judul Tugas</h3>
                 </div>
-                <button onclick="closeSetup()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="closeSetup()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 flex-none"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <p id="setupTaskDesc" class="text-xs text-gray-500 mb-4 bg-gray-50 p-3 rounded-xl border border-gray-100 max-h-24 overflow-y-auto custom-scroll"></p>
-            <div id="subTasksContainer" class="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scroll p-1"></div>
+            <p id="setupTaskDesc" class="text-xs text-gray-500 mb-3 bg-gray-50 p-3 rounded-xl border border-gray-100 max-h-24 overflow-y-auto custom-scroll flex-none"></p>
+            <div id="subTasksContainer" class="flex flex-col gap-2 overflow-y-auto custom-scroll p-1 flex-grow"></div>
         </div>
     </div>
 
@@ -304,7 +318,7 @@
         </div>
     </div>
 
-    <!-- UPLOADING (GAGAL / RETRY) -->
+    <!-- UPLOADING / RETRY -->
     <div id="viewUploading" class="fixed inset-0 bg-white z-50 hidden flex-col items-center justify-center pointer-events-auto">
         <div class="relative w-32 h-32 mb-6">
             <svg class="animate-spin w-full h-full text-blue-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-100" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle><path class="opacity-100 text-blue-600" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -312,39 +326,51 @@
         </div>
         <h2 class="text-xl font-bold text-gray-800 mb-2" id="uploadTitle">Mengirim Video...</h2>
         <p id="uploadStatusText" class="text-[11px] text-gray-500 font-medium text-center px-8 mb-4">Sedang memproses dan membersihkan format agar aman di server...</p>
-        
-        <!-- Tombol Lapor Error (Tersembunyi by default) -->
+
         <div id="errorActionContainer" class="hidden flex-col items-center gap-2 w-full max-w-xs px-4">
             <button onclick="openErrorModal()" class="w-full bg-rose-600 text-white font-bold py-3 rounded-xl active:scale-95 text-sm shadow-md"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Lapor Error</button>
             <button onclick="retryUpload()" class="w-full bg-gray-200 text-gray-700 font-bold py-3 rounded-xl active:scale-95 text-sm"><i class="fa-solid fa-rotate-right mr-1"></i> Coba Kirim Ulang</button>
         </div>
     </div>
 
-    <!-- ERROR MODAL -->
+    <!-- ERROR MODAL (ditambah petunjuk troubleshooting) -->
     <div id="errorModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] hidden flex-col items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-6 shadow-2xl w-full max-w-sm flex flex-col gap-3">
-            <div class="text-center mb-2">
-                <div class="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-2"><i class="fa-solid fa-triangle-exclamation text-3xl text-rose-500"></i></div>
+        <div class="bg-white rounded-3xl p-5 shadow-2xl w-full max-w-sm flex flex-col gap-3 max-h-[92vh] overflow-y-auto custom-scroll">
+            <div class="text-center mb-1">
+                <div class="w-14 h-14 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-2"><i class="fa-solid fa-triangle-exclamation text-2xl text-rose-500"></i></div>
                 <h3 class="font-bold text-gray-800 text-lg">Lapor Kendala Upload</h3>
-                <p class="text-[10px] text-gray-500">Laporan ini akan diverifikasi oleh sistem. Pastikan Anda mengisi alasan dengan jujur.</p>
+                <p class="text-[10px] text-gray-500">Laporan akan diverifikasi oleh pelatih. Isi dengan jujur.</p>
             </div>
+
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                <p class="text-[10px] font-bold text-amber-800 mb-1 flex items-center gap-1"><i class="fa-solid fa-lightbulb"></i> Solusi yang bisa dicoba:</p>
+                <ul class="text-[10px] text-amber-700 list-disc pl-4 space-y-0.5">
+                    <li>Ganti dari WiFi ke data seluler (atau sebaliknya)</li>
+                    <li>Matikan VPN / DNS pihak ketiga</li>
+                    <li>Pindah ke tempat dengan sinyal lebih kuat</li>
+                    <li>Pastikan kuota internet masih cukup</li>
+                    <li>Tutup aplikasi lain yang memakai jaringan</li>
+                    <li>Refresh halaman lalu ulangi rekaman</li>
+                </ul>
+            </div>
+
             <div class="bg-gray-50 p-3 rounded-xl border text-[10px] font-mono text-gray-600 flex flex-col gap-1">
                 <div><span class="font-bold">Jenis:</span> <span id="errTypeDisplay">-</span></div>
                 <div><span class="font-bold">Waktu:</span> <span id="errTimeDisplay">-</span></div>
                 <div><span class="font-bold">Status:</span> <span id="errStatusDisplay">-</span></div>
             </div>
             <div>
-                <label class="text-xs font-bold text-gray-700 block mb-1">Apa kendalanya? (Wajib)</label>
+                <label class="text-xs font-bold text-gray-700 block mb-1">Apa kendalanya? (Wajib, min 10 karakter)</label>
                 <textarea id="errKomentar" rows="3" placeholder="Contoh: Sinyal tiba-tiba hilang saat mengirim..." class="w-full p-3 border border-gray-200 rounded-xl text-xs outline-none focus:border-blue-500"></textarea>
             </div>
-            <div class="grid grid-cols-2 gap-2 mt-2">
+            <div class="grid grid-cols-2 gap-2 mt-1">
                 <button onclick="closeErrorModal()" class="bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs">Batal</button>
                 <button onclick="submitErrorReport()" class="bg-rose-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md">Kirim Laporan</button>
             </div>
         </div>
     </div>
 
-    <!-- REST MODAL (ANTAR SET / SESI) -->
+    <!-- REST MODAL (hanya untuk SET manual) -->
     <div id="restModal" class="fixed inset-0 bg-blue-900/90 backdrop-blur-md z-[140] hidden flex-col items-center justify-center p-4">
         <h3 class="text-white text-lg font-bold mb-2" id="restTitle">Waktu Istirahat!</h3>
         <p class="text-blue-200 text-xs mb-6" id="restSubtitle">Bersiaplah untuk set berikutnya...</p>
@@ -356,7 +382,7 @@
 
     <!-- SUCCESS MODAL -->
     <div id="successUploadModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden flex-col items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-6 shadow-2xl w-full max-w-xs text-center flex flex-col items-center transform scale-100 transition-transform">
+        <div class="bg-white rounded-3xl p-6 shadow-2xl w-full max-w-xs text-center flex flex-col items-center">
             <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-4"><i class="fa-solid fa-check text-4xl text-emerald-500"></i></div>
             <h3 class="font-bold text-gray-800 text-lg mb-1">Berhasil!</h3>
             <p class="text-xs text-gray-500 mb-5" id="successUploadText">Video tugas kamu berhasil terkirim.</p>
@@ -366,7 +392,7 @@
 
     <!-- EASTER EGG & PHOTO MODAL -->
     <div id="easterEggModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[140] hidden flex-col items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-8 shadow-2xl w-full max-w-sm text-center flex flex-col items-center transform scale-100 transition-transform relative overflow-hidden">
+        <div class="bg-white rounded-3xl p-8 shadow-2xl w-full max-w-sm text-center flex flex-col items-center relative overflow-hidden">
             <div class="absolute -top-10 -right-10 text-9xl opacity-10">🌻</div>
             <div class="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mb-4 text-5xl">🌻</div>
             <h3 class="font-extrabold text-amber-500 text-2xl mb-2">Luar Biasa!</h3>
@@ -397,6 +423,16 @@
         </div>
     </div>
 
+    <!-- SUCCESS ABSEN MODAL -->
+    <div id="successAbsenModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden flex-col items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 shadow-2xl w-full max-w-xs text-center flex flex-col items-center">
+            <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-4"><i class="fa-solid fa-check text-4xl text-emerald-500"></i></div>
+            <h3 class="font-bold text-gray-800 text-lg mb-1">Absensi Tersimpan!</h3>
+            <p class="text-xs text-gray-500 mb-5" id="successAbsenText"></p>
+            <button onclick="closeSuccessAbsenModal()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl active:scale-95 text-sm">Tutup</button>
+        </div>
+    </div>
+
     <div id="loadingOverlay" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-[100] flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity">
         <div class="w-24 h-24 mb-4 flex items-center justify-center">
             <img src="./logo.png" alt="Loading" class="max-h-full max-w-full object-contain animate-pulse drop-shadow-xl" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-blue-600 text-5xl animate-pulse\'></i>';">
@@ -405,21 +441,31 @@
     </div>
     <div id="toastContainer" class="fixed top-5 left-1/2 -translate-x-1/2 z-[110] flex flex-col gap-2 pointer-events-none w-full max-w-xs px-4"></div>
 
+<!-- ============================================================= -->
+<!-- PART 2 — SCRIPT LOGIKA (kirim di pesan berikutnya) -->
+<!-- ============================================================= -->
     <script>
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbwYTFRirtCpDT1vXJ0hSeFtElQR44rdoMPKskHgRPO3OlCr5_D_cXvLQOFzkDt4lY_IYw/exec';
+        // ===== KONSTANTA UPLOAD (hardcoded, tidak dari config) =====
+        const MAX_RETRY_UPLOAD = 3;
+        const UPLOAD_TIMEOUT_MS = 300000; // 5 menit
+        const AUTO_SEGMENT_SEC = 180;     // batas auto-segmentasi video panjang (3 menit)
 
         let user = JSON.parse(localStorage.getItem('userSession') || sessionStorage.getItem('userSession'));
+        if (!user) { window.location.href = 'index.html'; }
         let activeTasks = [], userSubs = {};
         let selectedTask = null, currentSubTugas = "Utama", selectedDay = "1";
-        
+
         // State Rekam (Dinamis)
         let currentMinSec = 60, currentMaxSec = 300;
         let totalSegments = 1;
         let currentSegment = 1;
-        let segmentLabelType = "Set"; // "Set" atau "Sesi"
+        let segmentLabelType = "Set";   // "Set" (manual) atau "Sesi" (auto / normal)
+        let showSegmentLabel = false;   // true hanya untuk mode SET manual
+        let autoSegmentMode = false;    // true untuk video panjang yang dipecah otomatis
         let currentRestDuration = 0;
         let currentSubConfig = null;
-        
+
         // State Perekaman
         let mediaStream = null, mediaRecorder = null, recordedChunks = [];
         let isRecording = false, isPaused = false, timerInterval, secondsRecorded = 0;
@@ -427,9 +473,10 @@
         let isMinBeepPlayed = false;
         let isCountdownActive = false;
         let restTimerInterval = null;
-        
+        let backGuardActive = false;
+
         // State Retry & Error
-        let globalConfig = { jeda_awal_rekam: 3, jeda_antar_set: 30, max_retry_upload: 3, max_file_mb: 30 };
+        let globalConfig = { jeda_awal_rekam: 3, jeda_antar_set: 30, max_file_mb: 30 };
         let retryCount = 0;
         let currentBlobToUpload = null;
         let lastErrorDetail = { type: '', message: '' };
@@ -450,6 +497,9 @@
         let metroMuted = false;
         let metroSchedulerId = null;
         let metroBeatCount = 0;
+
+        // State Motivation Card
+        let motivTasksCache = [];
 
         const eggQuotes = [
             "Kamu hebat! Kamu sudah menyelesaikan semua tugas hari ini. Yakinlah semua ini akan membuatmu lebih baik.",
@@ -578,6 +628,9 @@
             renderMenu();
             fetchConfigAndTasks();
             fetchRiwayatSemua();
+            // Motivation card: refresh tiap 60 detik
+            if (window.__motivInterval) clearInterval(window.__motivInterval);
+            window.__motivInterval = setInterval(() => updateMotivationCard(motivTasksCache), 60000);
         });
 
         function handleLogout() { localStorage.removeItem('userSession'); sessionStorage.removeItem('userSession'); window.location.href = 'index.html'; }
@@ -680,6 +733,106 @@
 
         function fetchTasks() { fetchConfigAndTasks(); }
 
+        // ============ HELPER SEGMEN & STATUS SELESAI ============
+        // Jumlah segmen sebuah sub-tugas: set manual (>1) / auto-segmentasi (set==1 & max>180 dtk) / normal (1)
+        function getSegCount(sub) {
+            const setInput = parseInt(sub.set) || 1;
+            if (setInput > 1) return setInput;
+            const mSec = parseDuration(sub.max);
+            return mSec > AUTO_SEGMENT_SEC ? Math.ceil(mSec / AUTO_SEGMENT_SEC) : 1;
+        }
+
+        function isSubFullyDone(taskId, dateStr, sub) {
+            const totalSegs = getSegCount(sub);
+            for (let i = 1; i <= totalSegs; i++) {
+                if (!isSubDone(taskId, dateStr, sub.nama, i, totalSegs)) return false;
+            }
+            return true;
+        }
+
+        // Jumlah sub-tugas (bukan segmen) yang belum selesai
+        function getPendingSubCount(t, dateStr) {
+            return (t.subTugas || []).filter(sub => !isSubFullyDone(t.taskId, dateStr, sub)).length;
+        }
+
+        // Nama yang dikirim ke backend: "Nama (Set 01/03)" jika totalSegments > 1, selain itu nama saja
+        function getSubmitSubName() {
+            let subName = currentSubTugas;
+            if (totalSegments > 1) subName += ` (${segmentLabelType} ${String(currentSegment).padStart(2, '0')}/${totalSegments})`;
+            return subName;
+        }
+
+        // ============ MOTIVATION CARD (warna dinamis berdasarkan deadline) ============
+        function formatHoursLeft(hours) {
+            if (hours <= 1) return `${Math.max(1, Math.ceil(hours * 60))} menit`;
+            const h = Math.floor(hours);
+            const m = Math.round((hours - h) * 60);
+            return m > 0 ? `${h} jam ${m} mnt` : `${h} jam`;
+        }
+
+        // Deadline tugas = akhir hari (23:59:59) dari tanggal deadline-nya
+        function getTaskDeadline(t, todayStr) {
+            if (!t || t.isLama) return null;
+            let dateStr = null;
+            if (t.tipePengumpulan === 'Satu Kali') {
+                const raw = t.tanggalPengerjaan ? t.tanggalPengerjaan.toString() : "";
+                const list = raw.includes(' to ') ? raw.split(' to ') : raw.split(',');
+                dateStr = extractLocalDate(list[list.length - 1]);
+            } else if (t.tipePengumpulan === 'Harian') {
+                dateStr = todayStr;
+            }
+            if (!dateStr) return null;
+            const p = String(dateStr).split('-').map(Number);
+            if (p.length < 3 || p.some(isNaN)) return null;
+            return new Date(p[0], p[1] - 1, p[2], 23, 59, 59);
+        }
+
+        function updateMotivationCard(tasks) {
+            const card = document.getElementById('mobileGreetingCard');
+            const badge = document.getElementById('mobileDeadlineBadge');
+            if (!card || !badge) return;
+
+            const nowJkt = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+            const todayStr = getLocalToday();
+
+            // Deadline terdekat dari task yang BELUM selesai
+            let nearestDeadline = null;
+            (tasks || []).forEach(t => {
+                if (getPendingSubCount(t, todayStr) === 0) return;
+                const dl = getTaskDeadline(t, todayStr);
+                if (dl && (!nearestDeadline || dl < nearestDeadline)) nearestDeadline = dl;
+            });
+
+            card.classList.remove('motiv-red', 'motiv-yellow', 'bg-rose-50', 'bg-amber-50', 'bg-white');
+            badge.classList.remove('bg-rose-100', 'text-rose-700', 'border-rose-200', 'bg-amber-100', 'text-amber-700', 'border-amber-200', 'bg-blue-50', 'text-blue-600', 'border-blue-100');
+
+            if (!nearestDeadline) {
+                card.classList.add('bg-white');
+                badge.classList.add('hidden');
+                return;
+            }
+
+            const hoursLeft = Math.max(0, (nearestDeadline - nowJkt) / 3600000);
+            let text, badgeClasses;
+            if (nowJkt.getHours() >= 18 && hoursLeft <= 1) {
+                card.classList.add('motiv-red', 'bg-rose-50');
+                text = `Deadline ${formatHoursLeft(hoursLeft)} lagi!`;
+                badgeClasses = ['bg-rose-100', 'text-rose-700', 'border-rose-200'];
+            } else if (hoursLeft <= 3) {
+                card.classList.add('motiv-yellow', 'bg-amber-50');
+                text = `Deadline ${formatHoursLeft(hoursLeft)} lagi`;
+                badgeClasses = ['bg-amber-100', 'text-amber-700', 'border-amber-200'];
+            } else {
+                card.classList.add('bg-white');
+                text = `Deadline ${formatHoursLeft(hoursLeft)} lagi`;
+                badgeClasses = ['bg-blue-50', 'text-blue-600', 'border-blue-100'];
+            }
+            badge.innerHTML = `<i class="fa-solid fa-clock mr-1"></i>${text}`;
+            badge.classList.add(...badgeClasses);
+            badge.classList.remove('hidden');
+        }
+
+        // ============ RENDER TUGAS ============
         function renderTasks(tasks) {
             const today = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Jakarta"}));
             const todayStr = getLocalToday();
@@ -726,23 +879,16 @@
             } else { upcomingSection.classList.add('hidden'); upcomingSection.innerHTML = ''; }
 
             const container = document.getElementById('taskListContainer');
-            
+
+            // [Poin 5] Task yang semua sub-nya selesai -> card tidak dirender sama sekali
             const todayTasksFiltered = todayTasks.filter(t => {
-                if(t.isLama) return true;
-                const pendingSubs = (t.subTugas || []).filter(sub => {
-                    // Hitung segmen dinamis
-                    let mSec = parseDuration(sub.max);
-                    let sInput = parseInt(sub.set) || 1;
-                    let totalSegs = sInput;
-                    if (sInput === 1 && mSec > 180) totalSegs = Math.ceil(mSec / 180);
-                    
-                    for(let i=1; i<=totalSegs; i++) { 
-                        if(!isSubDone(t.taskId, todayStr, sub.nama, i, totalSegs)) return true; 
-                    }
-                    return false;
-                });
-                return pendingSubs.length > 0;
+                if (t.isLama) return true;
+                return getPendingSubCount(t, todayStr) > 0;
             });
+
+            // Simpan untuk update motivation card & refresh tiap 60 detik
+            motivTasksCache = todayTasksFiltered;
+            updateMotivationCard(motivTasksCache);
 
             let totalSubsToday = 0;
             todayTasks.forEach(t => { if(!t.isLama) totalSubsToday += (t.subTugas || []).length; });
@@ -757,24 +903,14 @@
             container.innerHTML = todayTasksFiltered.map(t => {
                 const isLama = t.isLama;
                 const isBertumpuk = t.subTugas && t.subTugas.length > 1;
-                let pendingCount = 0;
-                (t.subTugas || []).forEach(sub => {
-                    let mSec = parseDuration(sub.max);
-                    let sInput = parseInt(sub.set) || 1;
-                    let totalSegs = sInput;
-                    if (sInput === 1 && mSec > 180) totalSegs = Math.ceil(mSec / 180);
-                    
-                    for(let i=1; i<=totalSegs; i++) { 
-                        if(!isSubDone(t.taskId, todayStr, sub.nama, i, totalSegs)) pendingCount++; 
-                    }
-                });
+                const pendingCount = getPendingSubCount(t, todayStr);
                 totalUnfinishedToday += pendingCount;
-                
+
                 let statusTeks = '';
-                if (pendingCount === 1) {
+                if (pendingCount <= 1) {
                     statusTeks = `<div class="text-[10px] font-bold text-rose-500 bg-rose-50 px-3 py-2 rounded-xl text-center mt-2 border border-rose-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-circle-exclamation"></i> Anda belum mengerjakan tugas ini</div>`;
                 } else {
-                    statusTeks = `<div class="text-[10px] font-bold text-amber-600 bg-amber-50 px-3 py-2 rounded-xl text-center mt-2 border border-amber-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-clock"></i> Sisa ${pendingCount} sesi/gerakan belum dikerjakan</div>`;
+                    statusTeks = `<div class="text-[10px] font-bold text-amber-600 bg-amber-50 px-3 py-2 rounded-xl text-center mt-2 border border-amber-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-clock"></i> Sisa ${pendingCount} gerakan belum dikerjakan</div>`;
                 }
                 let labelTanggal = isLama ? "Sistem Lama" : (t.tipePengumpulan === "Satu Kali" ? `Deadline: ${t.tanggalPengerjaan.replace(' to ', ' s/d ')}` : `Tugas Rutin Hari Ini`);
                 const borderClass = isLama ? 'border-gray-400' : (t.tipePengumpulan === 'Satu Kali' ? 'border-amber-500' : 'border-purple-500');
@@ -791,7 +927,7 @@
                             ${t.instruksi}
                             ${statusTeks}
                         </div>
-                        <button onclick="openSetup('${t.taskId}')" class="mt-2 w-full bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-3 rounded-xl text-xs flex justify-center items-center gap-2 active:scale-95 transition-colors"><i class="fa-solid fa-folder-open"></i> Buka Modul Tugas</button>
+                        <button onclick="openSetup('${t.taskId}')" class="mt-2 w-full bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-3 rounded-xl text-xs flex justify-center items-center gap-2 active:scale-95 transition-colors"><i class="fa-solid fa-person-running"></i> Kerjakan Tugas</button>
                     </div>`;
             }).join('');
             const badgeBtn = document.getElementById('badgeTugasCount');
@@ -803,8 +939,10 @@
             }
         }
 
+        // ============ POPUP SETUP (centered modal) ============
         function openSetup(taskId) {
             selectedTask = activeTasks.find(t => t.taskId === taskId);
+            if (!selectedTask) return;
             document.getElementById('setupTipeBadge').textContent = selectedTask.tipePengumpulan;
             document.getElementById('setupTaskTitle').textContent = selectedTask.judulTugas;
             document.getElementById('setupTaskDesc').textContent = selectedTask.instruksi;
@@ -812,103 +950,166 @@
             selectedDay = todayStr;
             document.getElementById('setupTaskDate').innerHTML = `<i class="fa-regular fa-calendar-check mr-1"></i> Tugas untuk: ${formatDateIndo(todayStr)}`;
             renderSubTasks();
-            document.getElementById('viewSetup').classList.remove('hidden'); document.getElementById('viewSetup').classList.add('flex');
+            const vs = document.getElementById('viewSetup');
+            vs.classList.remove('hidden'); vs.classList.add('flex');
         }
 
-        function closeSetup() { document.getElementById('viewSetup').classList.add('hidden'); }
+        function closeSetup() {
+            const vs = document.getElementById('viewSetup');
+            vs.classList.add('hidden'); vs.classList.remove('flex');
+        }
 
         function renderSubTasks() {
+            if (!selectedTask) return;
             selectedDay = getLocalToday();
             const container = document.getElementById('subTasksContainer');
-            container.innerHTML = '';
-            selectedTask.subTugas.forEach(sub => {
-                let mSec = parseDuration(sub.max);
-                let sInput = parseInt(sub.set) || 1;
-                let totalSegs = sInput;
-                if (sInput === 1 && mSec > 180) totalSegs = Math.ceil(mSec / 180);
-                
+            let html = '';
+            (selectedTask.subTugas || []).forEach(sub => {
+                // [Poin 5] Sub yang sudah selesai total -> tidak ditampilkan lagi
+                if (isSubFullyDone(selectedTask.taskId, selectedDay, sub)) return;
+
+                const mSec = parseDuration(sub.max);
+                const totalSegs = getSegCount(sub);
+                const isManualSet = (parseInt(sub.set) || 1) > 1;
                 let doneCount = 0;
-                for(let i=1; i<=totalSegs; i++) { if(isSubDone(selectedTask.taskId, selectedDay, sub.nama, i, totalSegs)) doneCount++; }
-                const isFullyDone = (doneCount === totalSegs);
+                for (let i = 1; i <= totalSegs; i++) { if (isSubDone(selectedTask.taskId, selectedDay, sub.nama, i, totalSegs)) doneCount++; }
 
                 const minSec = parseDuration(sub.min);
                 const targetTeks = `${formatSecToText(minSec)} - ${formatSecToText(mSec)}`;
                 const hasMetro = sub.metro && sub.metro.on;
                 const metroBadgeHtml = hasMetro ? `<span class="text-[9px] text-blue-100 bg-blue-900/60 px-1.5 py-0.5 rounded flex items-center gap-0.5"><i class="fa-solid fa-drum text-[8px]"></i> ${parseInt(sub.metro.bpm) || 96}</span>` : '';
-                const setBadgeHtml = totalSegs > 1 ? `<span class="text-[9px] text-amber-100 bg-amber-900/60 px-1.5 py-0.5 rounded font-bold">${doneCount}/${totalSegs} Sesi</span>` : '';
+                // Badge progres hanya untuk SET manual (auto-segmentasi disembunyikan dari user)
+                const setBadgeHtml = isManualSet ? `<span class="text-[9px] text-amber-100 bg-amber-900/60 px-1.5 py-0.5 rounded font-bold">${doneCount}/${totalSegs} Set</span>` : '';
 
-                if (isFullyDone) {
-                    container.innerHTML += `
-                        <div class="w-full bg-emerald-500 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 shadow-sm opacity-90 cursor-not-allowed">
-                            <span class="line-through decoration-white/50">${sub.nama}</span>
-                            <div class="flex items-center gap-2">
-                                ${setBadgeHtml}
-                                <span class="text-[10px] bg-emerald-700 px-2 py-1 rounded font-bold"><i class="fa-solid fa-check mr-1"></i> Selesai</span>
-                            </div>
-                        </div>`;
-                } else {
-                    container.innerHTML += `
-                        <button onclick="prepareCamera('${sub.nama.replace(/'/g, "\\'")}')" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 active:scale-95 shadow-lg group transition-transform">
-                            <span class="truncate pr-2 text-left">${sub.nama}</span>
-                            <div class="flex items-center gap-1.5 flex-shrink-0">
-                                ${setBadgeHtml}
-                                ${metroBadgeHtml}
-                                <span class="text-[9px] text-blue-200 bg-blue-800/50 px-1.5 py-0.5 rounded">${targetTeks}</span>
-                                <span class="bg-blue-800 px-2 py-1 rounded text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-video"></i> Rekam</span>
-                            </div>
-                        </button>`;
-                }
+                html += `
+                    <button onclick="prepareCamera('${sub.nama.replace(/'/g, "\\'")}')" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl text-xs flex justify-between items-center px-4 mb-2 active:scale-95 shadow-lg group transition-transform">
+                        <span class="truncate pr-2 text-left">${sub.nama}</span>
+                        <div class="flex items-center gap-1.5 flex-shrink-0">
+                            ${setBadgeHtml}
+                            ${metroBadgeHtml}
+                            <span class="text-[9px] text-blue-200 bg-blue-800/50 px-1.5 py-0.5 rounded">${targetTeks}</span>
+                            <span class="bg-blue-800 px-2 py-1 rounded text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-video"></i> Rekam</span>
+                        </div>
+                    </button>`;
             });
+            container.innerHTML = html;
+        }
+
+        // ============ KONTROL TOMBOL KAMERA ============
+        function resetCameraControls() {
+            const btnRec = document.getElementById('btnRecord');
+            btnRec.classList.remove('opacity-0', 'pointer-events-none', 'recording-pulse');
+            btnRec.classList.add('opacity-100');
+            document.getElementById('btnRecordInner').className = "w-14 h-14 bg-rose-500 rounded-full transition-all duration-300";
+            const btnSw = document.getElementById('btnSwitchCamera');
+            btnSw.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+            document.getElementById('btnCancelCamera').classList.remove('hidden');
+            const btnP = document.getElementById('btnPause');
+            btnP.disabled = true;
+            btnP.className = "w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white text-sm opacity-40 cursor-not-allowed active:scale-95 transition-all";
+            document.getElementById('pauseIcon').className = "fa-solid fa-pause";
+            document.getElementById('pauseStatusBadge').classList.add('hidden');
+            document.getElementById('recIndicator').classList.add('hidden');
+        }
+
+        // [Poin 8] Sembunyikan dengan opacity (bukan display:none) agar layout tidak bergeser
+        function hideRecordControls() {
+            const btnRec = document.getElementById('btnRecord');
+            btnRec.classList.remove('opacity-100');
+            btnRec.classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('btnSwitchCamera').classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('btnCancelCamera').classList.add('hidden');
+        }
+
+        // Tombol stop muncul kembali (hanya mode NORMAL / SET saat min tercapai)
+        function revealStopButton() {
+            const btnRec = document.getElementById('btnRecord');
+            if (!btnRec.classList.contains('opacity-0')) return;
+            btnRec.classList.remove('opacity-0', 'pointer-events-none');
+            btnRec.classList.add('opacity-100');
+            document.getElementById('btnRecordInner').className = "w-8 h-8 bg-rose-500 rounded-xl transition-all duration-300";
+        }
+
+        // ============ BACK-BUTTON GUARD ============
+        function backGuardHandler() {
+            if (isRecording) {
+                history.pushState({ recGuard: true }, '', location.href);
+                showToast("Sedang merekam! Selesaikan rekaman dulu.", "error");
+            }
+        }
+        function activateBackGuard() {
+            if (backGuardActive) return;
+            history.pushState({ recGuard: true }, '', location.href);
+            window.addEventListener('popstate', backGuardHandler);
+            backGuardActive = true;
+        }
+        function deactivateBackGuard() {
+            if (!backGuardActive) return;
+            window.removeEventListener('popstate', backGuardHandler);
+            backGuardActive = false;
+            try { if (history.state && history.state.recGuard) history.back(); } catch (e) {}
         }
 
         // ============ LOGIKA AUTO-SEGMENTASI & SET ============
-        async function prepareCamera(subName) {
+        async function prepareCamera(subName, forceSegment) {
             const sub = selectedTask.subTugas.find(s => s.nama === subName);
+            if (!sub) { showToast("Sub-tugas tidak ditemukan", "error"); return; }
             currentSubConfig = sub;
             currentSubTugas = subName;
-            
+
             const inputMinSec = parseDuration(sub.min);
             const inputMaxSec = parseDuration(sub.max);
             const setInput = parseInt(sub.set) || 1;
 
-            // 1. Tentukan Total Segmen & Durasi per Segmen
+            // 1. Tentukan mode, total segmen & durasi per segmen
             if (setInput > 1) {
-                // Mode Workout (Manual Set)
+                // MODE SET (manual): label "Set X/N" + rest antar set
                 totalSegments = setInput;
                 currentMaxSec = inputMaxSec;
                 currentMinSec = inputMinSec;
                 currentRestDuration = parseInt(sub.rest) || 0;
                 segmentLabelType = "Set";
-            } else if (inputMaxSec > 180) {
-                // Mode Auto-Segmentasi (Pecah otomatis jadi max 3 menit / 180 dtk)
-                totalSegments = Math.ceil(inputMaxSec / 180);
+                showSegmentLabel = true;
+                autoSegmentMode = false;
+            } else if (inputMaxSec > AUTO_SEGMENT_SEC) {
+                // MODE AUTO-SEGMENT: tanpa label, tanpa rest, tombol stop tidak pernah muncul
+                totalSegments = Math.ceil(inputMaxSec / AUTO_SEGMENT_SEC);
                 currentMaxSec = Math.ceil(inputMaxSec / totalSegments);
-                currentMinSec = Math.floor(inputMinSec / totalSegments);
-                currentRestDuration = parseInt(globalConfig.jeda_antar_set) || 30; // Pakai default global
+                currentMinSec = Math.ceil(inputMinSec / totalSegments);
+                currentRestDuration = 0;
                 segmentLabelType = "Sesi";
+                showSegmentLabel = false;
+                autoSegmentMode = true;
             } else {
-                // Mode Normal (Di bawah 3 menit, 1 sesi saja)
+                // MODE NORMAL: 1 segmen, tombol stop muncul saat min tercapai
                 totalSegments = 1;
                 currentMaxSec = inputMaxSec;
                 currentMinSec = inputMinSec;
                 currentRestDuration = 0;
                 segmentLabelType = "Sesi";
+                showSegmentLabel = false;
+                autoSegmentMode = false;
             }
 
-            // 2. Cari segmen yang belum selesai
+            // 2. Tentukan segmen yang akan direkam
             let nextSeg = 1;
-            for(let i=1; i<=totalSegments; i++) {
-                if(!isSubDone(selectedTask.taskId, selectedDay, subName, i, totalSegments)) { nextSeg = i; break; }
+            if (forceSegment && forceSegment <= totalSegments) {
+                nextSeg = forceSegment;
+            } else {
+                for (let i = 1; i <= totalSegments; i++) {
+                    if (!isSubDone(selectedTask.taskId, selectedDay, subName, i, totalSegments)) { nextSeg = i; break; }
+                }
             }
             currentSegment = nextSeg;
 
-            // 3. Set Metro Config
+            // 3. Metronome config
             const metro = (sub && sub.metro) ? sub.metro : { on: false, bpm: 96, sound: 'beep' };
             currentMetroOn = !!metro.on;
             currentMetroBpm = parseInt(metro.bpm) || 96;
             currentMetroSound = metro.sound || 'beep';
             metroMuted = false;
-            
+            try { Metronome.setMute(false); } catch (e) {}
+
             const badge = document.getElementById('metroBadge');
             const muteBtn = document.getElementById('btnMetroMute');
             const muteIcon = document.getElementById('metroMuteIcon');
@@ -922,8 +1123,9 @@
                 muteBtn.classList.add('hidden'); muteBtn.classList.remove('flex');
             }
 
+            // 4. Label kamera (hanya mode SET yang menampilkan "Set X/N")
             let displayName = subName;
-            if (totalSegments > 1) displayName += ` (${segmentLabelType} ${currentSegment}/${totalSegments})`;
+            if (showSegmentLabel) displayName += ` (${segmentLabelType} ${currentSegment}/${totalSegments})`;
             document.getElementById('kameraSubName').textContent = displayName;
             document.getElementById('kameraTarget').textContent = `${formatSecToText(currentMinSec)} - ${formatSecToText(currentMaxSec)}`;
 
@@ -931,14 +1133,10 @@
             document.getElementById('viewCamera').classList.remove('hidden'); document.getElementById('viewCamera').classList.add('flex');
             isMinBeepPlayed = false;
             isCountdownActive = false;
-            await startMediaStream();
-            document.getElementById('btnSwitchCamera').classList.remove('hidden');
             isPaused = false;
-            const btnP = document.getElementById('btnPause');
-            btnP.disabled = true;
-            btnP.className = "w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white text-sm opacity-40 cursor-not-allowed active:scale-95 transition-all";
-            document.getElementById('pauseIcon').className = "fa-solid fa-pause";
-            document.getElementById('pauseStatusBadge').classList.add('hidden');
+            secondsRecorded = 0;
+            resetCameraControls();
+            await startMediaStream();
         }
 
         async function startMediaStream() {
@@ -972,14 +1170,14 @@
             const overlay = document.getElementById('countdownOverlay');
             const text = document.getElementById('countdownText');
             overlay.classList.remove('hidden'); overlay.classList.add('flex');
-            document.getElementById('btnSwitchCamera').classList.add('hidden');
-            
+            document.getElementById('btnSwitchCamera').classList.add('opacity-0', 'pointer-events-none');
+
             let count = parseInt(globalConfig.jeda_awal_rekam) || 3;
             text.textContent = count;
-            
+
             const playBeep1 = () => { document.getElementById('beep1').currentTime = 0; document.getElementById('beep1').play().catch(e=>{}); };
             const playBeep2 = () => { document.getElementById('beep2').currentTime = 0; document.getElementById('beep2').play().catch(e=>{}); };
-            
+
             playBeep1();
             const interval = setInterval(() => {
                 count--;
@@ -990,7 +1188,7 @@
                 } else {
                     clearInterval(interval);
                     text.textContent = "Mulai!";
-                    playBeep2(); // Beep 2 untuk mulai
+                    playBeep2();
                     setTimeout(() => {
                         overlay.classList.add('hidden'); overlay.classList.remove('flex');
                         isCountdownActive = false;
@@ -1001,7 +1199,7 @@
         }
 
         function startRecording() {
-            if (!mediaStream) return; 
+            if (!mediaStream) return;
             recordedChunks = [];
             secondsRecorded = 0;
             try {
@@ -1011,10 +1209,14 @@
                 mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
                 mediaRecorder.onstop = processUploadBase64;
                 mediaRecorder.start(); isRecording = true; isPaused = false;
-                document.getElementById('btnRecordInner').className = "w-8 h-8 bg-rose-500 rounded-xl transition-all duration-300";
+
+                // [Poin 8] Sembunyikan Record, Ganti Kamera, Batal; kunci scroll; pasang back-guard
+                hideRecordControls();
                 document.getElementById('btnRecord').classList.add('recording-pulse');
+                document.body.classList.add('locked-scroll');
+                activateBackGuard();
+
                 document.getElementById('recIndicator').classList.remove('hidden');
-                document.getElementById('btnCancelCamera').classList.add('hidden');
                 const btnP = document.getElementById('btnPause');
                 btnP.disabled = false;
                 btnP.className = "w-12 h-12 bg-white text-gray-800 rounded-full flex items-center justify-center text-sm shadow-lg active:scale-95 transition-all";
@@ -1045,12 +1247,9 @@
             isRecording = false; isPaused = false; stopTimer();
             if(mediaStream) { mediaStream.getTracks().forEach(t=>t.stop()); mediaStream = null; document.getElementById('videoPreview').srcObject = null; }
             document.getElementById('viewCamera').classList.add('hidden'); document.getElementById('viewCamera').classList.remove('flex');
-            document.getElementById('btnRecordInner').className = "w-14 h-14 bg-rose-500 rounded-full transition-all duration-300";
-            document.getElementById('btnRecord').classList.remove('recording-pulse');
-            document.getElementById('recIndicator').classList.add('hidden');
-            document.getElementById('btnCancelCamera').classList.remove('hidden');
-            document.getElementById('btnSwitchCamera').classList.remove('hidden');
-            document.getElementById('pauseStatusBadge').classList.add('hidden');
+            resetCameraControls();
+            document.body.classList.remove('locked-scroll');
+            deactivateBackGuard();
         }
 
         function abortRecording() { stopRecording(true); showToast("Dibatalkan", "info"); }
@@ -1068,6 +1267,8 @@
             const pb = document.getElementById('videoProgressBar'); pb.style.width = `${percent}%`;
             if(secondsRecorded < currentMinSec) { pb.classList.remove('bg-emerald-500'); pb.classList.add('bg-rose-500'); }
             else { pb.classList.remove('bg-rose-500'); pb.classList.add('bg-emerald-500'); }
+
+            // Beep 5 detik sebelum min (jika tanpa metronome)
             if (!currentMetroOn && secondsRecorded === (currentMinSec - 5) && !isMinBeepPlayed) {
                 isMinBeepPlayed = true;
                 let beepCount = 0;
@@ -1076,20 +1277,28 @@
                     else { clearInterval(beepInterval); }
                 }, 1000);
             }
+            // Beep2 tepat saat min (atau min+1 jika metronome aktif)
             const beep2Target = currentMetroOn ? (currentMinSec + 1) : currentMinSec;
             if (secondsRecorded === beep2Target && beep2Target <= currentMaxSec) {
                 const audio = document.getElementById('beep2'); audio.currentTime = 0; audio.play().catch(e=>{});
             }
-            if(secondsRecorded >= currentMaxSec && isRecording) { stopRecording(false); showToast("Batas maksimal tercapai.", "info"); }
+
+            // [Poin 8] Tombol stop muncul lagi saat min tercapai - KECUALI mode AUTO-SEGMENT
+            if (isRecording && !autoSegmentMode && secondsRecorded >= currentMinSec) {
+                revealStopButton();
+            }
+
+            // Auto-stop di max
+            if (secondsRecorded >= currentMaxSec && isRecording) { stopRecording(false); showToast("Batas maksimal tercapai.", "info"); }
         }
 
         // ============ UPLOAD & RETRY & ERROR LOGIC ============
         function processUploadBase64() {
             if (recordedChunks.length === 0) return;
             if (secondsRecorded < currentMinSec) { showToast(`Dibatalkan! Waktu minimum adalah ${formatSecToText(currentMinSec)}.`, "error"); return; }
-            
+
             currentBlobToUpload = new Blob(recordedChunks, { type: recordedChunks[0].type });
-            
+
             const maxSize = (globalConfig.max_file_mb || 30) * 1024 * 1024;
             if(currentBlobToUpload.size > maxSize) {
                 showToast(`File terlalu besar (${(currentBlobToUpload.size/1024/1024).toFixed(1)}MB). Maksimal ${globalConfig.max_file_mb || 30}MB.`, "error");
@@ -1105,22 +1314,24 @@
             const uploadTitle = document.getElementById('uploadTitle');
             const uploadText = document.getElementById('uploadStatusText');
             const errorAction = document.getElementById('errorActionContainer');
-            
+
             viewUp.classList.remove('hidden'); viewUp.classList.add('flex');
             errorAction.classList.add('hidden'); errorAction.classList.remove('flex');
-            uploadTitle.textContent = retryCount === 0 ? "Mengirim Video..." : `Mencoba Ulang (${retryCount}/${globalConfig.max_retry_upload})...`;
+            uploadTitle.textContent = retryCount === 0 ? "Mengirim Video..." : `Mencoba Ulang (${retryCount}/${MAX_RETRY_UPLOAD})...`;
             uploadText.textContent = "Sedang memproses dan membersihkan format agar aman di server...";
 
             const reader = new FileReader();
-            reader.readAsDataURL(currentBlobToUpload);
+            reader.onerror = function() { handleUploadError(new Error("Gagal membaca file video")); };
             reader.onloadend = function() {
+                if (reader.error) return;
                 const base64data = reader.result;
-                
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 60000);
+                uploadText.textContent = "Mengirim ke server, mohon jangan tutup halaman ini...";
 
-                let subName = currentSubTugas;
-                if(totalSegments > 1) subName += ` (${segmentLabelType} ${String(currentSegment).padStart(2, '0')}/${totalSegments})`;
+                // [Poin 9] Timeout 5 menit via AbortController
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
+
+                const subName = getSubmitSubName();
 
                 fetch(GAS_URL, {
                     method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1128,7 +1339,7 @@
                     body: JSON.stringify({
                         action: 'submitVideoBase64', taskFolderId: selectedTask.folderId, taskId: selectedTask.taskId,
                         subId: 'SUB_' + Date.now(), namaAnggota: user.nama, tanggal: selectedDay, hariKe: selectedDay,
-                        subTugasName: subName, filename: `Tugas_${user.nama.replace(/[^a-zA-Z0-9]/g, '')}_${currentSubTugas.replace(/[^a-zA-Z0-9]/g, '')}_Seg${currentSegment}_${Date.now()}.webm`, 
+                        subTugasName: subName, filename: `Tugas_${user.nama.replace(/[^a-zA-Z0-9]/g, '')}_${currentSubTugas.replace(/[^a-zA-Z0-9]/g, '')}_Seg${currentSegment}_${Date.now()}.webm`,
                         mimeType: currentBlobToUpload.type, base64Data: base64data
                     })
                 }).then(r => {
@@ -1145,19 +1356,30 @@
                     clearTimeout(timeoutId);
                     handleUploadError(err);
                 });
-            }
+            };
+            reader.readAsDataURL(currentBlobToUpload);
         }
 
         function handleUploadSuccess(subName) {
             document.getElementById('viewUploading').classList.add('hidden'); document.getElementById('viewUploading').classList.remove('flex');
-            
+
             const newKey = `${selectedTask.taskId}_${selectedDay}_${subName}`;
             userSubs[newKey] = true;
 
             if (currentSegment < totalSegments) {
-                showRestScreen(currentRestDuration);
+                if (autoSegmentMode) {
+                    // AUTO-SEGMENT: langsung segmen berikutnya (tanpa rest, tanpa label)
+                    showToast("Terkirim. Lanjutkan rekaman berikutnya.", "success");
+                    startNextSegment();
+                } else if (currentRestDuration > 0) {
+                    // SET manual: layar istirahat
+                    showRestScreen(currentRestDuration);
+                } else {
+                    startNextSegment();
+                }
             } else {
-                document.getElementById('successUploadText').textContent = `Video ${currentSubTugas} (${totalSegments} ${segmentLabelType}) berhasil terkirim.`;
+                const labelTeks = showSegmentLabel ? ` (${totalSegments} ${segmentLabelType})` : '';
+                document.getElementById('successUploadText').textContent = `Video ${currentSubTugas}${labelTeks} berhasil terkirim.`;
                 document.getElementById('successUploadModal').classList.remove('hidden'); document.getElementById('successUploadModal').classList.add('flex');
                 fetchTasks();
                 fetchRiwayatSemua();
@@ -1165,18 +1387,18 @@
         }
 
         function handleUploadError(err) {
-            lastErrorDetail = { 
-                type: err.name === 'AbortError' ? 'TIMEOUT' : (navigator.onLine ? 'NETWORK' : 'OFFLINE'), 
-                message: err.message 
+            lastErrorDetail = {
+                type: err.name === 'AbortError' ? 'TIMEOUT' : (navigator.onLine ? 'NETWORK' : 'OFFLINE'),
+                message: err.message
             };
-            
+
             retryCount++;
-            if (retryCount < globalConfig.max_retry_upload) {
+            if (retryCount < MAX_RETRY_UPLOAD) {
                 document.getElementById('uploadTitle').textContent = `Gagal. Mencoba lagi dalam 3 detik...`;
                 setTimeout(() => doUploadProcess(), 3000);
             } else {
                 document.getElementById('uploadTitle').textContent = `Upload Gagal`;
-                document.getElementById('uploadStatusText').textContent = `Sistem sudah mencoba ${globalConfig.max_retry_upload}x namun gagal. Silakan coba lagi atau laporkan.`;
+                document.getElementById('uploadStatusText').textContent = `Sistem sudah mencoba ${MAX_RETRY_UPLOAD}x namun gagal. Silakan coba lagi atau laporkan.`;
                 const errorAction = document.getElementById('errorActionContainer');
                 errorAction.classList.remove('hidden'); errorAction.classList.add('flex');
             }
@@ -1209,14 +1431,11 @@
                 return;
             }
 
-            let subName = currentSubTugas;
-            if(totalSegments > 1) subName += ` (${segmentLabelType} ${currentSegment}/${totalSegments})`;
-
             const payload = {
                 action: 'logError',
                 nama: user.nama,
                 tugas: selectedTask.judulTugas,
-                sesi: subName,
+                sesi: getSubmitSubName(),
                 jenis: lastErrorDetail.type,
                 pesan: lastErrorDetail.message,
                 komentar: komentar,
@@ -1228,7 +1447,7 @@
 
             closeErrorModal();
             showLoading(true, "Mengirim Laporan...");
-            
+
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
             .then(r => r.json()).then(d => {
                 showLoading(false);
@@ -1245,28 +1464,28 @@
             });
         }
 
-        // ============ LAYAR ISTIRAHAT (REST) ============
+        // ============ LAYAR ISTIRAHAT (REST) - hanya mode SET ============
         function showRestScreen(duration) {
             const modal = document.getElementById('restModal');
             const timerEl = document.getElementById('restTimer');
             const titleEl = document.getElementById('restTitle');
             const subTitleEl = document.getElementById('restSubtitle');
-            
+
             titleEl.textContent = `${segmentLabelType} ${currentSegment} Selesai!`;
             subTitleEl.textContent = `Bersiaplah untuk ${segmentLabelType} berikutnya...`;
             modal.classList.remove('hidden'); modal.classList.add('flex');
-            
+
             let count = duration;
             timerEl.textContent = count;
-            
+
             const playBeep2 = () => { const b = document.getElementById('beep2'); b.currentTime = 0; b.play().catch(e=>{}); };
-            
+
             if(restTimerInterval) clearInterval(restTimerInterval);
             restTimerInterval = setInterval(() => {
                 count--;
                 if (count <= 0) {
                     clearInterval(restTimerInterval);
-                    playBeep2(); 
+                    playBeep2();
                     startNextSegment();
                 } else {
                     timerEl.textContent = count;
@@ -1282,8 +1501,7 @@
         function startNextSegment() {
             document.getElementById('restModal').classList.add('hidden');
             document.getElementById('restModal').classList.remove('flex');
-            currentSegment++;
-            prepareCamera(currentSubTugas); // Panggil ulang untuk segmen berikutnya
+            prepareCamera(currentSubTugas, currentSegment + 1);
         }
 
         function closeSuccessModal() {
@@ -1681,5 +1899,3 @@
         function closePasswordModal() { document.getElementById('passwordModal').classList.add('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.add('scale-95'); }
         document.getElementById('formGantiPassword').addEventListener('submit', (e) => { e.preventDefault(); showLoading(true, "Verifikasi..."); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'gantiPassword', username: user.username, oldPassword: document.getElementById('oldPass').value, newPassword: document.getElementById('newPass').value })}).then(r=>r.json()).then(d=>{ showLoading(false); if(d.success) { showToast("Password diganti", "success"); closePasswordModal(); } else showToast(d.message, "error"); }).catch(e=>showLoading(false)); });
     </script>
-</body>
-</html>
