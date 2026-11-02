@@ -527,21 +527,26 @@
             return (parseInt(val) || 0) * 60;
         }
 
-        // Pencocokan status selesai berdasarkan Nama SubTugas dan Nomor Segmen (Set/Sesi)
+                // Registry lokal sub-tugas yang sudah terkirim di sesi ini (tidak ditimpa fetchTasks)
+        window.__localDoneSubs = window.__localDoneSubs || {};
+
         function isSubDone(taskId, tanggal, subName, segNum = 1, totalSegs = 1) {
             const cleanTaskId = normalizeStr(taskId);
             const cleanSubName = normalizeStr(subName);
-            let expectedSuffix = "";
+            const alnum = s => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+            let segRegex = null;
             if (totalSegs > 1) {
                 const padNum = String(segNum).padStart(2, '0');
-                // Kita cari string yang mengandung subName dan angka (misal "plank0103" dari "Plank (Set 01/03)")
-                expectedSuffix = padNum; 
+                const escName = alnum(subName).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                // nama sub + (set|sesi) opsional + nomor segmen 2 digit + total 2 digit -> "plankset0103"
+                segRegex = new RegExp(escName + '(?:set|sesi)?' + padNum + '\\d{2}');
             }
-            return Object.keys(userSubs).some(k => {
+            const keys = Object.keys(userSubs).concat(Object.keys(window.__localDoneSubs));
+            return keys.some(k => {
                 const cleanK = normalizeStr(k);
                 if (!cleanK.includes(cleanTaskId) || !cleanK.includes(cleanSubName)) return false;
-                if (totalSegs > 1 && !cleanK.includes(expectedSuffix)) return false;
-                
+                if (segRegex && !segRegex.test(alnum(k))) return false;
+
                 let dateInKey = "";
                 const isoMatch = k.match(/(\d{4}-\d{2}-\d{2})/);
                 if (isoMatch) dateInKey = isoMatch[1];
@@ -881,9 +886,10 @@
             const container = document.getElementById('taskListContainer');
 
             // [Poin 5] Task yang semua sub-nya selesai -> card tidak dirender sama sekali
-            const todayTasksFiltered = todayTasks.filter(t => {
-                if (t.isLama) return true;
-                return getPendingSubCount(t, todayStr) > 0;
+                        const todayTasksFiltered = todayTasks.filter(t => {
+                const subs = t.subTugas || [];
+                if (subs.length === 0) return true; // task tanpa sub-tugas (sistem lama) tetap tampil
+                return subs.some(sub => !isSubFullyDone(t.taskId, todayStr, sub)); // minimal 1 sub belum selesai
             });
 
             // Simpan untuk update motivation card & refresh tiap 60 detik
@@ -959,26 +965,27 @@
             vs.classList.add('hidden'); vs.classList.remove('flex');
         }
 
-        function renderSubTasks() {
+                function renderSubTasks() {
             if (!selectedTask) return;
             selectedDay = getLocalToday();
             const container = document.getElementById('subTasksContainer');
             let html = '';
             (selectedTask.subTugas || []).forEach(sub => {
-                // [Poin 5] Sub yang sudah selesai total -> tidak ditampilkan lagi
-                if (isSubFullyDone(selectedTask.taskId, selectedDay, sub)) return;
-
                 const mSec = parseDuration(sub.max);
-                const totalSegs = getSegCount(sub);
-                const isManualSet = (parseInt(sub.set) || 1) > 1;
+                const totalSegs = (parseInt(sub.set) > 1) ? parseInt(sub.set)
+                                : (mSec > 180 ? Math.ceil(mSec / 180) : 1);
                 let doneCount = 0;
-                for (let i = 1; i <= totalSegs; i++) { if (isSubDone(selectedTask.taskId, selectedDay, sub.nama, i, totalSegs)) doneCount++; }
+                for (let i = 1; i <= totalSegs; i++) {
+                    if (isSubDone(selectedTask.taskId, selectedDay, sub.nama, i, totalSegs)) doneCount++;
+                }
+                // Sub sudah selesai semua segmennya -> skip total (tidak ada card "Selesai")
+                if (doneCount === totalSegs) return;
 
+                const isManualSet = (parseInt(sub.set) || 1) > 1;
                 const minSec = parseDuration(sub.min);
                 const targetTeks = `${formatSecToText(minSec)} - ${formatSecToText(mSec)}`;
                 const hasMetro = sub.metro && sub.metro.on;
                 const metroBadgeHtml = hasMetro ? `<span class="text-[9px] text-blue-100 bg-blue-900/60 px-1.5 py-0.5 rounded flex items-center gap-0.5"><i class="fa-solid fa-drum text-[8px]"></i> ${parseInt(sub.metro.bpm) || 96}</span>` : '';
-                // Badge progres hanya untuk SET manual (auto-segmentasi disembunyikan dari user)
                 const setBadgeHtml = isManualSet ? `<span class="text-[9px] text-amber-100 bg-amber-900/60 px-1.5 py-0.5 rounded font-bold">${doneCount}/${totalSegs} Set</span>` : '';
 
                 html += `
@@ -1360,19 +1367,20 @@
             reader.readAsDataURL(currentBlobToUpload);
         }
 
-        function handleUploadSuccess(subName) {
+                function handleUploadSuccess(subName) {
             document.getElementById('viewUploading').classList.add('hidden'); document.getElementById('viewUploading').classList.remove('flex');
 
+            // 1) Catat dulu SEBELUM fetchTasks(). Format sama dengan yang dibaca isSubDone:
+            //    taskId_tanggal_subName (subName sudah termasuk " (Set 01/03)" jika totalSegments > 1)
             const newKey = `${selectedTask.taskId}_${selectedDay}_${subName}`;
             userSubs[newKey] = true;
+            window.__localDoneSubs[newKey] = true; // tidak ikut tertimpa saat fetchTasks() mengganti userSubs
 
             if (currentSegment < totalSegments) {
                 if (autoSegmentMode) {
-                    // AUTO-SEGMENT: langsung segmen berikutnya (tanpa rest, tanpa label)
                     showToast("Terkirim. Lanjutkan rekaman berikutnya.", "success");
                     startNextSegment();
                 } else if (currentRestDuration > 0) {
-                    // SET manual: layar istirahat
                     showRestScreen(currentRestDuration);
                 } else {
                     startNextSegment();
@@ -1381,6 +1389,8 @@
                 const labelTeks = showSegmentLabel ? ` (${totalSegments} ${segmentLabelType})` : '';
                 document.getElementById('successUploadText').textContent = `Video ${currentSubTugas}${labelTeks} berhasil terkirim.`;
                 document.getElementById('successUploadModal').classList.remove('hidden'); document.getElementById('successUploadModal').classList.add('flex');
+                // 2) Render ulang langsung dari state lokal (card hilang seketika), lalu sinkron ke server
+                renderTasks(activeTasks);
                 fetchTasks();
                 fetchRiwayatSemua();
             }
