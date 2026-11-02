@@ -454,6 +454,7 @@
         let user = JSON.parse(localStorage.getItem('userSession') || sessionStorage.getItem('userSession'));
         if (!user) { window.location.href = 'index.html'; }
         let activeTasks = [], userSubs = {};
+        let globalUserSubs = [];
         let selectedTask = null, currentSubTugas = "Utama", selectedDay = "1";
 
         // State Rekam (Dinamis)
@@ -530,24 +531,53 @@
                 // Registry lokal sub-tugas yang sudah terkirim di sesi ini (tidak ditimpa fetchTasks)
         window.__localDoneSubs = window.__localDoneSubs || {};
 
-                function isSubDone(taskId, tanggal, subName, segNum = 1, totalSegs = 1) {
-            const cleanTaskId = normalizeStr(taskId);
-            const cleanSubName = normalizeStr(subName);
-            const alnum = s => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
-
-            // Tanggal dalam dua format: YYYY-MM-DD dan DD/MM/YYYY
-            const tglIso = String(tanggal);
-            const [yy, mm, dd] = tglIso.split('-');
-            const tglIndo = (yy && mm && dd) ? `${dd}/${mm}/${yy}` : '';
-
-            // Regex segmen set/sesi (tetap sama)
-            let segRegex = null;
-            if (totalSegs > 1) {
-                const padNum = String(segNum).padStart(2, '0');
-                const escName = alnum(subName).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                // nama sub + (set|sesi) opsional + nomor segmen 2 digit + total 2 digit -> "plankset0103"
-                segRegex = new RegExp(escName + '(?:set|sesi)?' + padNum + '\\d{2}');
+                   // Normalisasi berbagai format tanggal -> "YYYY-MM-DD" (zona Asia/Jakarta untuk timestamp ISO/Date)
+        function toYMD(val) {
+            if (!val) return '';
+            if (val instanceof Date) return isNaN(val) ? '' : val.toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+            const s = String(val).trim();
+            // ISO dengan jam + zona (Z / +07:00): konversi ke tanggal Jakarta
+            if (/^\d{4}-\d{2}-\d{2}T.*(Z|[+-]\d{2}:?\d{2})$/.test(s)) {
+                const d = new Date(s);
+                if (!isNaN(d)) return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
             }
+            let m = s.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);               // YYYY-MM-DD
+            if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+            m = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);                  // DD/MM/YYYY
+            if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+            return '';
+        }
+
+        // Cek selesai: cache lokal (baru upload) + globalUserSubs (data getDashboardData)
+        function isSubDone(taskId, tanggal, subName, segNum = 1, totalSegs = 1) {
+            const alnum = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const cleanSub = alnum(subName);
+            const padNum = String(segNum).padStart(2, '0');
+            const esc = cleanSub.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            // Segmen: "plankset0103" / "planksesi0103" / "plank0103"
+            const segRegex = new RegExp('^' + esc + '(?:set|sesi)?' + padNum + '\\d{2}$');
+            const singleRegex = new RegExp('^' + esc + '$');
+            const nameMatches = (recName) => {
+                const cleanS = alnum(recName);
+                return totalSegs > 1 ? segRegex.test(cleanS) : singleRegex.test(cleanS);
+            };
+            const targetDate = toYMD(tanggal);
+            const targetTask = String(taskId).trim();
+
+            // 1) Cache lokal: key = taskId_tanggal_subName
+            const localPrefix = `${taskId}_${tanggal}_`;
+            const local = window.__localDoneSubs || {};
+            if (Object.keys(local).some(k => k.startsWith(localPrefix) && nameMatches(k.slice(localPrefix.length)))) return true;
+
+            // 2) globalUserSubs (isi sama dengan Google Sheets)
+            return globalUserSubs.some(s => {
+                if (String(s.taskId).trim() !== targetTask) return false;
+                const dates = [toYMD(s.tanggal), toYMD(s.hariKe)].filter(Boolean);
+                if (dates.length === 0) dates.push(toYMD(s.waktuKumpul));
+                if (!dates.includes(targetDate)) return false;
+                return nameMatches(s.subTugasName);
+            });
+        }
 
             const keys = Object.keys(userSubs).concat(Object.keys(window.__localDoneSubs || {}));
             return keys.some(k => {
@@ -1696,7 +1726,13 @@
                 }
                 if(dDash.success) {
                     const mySubs = dDash.submissions.filter(s => s.namaAnggota.trim().toLowerCase() === user.nama.trim().toLowerCase());
+                    globalUserSubs = mySubs; // sumber kebenaran untuk isSubDone
+
                     renderRiwayatNilai(mySubs, dDash.tasks);
+                    if (activeTasks.length > 0) renderTasks(activeTasks); // card tugas langsung terupdate
+                    const vs = document.getElementById('viewSetup');
+                    if (selectedTask && vs && !vs.classList.contains('hidden')) renderSubTasks(); // popup ikut terupdate
+                }
                 }
                 if (!document.getElementById('absenModal').classList.contains('hidden')) checkTodayAbsensiStatus();
             }).catch(e => { showLoading(false); console.error("Gagal load riwayat"); });
