@@ -530,10 +530,17 @@
                 // Registry lokal sub-tugas yang sudah terkirim di sesi ini (tidak ditimpa fetchTasks)
         window.__localDoneSubs = window.__localDoneSubs || {};
 
-        function isSubDone(taskId, tanggal, subName, segNum = 1, totalSegs = 1) {
+                function isSubDone(taskId, tanggal, subName, segNum = 1, totalSegs = 1) {
             const cleanTaskId = normalizeStr(taskId);
             const cleanSubName = normalizeStr(subName);
             const alnum = s => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+
+            // Tanggal dalam dua format: YYYY-MM-DD dan DD/MM/YYYY
+            const tglIso = String(tanggal);
+            const [yy, mm, dd] = tglIso.split('-');
+            const tglIndo = (yy && mm && dd) ? `${dd}/${mm}/${yy}` : '';
+
+            // Regex segmen set/sesi (tetap sama)
             let segRegex = null;
             if (totalSegs > 1) {
                 const padNum = String(segNum).padStart(2, '0');
@@ -541,16 +548,23 @@
                 // nama sub + (set|sesi) opsional + nomor segmen 2 digit + total 2 digit -> "plankset0103"
                 segRegex = new RegExp(escName + '(?:set|sesi)?' + padNum + '\\d{2}');
             }
-            const keys = Object.keys(userSubs).concat(Object.keys(window.__localDoneSubs));
+
+            const keys = Object.keys(userSubs).concat(Object.keys(window.__localDoneSubs || {}));
             return keys.some(k => {
                 const cleanK = normalizeStr(k);
-                if (!cleanK.includes(cleanTaskId) || !cleanK.includes(cleanSubName)) return false;
+
+                if (!cleanK.includes(cleanTaskId)) return false;
+
+                // Nama: cocok penuh, atau fallback 15 karakter pertama
+                const nameOk = cleanK.includes(cleanSubName) || cleanK.includes(cleanSubName.slice(0, 15));
+                if (!nameOk) return false;
+
                 if (segRegex && !segRegex.test(alnum(k))) return false;
 
-                let dateInKey = "";
-                const isoMatch = k.match(/(\d{4}-\d{2}-\d{2})/);
-                if (isoMatch) dateInKey = isoMatch[1];
-                return dateInKey === tanggal;
+                // Tanggal toleran: YYYY-MM-DD ATAU DD/MM/YYYY
+                const rawK = String(k);
+                const dateOk = rawK.includes(tglIso) || (tglIndo !== '' && rawK.includes(tglIndo));
+                return dateOk;
             });
         }
 
@@ -715,7 +729,7 @@
             document.getElementById('easterEggModal').classList.remove('flex');
         }
 
-        function fetchConfigAndTasks() {
+                function fetchConfigAndTasks() {
             const container = document.getElementById('taskListContainer');
             container.innerHTML = `<div class="py-10 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-spinner animate-spin text-3xl text-blue-600 mb-3"></i><p class="text-xs font-semibold text-gray-500">Memuat data...</p></div>`;
             
@@ -728,14 +742,13 @@
                 }
                 if (dTasks.success) {
                     activeTasks = dTasks.tasks;
-                    userSubs = dTasks.userSubs || {};
+                    userSubs = Object.assign({}, dTasks.userSubs, window.__localDoneSubs);
                     renderTasks(activeTasks);
                 }
             }).catch(e => {
                 container.innerHTML = `<p class="text-center text-xs text-rose-500">Gagal memuat koneksi</p>`;
             });
         }
-
         function fetchTasks() { fetchConfigAndTasks(); }
 
         // ============ HELPER SEGMEN & STATUS SELESAI ============
@@ -1367,14 +1380,18 @@
             reader.readAsDataURL(currentBlobToUpload);
         }
 
-                function handleUploadSuccess(subName) {
+                    function handleUploadSuccess(subName) {
             document.getElementById('viewUploading').classList.add('hidden'); document.getElementById('viewUploading').classList.remove('flex');
 
-            // 1) Catat dulu SEBELUM fetchTasks(). Format sama dengan yang dibaca isSubDone:
-            //    taskId_tanggal_subName (subName sudah termasuk " (Set 01/03)" jika totalSegments > 1)
+            // Catat dulu SEBELUM fetchTasks(). Format: taskId_tanggal_subName
             const newKey = `${selectedTask.taskId}_${selectedDay}_${subName}`;
             userSubs[newKey] = true;
             window.__localDoneSubs[newKey] = true; // tidak ikut tertimpa saat fetchTasks() mengganti userSubs
+
+            // Render lokal dulu (sebelum fetch server)
+            renderTasks(activeTasks);
+            const setupModal = document.getElementById('viewSetup');
+            if (setupModal && !setupModal.classList.contains('hidden')) renderSubTasks();
 
             if (currentSegment < totalSegments) {
                 if (autoSegmentMode) {
@@ -1389,8 +1406,6 @@
                 const labelTeks = showSegmentLabel ? ` (${totalSegments} ${segmentLabelType})` : '';
                 document.getElementById('successUploadText').textContent = `Video ${currentSubTugas}${labelTeks} berhasil terkirim.`;
                 document.getElementById('successUploadModal').classList.remove('hidden'); document.getElementById('successUploadModal').classList.add('flex');
-                // 2) Render ulang langsung dari state lokal (card hilang seketika), lalu sinkron ke server
-                renderTasks(activeTasks);
                 fetchTasks();
                 fetchRiwayatSemua();
             }
