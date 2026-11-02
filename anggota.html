@@ -1714,10 +1714,11 @@
             }
         }
 
-        function fetchRiwayatSemua() {
+                function fetchRiwayatSemua() {
             showLoading(true, "Memperbarui riwayat...");
             let req1 = fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAbsensiHistory' }) }).then(r=>r.json());
             let req2 = fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getDashboardData' }) }).then(r=>r.json());
+            
             Promise.all([req1, req2]).then(([dAbsen, dDash]) => {
                 showLoading(false);
                 if(dAbsen.success && dAbsen.data.length > 0) {
@@ -1726,16 +1727,18 @@
                 }
                 if(dDash.success) {
                     const mySubs = dDash.submissions.filter(s => s.namaAnggota.trim().toLowerCase() === user.nama.trim().toLowerCase());
-                    globalUserSubs = mySubs; // sumber kebenaran untuk isSubDone
+                    globalUserSubs = mySubs;
 
                     renderRiwayatNilai(mySubs, dDash.tasks);
-                    if (activeTasks.length > 0) renderTasks(activeTasks); // card tugas langsung terupdate
+                    if (activeTasks.length > 0) renderTasks(activeTasks); 
                     const vs = document.getElementById('viewSetup');
-                    if (selectedTask && vs && !vs.classList.contains('hidden')) renderSubTasks(); // popup ikut terupdate
-                }
+                    if (selectedTask && vs && !vs.classList.contains('hidden')) renderSubTasks();
                 }
                 if (!document.getElementById('absenModal').classList.contains('hidden')) checkTodayAbsensiStatus();
-            }).catch(e => { showLoading(false); console.error("Gagal load riwayat"); });
+            }).catch(e => { 
+                showLoading(false); 
+                console.error("Gagal load riwayat"); 
+            });
         }
 
         function renderRiwayatNilai(mySubs, allTasks) {
