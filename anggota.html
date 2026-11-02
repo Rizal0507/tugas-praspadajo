@@ -548,7 +548,7 @@
             return '';
         }
 
-               function isSubDone(taskId, tanggal, subName, segNum = 1, totalSegs = 1) {
+        function isSubDone(taskId, tanggal, subName, segNum = 1, totalSegs = 1) {
             const alnum = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
             const cleanSub = alnum(subName);
             const padNum = String(segNum).padStart(2, '0');
@@ -565,12 +565,12 @@
             const targetDate = toYMD(tanggal);
             const targetTask = String(taskId).trim();
 
-            // 1) Cache lokal
+            // 1) Cache lokal: key = taskId_tanggal_subName
             const localPrefix = `${taskId}_${tanggal}_`;
             const local = window.__localDoneSubs || {};
             if (Object.keys(local).some(k => k.startsWith(localPrefix) && nameMatches(k.slice(localPrefix.length)))) return true;
 
-            // 2) globalUserSubs
+            // 2) globalUserSubs (isi sama dengan Google Sheets)
             return globalUserSubs.some(s => {
                 if (String(s.taskId).trim() !== targetTask) return false;
                 const dates = [toYMD(s.tanggal), toYMD(s.hariKe)].filter(Boolean);
