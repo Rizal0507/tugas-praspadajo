@@ -1345,34 +1345,42 @@
         }
 
         function downloadRaportImage() {
-            const container = document.getElementById('raportTableContainer');
-            const parent = container.parentElement; // Modal pembungkusnya
-            
-            // 1. Simpan class asli
-            const originalContainerClass = container.className;
-            const originalParentClass = parent.className;
-
-            // 2. Hapus batasan scroll & tinggi agar seluruh baris tabel dirender sempurna
-            container.classList.remove('overflow-auto', 'custom-scroll', 'max-h-[90vh]');
-            parent.classList.remove('max-h-[90vh]');
+            const originalContainer = document.getElementById('raportTableContainer');
             
             showLoading(true, "Menyiapkan gambar...");
 
-            // 3. Beri waktu 200ms agar browser selesai memperluas layout tabel
+            // 1. Gandakan (Clone) elemen tabel
+            const clone = originalContainer.cloneNode(true);
+            
+            // 2. Atur gaya clone agar memanjang penuh & sembunyikan di luar layar
+            clone.style.maxHeight = 'none';
+            clone.style.height = 'auto';
+            clone.style.overflow = 'visible';
+            clone.style.position = 'absolute';
+            clone.style.left = '-9999px'; // Sembunyikan jauh ke kiri
+            clone.style.top = '0';
+            clone.style.width = originalContainer.offsetWidth + 'px'; 
+            clone.style.backgroundColor = '#ffffff';
+            
+            // Pastikan tabel di dalam clone lebar penuh
+            const table = clone.querySelector('table');
+            if (table) table.style.width = '100%';
+
+            // 3. Masukkan clone ke dalam dokumen (tapi tidak terlihat user)
+            document.body.appendChild(clone);
+
+            // 4. Ambil gambar dari clone
             setTimeout(() => {
-                html2canvas(container, {
+                html2canvas(clone, {
                     scale: 2, 
                     backgroundColor: '#ffffff',
-                    useCORS: true,
-                    scrollY: -window.scrollY // Mencegah gambar terpotong jika layar sedang di-scroll
+                    useCORS: true
                 }).then(canvas => {
-                    // 4. Kembalikan class ke bentuk semula (agar modal kembali normal)
-                    container.className = originalContainerClass;
-                    parent.className = originalParentClass;
-                    
+                    // Hapus clone setelah selesai
+                    document.body.removeChild(clone);
                     showLoading(false);
                     
-                    // 5. Proses unduh
+                    // Proses unduh
                     const imgData = canvas.toDataURL('image/png');
                     const link = document.createElement('a');
                     link.download = `Raport_${Date.now()}.png`;
@@ -1380,14 +1388,12 @@
                     link.click();
                     showToast("Gambar berhasil diunduh!", "success");
                 }).catch(e => {
-                    // Jika gagal, tetap kembalikan class ke semula
-                    container.className = originalContainerClass;
-                    parent.className = originalParentClass;
-
+                    // Hapus clone jika terjadi error
+                    if(document.body.contains(clone)) document.body.removeChild(clone);
                     showLoading(false);
                     showToast("Gagal mengunduh gambar", "error");
                 });
-            }, 200);
+            }, 100); // Delay 100ms agar browser selesai merender clone
         }
 
         // --- MODAL LAPORAN ERROR ---
