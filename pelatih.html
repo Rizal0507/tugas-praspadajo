@@ -1019,7 +1019,7 @@
                 const btnLihatVideo = `<button onclick="openVideoModal('${g.taskId}', '${safeAnggota}', '${dateKey}', '${safeBaseName}')" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-[10px] font-bold border border-blue-200 flex items-center justify-center gap-1 w-full"><i class="fa-solid fa-play"></i> Lihat Video (${totalSessions})</button>`;
                 
                 const nilaiVal = isGraded(g) ? g.nilai : '';
-                const colorClass = nilaiVal==='A'?'text-emerald-600 bg-emerald-50 border-emerald-300':nilaiVal==='B'?'text-blue-600 bg-blue-50 border-blue-300':nilaiVal==='C'?'text-amber-600 bg-amber-50 border-amber-300':nilaiVal==='D'?'text-orange-600 bg-orange-50 border-orange-300':nilaiVal==='E'?'text-rose-600 bg-rose-50 border-rose-300':'text-gray-600 bg-white border-gray-300';
+                const colorClass = nilaiVal==='S'?'text-amber-600 bg-amber-50 border-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)] font-black':nilaiVal==='A'?'text-emerald-600 bg-emerald-50 border-emerald-300':nilaiVal==='B'?'text-blue-600 bg-blue-50 border-blue-300':nilaiVal==='C'?'text-amber-600 bg-amber-50 border-amber-300':nilaiVal==='D'?'text-orange-600 bg-orange-50 border-orange-300':nilaiVal==='E'?'text-rose-600 bg-rose-50 border-rose-300':'text-gray-600 bg-white border-gray-300';
                 const allSubIds = g.sessions.map(x => x.subId).join(',');
 
                 return `<tr class="hover:bg-gray-50 border-b group">
@@ -1037,6 +1037,7 @@
                             <div class="flex gap-2 items-center">
                                 <select id="selNilai_${g.sessions[0].subId}" class="flex-1 p-2 border rounded-lg text-xs font-bold outline-none cursor-pointer ${colorClass}">
                                     <option value="">-- Beri Nilai --</option>
+                                    <option value="S" ${nilaiVal==='S'?'selected':''}>🌟 S (Special)</option>
                                     <option value="A" ${nilaiVal==='A'?'selected':''}>A (Sangat Baik)</option>
                                     <option value="B" ${nilaiVal==='B'?'selected':''}>B (Baik)</option>
                                     <option value="C" ${nilaiVal==='C'?'selected':''}>C (Cukup)</option>
@@ -1370,10 +1371,11 @@
                 const gradedSubs = userSubs.filter(s => s.nilai && s.nilai !== '-');
                 let avgNilai = "-";
                 if (gradedSubs.length > 0) {
-                    const mapNilai = { 'A': 4, 'B': 3, 'C': 2, 'D': 1, 'E': 0 };
+                    const mapNilai = { 'S': 5, 'A': 4, 'B': 3, 'C': 2, 'D': 1, 'E': 0 }; // S = 5
                     const totalVal = gradedSubs.reduce((sum, s) => sum + (mapNilai[s.nilai] || 0), 0);
                     const avgVal = totalVal / gradedSubs.length;
-                    if(avgVal >= 3.5) avgNilai = "A";
+                    if(avgVal >= 4.5) avgNilai = "S"; // Rata-rata S
+                    else if(avgVal >= 3.5) avgNilai = "A";
                     else if(avgVal >= 2.5) avgNilai = "B";
                     else if(avgVal >= 1.5) avgNilai = "C";
                     else if(avgVal >= 0.5) avgNilai = "D";
