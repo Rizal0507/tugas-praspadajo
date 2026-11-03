@@ -1094,7 +1094,7 @@
             else { box.classList.add('open'); document.getElementById(`inputKomentar_${subId}`).focus(); }
         }
 
-        function executeSubmitNilaiBatch(subIdsStr, primarySubId) {
+        async function executeSubmitNilaiBatch(subIdsStr, primarySubId) {
             const selectEl = document.getElementById(`selNilai_${primarySubId}`);
             const komentarEl = document.getElementById(`inputKomentar_${primarySubId}`);
             const nilaiVal = selectEl.value;
@@ -1105,30 +1105,40 @@
             showLoading(true, "Menyimpan Evaluasi...");
             
             const subIds = subIdsStr.split(',');
-            let promises = subIds.map(id => 
-                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'nilaiTugas', subId: id, nilai: nilaiVal, komentar: komentarVal }) }).then(r => r.json())
-            );
+            let successCount = 0;
+            let failCount = 0;
 
-            Promise.all(promises).then(results => {
-                selectEl.disabled = false; komentarEl.disabled = false; showLoading(false);
-                const allSuccess = results.every(d => d.success);
-                if(allSuccess) {
-                    showToast("Nilai & Catatan berhasil disimpan!", "success");
-                    subIds.forEach(id => {
+            // Gunakan perulangan berurutan (sequential) agar GAS tidak error
+            for (const id of subIds) {
+                try {
+                    const res = await fetch(GAS_URL, { 
+                        method: 'POST', 
+                        body: JSON.stringify({ action: 'nilaiTugas', subId: id, nilai: nilaiVal, komentar: komentarVal }) 
+                    });
+                    const d = await res.json();
+                    if (d.success) {
+                        successCount++;
                         let sub = state.submissions.find(s => String(s.subId) === String(id));
                         if(sub) { sub.nilai = nilaiVal; sub.komentar = komentarVal; }
-                    });
-                    updateUngradedNotification();
-                    filterSubmissions();
-                    // PERBAIKAN: Tarik data terbaru dari server agar benar-benar sinkron
-                    loadDashboardData(); 
-                } else { 
-                    showToast("Beberapa sesi gagal disimpan. Coba lagi.", "error"); 
+                    } else {
+                        failCount++;
+                    }
+                } catch (e) {
+                    failCount++;
                 }
-            }).catch(e => { 
-                selectEl.disabled = false; komentarEl.disabled = false; showLoading(false); 
-                showToast("Gagal terhubung ke server", "error"); 
-            });
+            }
+
+            selectEl.disabled = false; komentarEl.disabled = false; showLoading(false);
+            
+            if (failCount === 0) {
+                showToast("Nilai & Catatan berhasil disimpan!", "success");
+            } else {
+                showToast(`Berhasil ${successCount} sesi. Gagal ${failCount} sesi.`, "error");
+            }
+            
+            updateUngradedNotification();
+            filterSubmissions();
+            loadDashboardData(); // Sinkronisasi ulang dari server
         }
 
         function renderCheckboxesAnggota() {
@@ -1532,7 +1542,7 @@
             document.querySelectorAll('.chk-bulk').forEach(c => c.checked = source.checked);
         }
 
-        function executeBulkGrade() {
+        async function executeBulkGrade() {
             const checkboxes = document.querySelectorAll('.chk-bulk:checked');
             if(checkboxes.length === 0) { showToast("Pilih minimal 1 data untuk dinilai!", "error"); return; }
 
@@ -1544,37 +1554,46 @@
                 allSubIds = allSubIds.concat(cb.value.split('|'));
             });
 
-            showLoading(true, `Menyimpan ${allSubIds.length} penilaian...`);
+            showLoading(true, "Menyimpan...");
+            
+            let successCount = 0;
+            let failCount = 0;
 
-            const promises = allSubIds.map(id => 
-                fetch(GAS_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ action: 'nilaiTugas', subId: id, nilai: nilaiVal, komentar: komentarVal }) 
-                }).then(r => r.json())
-            );
-
-            Promise.all(promises).then(results => {
-                showLoading(false);
-                const allSuccess = results.every(d => d.success);
+            // Gunakan perulangan berurutan agar aman
+            for (let i = 0; i < allSubIds.length; i++) {
+                const id = allSubIds[i];
+                document.getElementById('loadingText').textContent = `Menyimpan ${i+1} dari ${allSubIds.length}...`;
                 
-                if(allSuccess) {
-                    showToast(`${allSubIds.length} penilaian berhasil disimpan!`, "success");
-                    allSubIds.forEach(id => {
+                try {
+                    const res = await fetch(GAS_URL, { 
+                        method: 'POST', 
+                        body: JSON.stringify({ action: 'nilaiTugas', subId: id, nilai: nilaiVal, komentar: komentarVal }) 
+                    });
+                    const d = await res.json();
+                    if (d.success) {
+                        successCount++;
                         let sub = state.submissions.find(s => String(s.subId) === String(id));
                         if(sub) { sub.nilai = nilaiVal; sub.komentar = komentarVal; }
-                    });
-                    closeBulkGradeModal();
-                    updateUngradedNotification();
-                    filterSubmissions();
-                    // PERBAIKAN: Tarik data terbaru dari server agar benar-benar sinkron
-                    loadDashboardData(); 
-                } else {
-                    showToast("Beberapa data gagal disimpan. Coba lagi.", "error");
+                    } else {
+                        failCount++;
+                    }
+                } catch (e) {
+                    failCount++;
                 }
-            }).catch(e => {
-                showLoading(false);
-                showToast("Gagal terhubung ke server", "error");
-            });
+            }
+
+            showLoading(false);
+            
+            if (failCount === 0) {
+                showToast(`${successCount} penilaian berhasil disimpan!`, "success");
+            } else {
+                showToast(`${successCount} berhasil, ${failCount} gagal disimpan.`, "error");
+            }
+
+            closeBulkGradeModal();
+            updateUngradedNotification();
+            filterSubmissions();
+            loadDashboardData(); // Sinkronisasi ulang dari server
         }
         // --- MODAL LAPORAN ERROR ---
         function openErrorLogModal() {
