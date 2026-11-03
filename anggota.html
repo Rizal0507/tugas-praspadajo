@@ -118,9 +118,13 @@
 
             <!-- VIEW RIWAYAT TUGAS -->
             <section id="viewRiwayatTugas" class="tab-view hidden flex-col gap-4 w-full">
-                <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center sticky top-0 z-10">
+                <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center sticky top-0 z-10 gap-2">
                     <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2"><i class="fa-solid fa-medal text-amber-500"></i> Hasil & Catatan Tugas</h3>
-                    <button onclick="fetchRiwayatSemua()" class="text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 active:scale-95 hover:bg-blue-100"><i class="fa-solid fa-rotate text-[10px]"></i> Refresh</button>
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <!-- Tambahan Filter Tanggal -->
+                        <input type="date" id="filterRiwayatDate" onchange="filterRiwayatTugas()" class="flex-1 sm:flex-none px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-700 outline-none">
+                        <button onclick="fetchRiwayatSemua()" class="text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 active:scale-95 hover:bg-blue-100 shrink-0"><i class="fa-solid fa-rotate text-[10px]"></i> Refresh</button>
+                    </div>
                 </div>
                 <div id="riwayatNilaiContainer" class="flex flex-col gap-3">
                     <div class="p-8 text-center text-gray-400 text-xs bg-white rounded-3xl border">Memuat riwayat tugas...</div>
@@ -1708,8 +1712,10 @@
                 if(dDash.success) {
                     const mySubs = dDash.submissions.filter(s => s.namaAnggota.trim().toLowerCase() === user.nama.trim().toLowerCase());
                     globalUserSubs = mySubs;
+                    window.__allTasksCache = dDash.tasks; // Simpan tasks ke cache untuk filter
 
-                    renderRiwayatNilai(mySubs, dDash.tasks);
+                    filterRiwayatTugas(); // Panggil fungsi filter (bukan langsung render)
+                    
                     if (activeTasks.length > 0) renderTasks(activeTasks); 
                     const vs = document.getElementById('viewSetup');
                     if (selectedTask && vs && !vs.classList.contains('hidden')) renderSubTasks();
@@ -1719,6 +1725,37 @@
                 showLoading(false); 
                 console.error("Gagal load riwayat"); 
             });
+        }
+
+        // --- FUNGSI BARU UNTUK FILTER TANGGAL ---
+        function filterRiwayatTugas() {
+            const filterDate = document.getElementById('filterRiwayatDate').value;
+            const container = document.getElementById('riwayatNilaiContainer');
+            
+            if (!globalUserSubs) return;
+            
+            let filteredSubs = globalUserSubs;
+
+            // Jika anggota memilih tanggal
+            if (filterDate) {
+                const filterDmy = filterDate.split('-').reverse().join('/'); // Ubah YYYY-MM-DD jadi DD/MM/YYYY
+                
+                filteredSubs = globalUserSubs.filter(s => {
+                    const dt = formatDateTime(s.waktuKumpul || s.tanggal);
+                    const dateStr = extractLocalDate(s.tanggal || s.waktuKumpul);
+                    // Cocokkan dengan format DD/MM/YYYY atau YYYY-MM-DD
+                    return dt.date === filterDmy || dateStr === filterDate;
+                });
+                
+                // Jika yang dicari kosong
+                if (filteredSubs.length === 0) {
+                    container.innerHTML = `<div class="p-8 text-center text-xs text-gray-400 bg-white rounded-3xl border">Tidak ada tugas pada tanggal <b>${filterDmy}</b>.</div>`;
+                    return;
+                }
+            }
+            
+            // Render data yang sudah difilter
+            renderRiwayatNilai(filteredSubs, window.__allTasksCache || activeTasks || []);
         }
 
         function renderRiwayatNilai(mySubs, allTasks) {
@@ -1790,10 +1827,10 @@
                     </div>`;
                 }).join('');
                 return `
-                    <div class="flex items-center gap-3 mt-4 mb-2">
-                        <div class="h-px bg-gray-200 flex-1"></div>
-                        <span class="text-[10px] font-extrabold text-gray-400 bg-gray-100 px-3 py-1.5 rounded-full uppercase tracking-wider"><i class="fa-regular fa-calendar-days mr-1"></i> ${dateStr}</span>
-                        <div class="h-px bg-gray-200 flex-1"></div>
+                    <div class="flex items-center gap-2 mt-4 mb-2 px-2">
+                        <div class="h-px bg-gray-300 flex-1"></div>
+                        <span class="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-100 shadow-sm px-3 py-1.5 rounded-full uppercase tracking-wider"><i class="fa-regular fa-calendar-days mr-1"></i> ${dateStr}</span>
+                        <div class="h-px bg-gray-300 flex-1"></div>
                     </div>
                     ${itemsHtml}`;
             }).join('');
