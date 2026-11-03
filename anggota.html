@@ -1737,8 +1737,22 @@
                 const itemsForDate = grouped[dateStr].reverse();
                 const itemsHtml = itemsForDate.map(s => {
                     const n = s.nilai;
-                    const badgeColor = (n==='A')?'bg-emerald-500':(n==='B')?'bg-blue-500':(n==='C')?'bg-amber-500':(n==='D')?'bg-orange-500':(n==='E')?'bg-rose-500':'bg-gray-300';
-                    const taskRef = allTasks.find(t => t.taskId === s.taskId);
+                    // Logika Warna & Medali Khusus Grade S
+                    let badgeColor = 'bg-gray-300';
+                    let medalHtml = '';
+                    let borderColor = 'border-white';
+                    let textSize = 'text-base';
+
+                    if (n === 'S') {
+                        badgeColor = 'bg-gradient-to-br from-yellow-300 to-amber-500';
+                        borderColor = 'border-yellow-200 shadow-[0_0_15px_rgba(251,191,36,0.8)]';
+                        medalHtml = `<i class="fa-solid fa-medal absolute -bottom-2 -right-2 text-amber-600 text-lg drop-shadow-md bg-white rounded-full p-0.5 border border-amber-200"></i>`;
+                        textSize = 'text-xl font-black';
+                    } else if (n === 'A') { badgeColor = 'bg-emerald-500'; }
+                    else if (n === 'B') { badgeColor = 'bg-blue-500'; }
+                    else if (n === 'C') { badgeColor = 'bg-amber-500'; }
+                    else if (n === 'D') { badgeColor = 'bg-orange-500'; }
+                    else if (n === 'E') { badgeColor = 'bg-rose-500'; }
                     const judul = taskRef ? taskRef.judulTugas : "Tugas Latihan";
                     const komentar = s.komentar ? s.komentar : "Belum ada catatan dari pelatih.";
                     return `
@@ -1751,7 +1765,12 @@
                             </div>
                             <div class="flex flex-col items-center">
                                 <span class="text-[9px] font-bold text-gray-400 uppercase mb-1">Nilai</span>
-                                <span class="w-10 h-10 rounded-full ${badgeColor} text-white font-extrabold flex items-center justify-center text-base shadow-sm">${n && n !== '-' ? n : '?'}</span>
+                                <div class="relative">
+                                    <span class="w-10 h-10 rounded-full ${badgeColor} text-white font-extrabold flex items-center justify-center ${textSize} shadow-sm border-2 ${borderColor}">
+                                        ${n && n !== '-' ? n : '?'}
+                                    </span>
+                                    ${medalHtml}
+                                </div>
                             </div>
                         </div>
                         <div class="bg-amber-50/60 border border-amber-100 p-3 rounded-2xl text-[11px] text-gray-700">
