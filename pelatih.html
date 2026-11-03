@@ -1115,12 +1115,13 @@
                 if(allSuccess) {
                     showToast("Nilai & Catatan berhasil disimpan!", "success");
                     subIds.forEach(id => {
-                        // PERBAIKAN: Gunakan String() agar cocok antara ID (string) dan state (number)
                         let sub = state.submissions.find(s => String(s.subId) === String(id));
                         if(sub) { sub.nilai = nilaiVal; sub.komentar = komentarVal; }
                     });
                     updateUngradedNotification();
                     filterSubmissions();
+                    // PERBAIKAN: Tarik data terbaru dari server agar benar-benar sinkron
+                    loadDashboardData(); 
                 } else { 
                     showToast("Beberapa sesi gagal disimpan. Coba lagi.", "error"); 
                 }
@@ -1473,7 +1474,7 @@
 
         function loadBulkGradeData() {
             const dateVal = document.getElementById('bulkGradeDate').value;
-            const selectedTaskId = document.getElementById('selectTaskFilter').value; // Ambil filter tugas
+            const selectedTaskId = document.getElementById('selectTaskFilter').value;
             const tbody = document.getElementById('tableBulkGradeBody');
             
             if(!dateVal) {
@@ -1481,10 +1482,9 @@
                 return;
             }
 
-            // Filter berdasarkan tanggal, tugas yang dipilih, dan BELUM dinilai
+            // PERBAIKAN: Gunakan matchesSubmissionDate agar kebal terhadap perbedaan format tanggal
             let subs = state.submissions.filter(s => {
-                const sDate = extractLocalDate(s.tanggal || s.waktuKumpul);
-                if (sDate !== dateVal) return false;
+                if (!matchesSubmissionDate(s, dateVal)) return false;
                 if (selectedTaskId && s.taskId !== selectedTaskId) return false;
                 return !isGraded(s);
             });
@@ -1560,13 +1560,14 @@
                 if(allSuccess) {
                     showToast(`${allSubIds.length} penilaian berhasil disimpan!`, "success");
                     allSubIds.forEach(id => {
-                        // PERBAIKAN: Gunakan String() disini
                         let sub = state.submissions.find(s => String(s.subId) === String(id));
                         if(sub) { sub.nilai = nilaiVal; sub.komentar = komentarVal; }
                     });
                     closeBulkGradeModal();
                     updateUngradedNotification();
                     filterSubmissions();
+                    // PERBAIKAN: Tarik data terbaru dari server agar benar-benar sinkron
+                    loadDashboardData(); 
                 } else {
                     showToast("Beberapa data gagal disimpan. Coba lagi.", "error");
                 }
