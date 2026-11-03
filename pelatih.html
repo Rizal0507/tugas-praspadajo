@@ -1346,24 +1346,48 @@
 
         function downloadRaportImage() {
             const container = document.getElementById('raportTableContainer');
-            showLoading(true, "Menyiapkan gambar...");
+            const parent = container.parentElement; // Modal pembungkusnya
             
-            html2canvas(container, {
-                scale: 2, 
-                backgroundColor: '#ffffff',
-                useCORS: true
-            }).then(canvas => {
-                showLoading(false);
-                const imgData = canvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                link.download = `Raport_${Date.now()}.png`;
-                link.href = imgData;
-                link.click();
-                showToast("Gambar berhasil diunduh!", "success");
-            }).catch(e => {
-                showLoading(false);
-                showToast("Gagal mengunduh gambar", "error");
-            });
+            // 1. Simpan class asli
+            const originalContainerClass = container.className;
+            const originalParentClass = parent.className;
+
+            // 2. Hapus batasan scroll & tinggi agar seluruh baris tabel dirender sempurna
+            container.classList.remove('overflow-auto', 'custom-scroll', 'max-h-[90vh]');
+            parent.classList.remove('max-h-[90vh]');
+            
+            showLoading(true, "Menyiapkan gambar...");
+
+            // 3. Beri waktu 200ms agar browser selesai memperluas layout tabel
+            setTimeout(() => {
+                html2canvas(container, {
+                    scale: 2, 
+                    backgroundColor: '#ffffff',
+                    useCORS: true,
+                    scrollY: -window.scrollY // Mencegah gambar terpotong jika layar sedang di-scroll
+                }).then(canvas => {
+                    // 4. Kembalikan class ke bentuk semula (agar modal kembali normal)
+                    container.className = originalContainerClass;
+                    parent.className = originalParentClass;
+                    
+                    showLoading(false);
+                    
+                    // 5. Proses unduh
+                    const imgData = canvas.toDataURL('image/png');
+                    const link = document.createElement('a');
+                    link.download = `Raport_${Date.now()}.png`;
+                    link.href = imgData;
+                    link.click();
+                    showToast("Gambar berhasil diunduh!", "success");
+                }).catch(e => {
+                    // Jika gagal, tetap kembalikan class ke semula
+                    container.className = originalContainerClass;
+                    parent.className = originalParentClass;
+
+                    showLoading(false);
+                    showToast("Gagal mengunduh gambar", "error");
+                });
+            }, 200);
         }
 
         // --- MODAL LAPORAN ERROR ---
