@@ -1193,6 +1193,17 @@
                 else showToast(d.message, "error");
             }).catch(e=>{showLoading(false); showToast("Koneksi gagal", "error");});
         });
+                // Fungsi bantuan untuk merapikan tampilan tanggal tugas
+        function formatTaskDisplayDate(val) {
+            if (!val) return '-';
+            let str = val.toString();
+            // Jika formatnya ISO (mengandung huruf 'T'), potong dan ambil tanggalnya
+            if (str.includes('T')) {
+                return extractLocalDate(str);
+            }
+            // Jika formatnya rentang (to), ubah jadi s/d
+            return str.replace(' to ', ' s/d ');
+        }
 
         function renderTaskList() {
             const todayStr = getLocalToday();
@@ -1226,7 +1237,7 @@
                         <td class="py-2 px-4">${i+1}</td>
                         <td class="py-2 px-4 font-bold text-gray-800">${t.judulTugas}</td>
                         <td class="py-2 px-4 text-center font-semibold text-[10px] text-blue-600 uppercase">${t.jenisTugas} - ${t.tipePengumpulan}</td>
-                        <td class="py-2 px-4 text-center text-[10px] font-bold text-amber-600">${t.tanggalPengerjaan.replace(' to ', ' s/d ')}</td>
+                        <td class="py-2 px-4 text-center text-[10px] font-bold text-amber-600">${formatTaskDisplayDate(t.tanggalPengerjaan)}</td>
                         <td class="py-2 px-4 text-center flex justify-center gap-2">
                             <button onclick='editTaskData(${JSON.stringify(t).replace(/'/g, "&#39;")})' class="bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100"><i class="fa-solid fa-pen"></i></button>
                             <button onclick="deleteTaskData('${t.taskId}')" class="bg-rose-50 text-rose-600 px-2 py-1 rounded hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>
@@ -1245,7 +1256,7 @@
                         <td class="py-2 px-4">${i+1}</td>
                         <td class="py-2 px-4 font-bold text-gray-600">${t.judulTugas}</td>
                         <td class="py-2 px-4 text-center font-semibold text-[10px] text-gray-500 uppercase">${t.jenisTugas} - ${t.tipePengumpulan}</td>
-                        <td class="py-2 px-4 text-center text-[10px] font-bold text-gray-500">${t.tanggalPengerjaan.replace(' to ', ' s/d ')}</td>
+                        <td class="py-2 px-4 text-center text-[10px] font-bold text-gray-500">${formatTaskDisplayDate(t.tanggalPengerjaan)}</td>
                         <td class="py-2 px-4 text-center flex justify-center gap-2">
                             <button onclick="deleteTaskData('${t.taskId}')" class="bg-rose-50 text-rose-600 px-2 py-1 rounded hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>
                         </td>
