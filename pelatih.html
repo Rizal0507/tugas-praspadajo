@@ -123,6 +123,7 @@
                         <button onclick="loadDashboardData(true)" class="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold border border-blue-200 active:scale-95"><i class="fa-solid fa-rotate mr-1"></i> Refresh</button>
                         <button onclick="resetFilters()" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-xs font-bold border border-gray-200 active:scale-95"><i class="fa-solid fa-filter-circle-xmark mr-1"></i> Reset</button>
                         <button onclick="openRaportModal()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold active:scale-95 shadow-md"><i class="fa-solid fa-file-invoice mr-1"></i> Raport</button>
+                        <button onclick="openBulkGradeModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold active:scale-95 shadow-md"><i class="fa-solid fa-layer-group mr-1"></i> Nilai Massal</button>
                     </div>
                 </div>
 
@@ -1395,7 +1396,122 @@
                 });
             }, 100); // Delay 100ms agar browser selesai merender clone
         }
+        // --- FITUR NILAI MASSAL ---
+        function openBulkGradeModal() {
+            document.getElementById('bulkGradeDate').value = getLocalToday();
+            document.getElementById('bulkGradeComment').value = '';
+            document.getElementById('bulkGradeModal').classList.remove('hidden');
+            document.getElementById('bulkGradeModal').classList.add('flex');
+            loadBulkGradeData();
+        }
 
+        function closeBulkGradeModal() {
+            document.getElementById('bulkGradeModal').classList.add('hidden');
+            document.getElementById('bulkGradeModal').classList.remove('flex');
+        }
+
+        function loadBulkGradeData() {
+            const dateVal = document.getElementById('bulkGradeDate').value;
+            const tbody = document.getElementById('tableBulkGradeBody');
+            
+            if(!dateVal) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-gray-400">Silakan pilih tanggal terlebih dahulu.</td></tr>`;
+                return;
+            }
+
+            // Filter data yang sesuai tanggal dan BELUM dinilai
+            let subs = state.submissions.filter(s => {
+                const sDate = extractLocalDate(s.tanggal || s.waktuKumpul);
+                return sDate === dateVal && !isGraded(s);
+            });
+
+            if(subs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-gray-400">Tidak ada tugas yang perlu dinilai pada tanggal ini.</td></tr>`;
+                return;
+            }
+
+            // Grouping agar 1 Tugas Panjang (Sesi 01,02,03) hanya jadi 1 baris
+            const groupedData = {};
+            subs.forEach(s => {
+                const baseName = (s.subTugasName || '').replace(/\s*\((Sesi|Set)\s*\d+\/\d+\)/i, '').trim();
+                const groupKey = `${s.taskId}_${s.namaAnggota}_${baseName}`;
+                if (!groupedData[groupKey]) groupedData[groupKey] = { ...s, sessions: [], baseName: baseName };
+                groupedData[groupKey].sessions.push(s);
+            });
+
+            const groups = Object.values(groupedData).sort((a,b) => a.namaAnggota.localeCompare(b.namaAnggota));
+
+            tbody.innerHTML = groups.map((g, idx) => {
+                const allSubIds = g.sessions.map(x => x.subId).join('|');
+                return `
+                    <tr class="hover:bg-indigo-50/30 border-b">
+                        <td class="py-2 px-3 text-center align-top pt-3">
+                            <input type="checkbox" class="chk-bulk w-4 h-4 cursor-pointer accent-indigo-600" value="${allSubIds}">
+                        </td>
+                        <td class="py-2 px-3 align-top">
+                            <div class="font-bold text-gray-800 text-xs">${g.namaAnggota}</div>
+                            <div class="text-[10px] text-gray-500">${g.sessions.length} Sesi/Set</div>
+                        </td>
+                        <td class="py-2 px-3 align-top">
+                            <div class="font-semibold text-indigo-700">${g.baseName}</div>
+                            <div class="text-[9px] text-gray-400 italic line-clamp-1">${g.linkVideo}</div>
+                        </td>
+                        <td class="py-2 px-3 text-center align-top pt-3 text-[10px] font-bold text-gray-500">
+                            ${formatDisplayTime(g.waktuKumpul || g.tanggal).split(' ')[1] || ''}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function toggleAllBulk(source) {
+            document.querySelectorAll('.chk-bulk').forEach(c => c.checked = source.checked);
+        }
+
+        function executeBulkGrade() {
+            const checkboxes = document.querySelectorAll('.chk-bulk:checked');
+            if(checkboxes.length === 0) { showToast("Pilih minimal 1 data untuk dinilai!", "error"); return; }
+
+            const nilaiVal = document.getElementById('bulkGradeValue').value;
+            const komentarVal = document.getElementById('bulkGradeComment').value.trim();
+
+            let allSubIds = [];
+            checkboxes.forEach(cb => {
+                allSubIds = allSubIds.concat(cb.value.split('|'));
+            });
+
+            showLoading(true, `Menyimpan ${allSubIds.length} penilaian...`);
+
+            // Kirim request secara berurutan (chunk) agar server tidak down
+            const promises = allSubIds.map(id => 
+                fetch(GAS_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: 'nilaiTugas', subId: id, nilai: nilaiVal, komentar: komentarVal }) 
+                }).then(r => r.json())
+            );
+
+            Promise.all(promises).then(results => {
+                showLoading(false);
+                const allSuccess = results.every(d => d.success);
+                
+                if(allSuccess) {
+                    showToast(`${allSubIds.length} penilaian berhasil disimpan!`, "success");
+                    // Update data di memori lokal agar langsung berubah tanpa refresh
+                    allSubIds.forEach(id => {
+                        let sub = state.submissions.find(s => s.subId === id);
+                        if(sub) { sub.nilai = nilaiVal; sub.komentar = komentarVal; }
+                    });
+                    closeBulkGradeModal();
+                    updateUngradedNotification();
+                    filterSubmissions();
+                } else {
+                    showToast("Beberapa data gagal disimpan. Coba lagi.", "error");
+                }
+            }).catch(e => {
+                showLoading(false);
+                showToast("Gagal terhubung ke server", "error");
+            });
+        }
         // --- MODAL LAPORAN ERROR ---
         function openErrorLogModal() {
             document.getElementById('errorLogModal').classList.remove('hidden');
@@ -1763,7 +1879,62 @@
                 else { showToast(d.message, "error"); }
             }).catch(e => { showLoading(false); showToast("Gagal memperbarui hak akses", "error"); });
         }
+    <!-- ============ MODAL NILAI MASSAL ============ -->
+    <div id="bulkGradeModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-3xl p-5 shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4 border-b pb-3 flex-none">
+                <h3 class="font-bold text-gray-800 text-sm"><i class="fa-solid fa-layer-group text-indigo-600 mr-1"></i> Penilaian Massal</h3>
+                <button onclick="closeBulkGradeModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 flex-none">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-600 uppercase mb-1 block">Pilih Tanggal (Wajib)</label>
+                    <input type="date" id="bulkGradeDate" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs font-bold outline-none focus:border-indigo-500" onchange="loadBulkGradeData()">
+                </div>
+                <div class="flex items-end gap-2">
+                    <div class="flex-1">
+                        <label class="text-[10px] font-bold text-gray-600 uppercase mb-1 block">Beri Nilai</label>
+                        <select id="bulkGradeValue" class="w-full px-3 py-2 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-xl text-xs font-bold outline-none">
+                            <option value="A">A (Sangat Baik)</option>
+                            <option value="B">B (Baik)</option>
+                            <option value="C">C (Cukup)</option>
+                            <option value="D">D (Kurang)</option>
+                            <option value="E">E (Buruk)</option>
+                        </select>
+                    </div>
+                    <button type="button" onclick="loadBulkGradeData()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl text-xs font-bold active:scale-95 h-[34px]"><i class="fa-solid fa-search"></i></button>
+                </div>
+            </div>
 
+            <div class="mb-3 flex-none">
+                <label class="text-[10px] font-bold text-gray-600 uppercase mb-1 block">Catatan Tambahan (Opsional)</label>
+                <input type="text" id="bulkGradeComment" placeholder="Contoh: Tingkatkan semangat!" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none focus:border-indigo-500">
+            </div>
+
+            <div class="overflow-auto custom-scroll flex-grow border rounded-xl bg-gray-50 mb-4">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead class="bg-white text-gray-500 uppercase font-bold text-[10px] sticky top-0 shadow-sm z-10">
+                        <tr>
+                            <th class="py-2 px-3 w-10 text-center"><input type="checkbox" id="chkAllBulk" onchange="toggleAllBulk(this)" class="w-4 h-4 cursor-pointer accent-indigo-600"></th>
+                            <th class="py-2 px-3">Nama Anggota</th>
+                            <th class="py-2 px-3">Tugas / Sesi</th>
+                            <th class="py-2 px-3 text-center">Waktu</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBulkGradeBody" class="divide-y divide-gray-200 bg-white">
+                        <tr><td colspan="4" class="py-8 text-center text-gray-400">Pilih tanggal lalu klik ikon pencarian.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="flex gap-2 justify-end flex-none">
+                <button type="button" onclick="closeBulkGradeModal()" class="px-4 py-2 bg-gray-100 text-gray-600 font-bold rounded-xl text-xs">Batal</button>
+                <button type="button" onclick="executeBulkGrade()" class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl text-xs shadow-md active:scale-95"><i class="fa-solid fa-check-double mr-1"></i> Simpan Terpilih</button>
+            </div>
+        </div>
+    </div>
+        
         document.getElementById('formAddMember').addEventListener('submit', (e) => {
             e.preventDefault(); showLoading(true, "Menyimpan...");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'addMember', nama: document.getElementById('newMemberName').value, username: document.getElementById('newMemberUsername').value, kelas: document.getElementById('newMemberClass').value, role: document.getElementById('newMemberRole').value, password: document.getElementById('newMemberPass').value })})
