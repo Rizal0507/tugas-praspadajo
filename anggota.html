@@ -1737,6 +1737,7 @@
                 const itemsForDate = grouped[dateStr].reverse();
                 const itemsHtml = itemsForDate.map(s => {
                     const n = s.nilai;
+                    
                     // Logika Warna & Medali Khusus Grade S
                     let badgeColor = 'bg-gray-300';
                     let medalHtml = '';
@@ -1753,8 +1754,13 @@
                     else if (n === 'C') { badgeColor = 'bg-amber-500'; }
                     else if (n === 'D') { badgeColor = 'bg-orange-500'; }
                     else if (n === 'E') { badgeColor = 'bg-rose-500'; }
+
+                    // PERBAIKAN: Tambahkan baris ini
+                    const taskRef = allTasks.find(t => t.taskId === s.taskId);
                     const judul = taskRef ? taskRef.judulTugas : "Tugas Latihan";
+                    
                     const komentar = s.komentar ? s.komentar : "Belum ada catatan dari pelatih.";
+                    
                     return `
                     <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3">
                         <div class="flex justify-between items-start border-b pb-3">
