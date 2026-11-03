@@ -878,7 +878,11 @@
             selRaport.innerHTML = '<option value="">Pilih Tugas</option>' + state.tasks.map(t => `<option value="${t.taskId}">${t.judulTugas}</option>`).join('');
         }
 
-        function isGraded(s) { return s.nilai && s.nilai !== '-'; }
+        function isGraded(s) {
+            if (!s.nilai) return false;
+            const val = String(s.nilai).trim().toUpperCase();
+            return val !== '' && val !== '-';
+        }
 
         function matchesSubmissionDate(s, dateVal) {
             if (!dateVal) return true;
@@ -1109,9 +1113,10 @@
                 selectEl.disabled = false; komentarEl.disabled = false; showLoading(false);
                 const allSuccess = results.every(d => d.success);
                 if(allSuccess) {
-                    showToast("Nilai & Catatan berhasil disimpan ke semua sesi!", "success");
+                    showToast("Nilai & Catatan berhasil disimpan!", "success");
                     subIds.forEach(id => {
-                        let sub = state.submissions.find(s => s.subId === id);
+                        // PERBAIKAN: Gunakan String() agar cocok antara ID (string) dan state (number)
+                        let sub = state.submissions.find(s => String(s.subId) === String(id));
                         if(sub) { sub.nilai = nilaiVal; sub.komentar = komentarVal; }
                     });
                     updateUngradedNotification();
@@ -1468,6 +1473,7 @@
 
         function loadBulkGradeData() {
             const dateVal = document.getElementById('bulkGradeDate').value;
+            const selectedTaskId = document.getElementById('selectTaskFilter').value; // Ambil filter tugas
             const tbody = document.getElementById('tableBulkGradeBody');
             
             if(!dateVal) {
@@ -1475,14 +1481,16 @@
                 return;
             }
 
-            // Filter data yang sesuai tanggal dan BELUM dinilai
+            // Filter berdasarkan tanggal, tugas yang dipilih, dan BELUM dinilai
             let subs = state.submissions.filter(s => {
                 const sDate = extractLocalDate(s.tanggal || s.waktuKumpul);
-                return sDate === dateVal && !isGraded(s);
+                if (sDate !== dateVal) return false;
+                if (selectedTaskId && s.taskId !== selectedTaskId) return false;
+                return !isGraded(s);
             });
 
             if(subs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-gray-400">Tidak ada tugas yang perlu dinilai pada tanggal ini.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-gray-400">Tidak ada tugas yang perlu dinilai pada filter ini.</td></tr>`;
                 return;
             }
 
@@ -1538,7 +1546,6 @@
 
             showLoading(true, `Menyimpan ${allSubIds.length} penilaian...`);
 
-            // Kirim request secara berurutan (chunk) agar server tidak down
             const promises = allSubIds.map(id => 
                 fetch(GAS_URL, { 
                     method: 'POST', 
@@ -1552,9 +1559,9 @@
                 
                 if(allSuccess) {
                     showToast(`${allSubIds.length} penilaian berhasil disimpan!`, "success");
-                    // Update data di memori lokal agar langsung berubah tanpa refresh
                     allSubIds.forEach(id => {
-                        let sub = state.submissions.find(s => s.subId === id);
+                        // PERBAIKAN: Gunakan String() disini
+                        let sub = state.submissions.find(s => String(s.subId) === String(id));
                         if(sub) { sub.nilai = nilaiVal; sub.komentar = komentarVal; }
                     });
                     closeBulkGradeModal();
