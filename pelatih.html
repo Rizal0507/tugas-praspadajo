@@ -475,8 +475,8 @@
                                 <input type="date" id="rekapStartDate" class="px-2 py-1.5 border rounded-lg text-[10px] outline-none">
                                 <span class="text-xs text-gray-400">-</span>
                                 <input type="date" id="rekapEndDate" class="px-2 py-1.5 border rounded-lg text-[10px] outline-none">
-                                <button onclick="renderTabelPerorangan()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold">Tampilkan</button>
-                                <button onclick="hideTabelPerorangan()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold">Sembunyikan</button>
+<button onclick="renderTabelPerorangan()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold">Tampilkan</button>
+<button onclick="toggleRekapKas()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold" title="Sembunyikan/Tampilkan"><i id="iconToggleRekap" class="fa-solid fa-eye"></i></button>
                                 <button onclick="downloadTabelPerorangan()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md"><i class="fa-solid fa-download mr-1"></i> Unduh</button>
                             </div>
                         </div>
@@ -487,6 +487,7 @@
                             </table>
                         </div>
                     </div>
+                </div>
 
                 <!-- Sub-View Kas -->
                 <div id="subViewKeuanganKas" class="hidden flex-col gap-4">
@@ -2930,7 +2931,20 @@
             while (curr <= endDate) {
                 dateList.push(curr.toISOString().split('T')[0]);
                 curr.setDate(curr.getDate() + 1);
+            document.getElementById('rekapPeroranganWrapper').classList.remove('hidden');
+            document.getElementById('iconToggleRekap').className = 'fa-solid fa-eye-slash';
             }
+        function toggleRekapKas() {
+            const wrapper = document.getElementById('rekapPeroranganWrapper');
+            const icon = document.getElementById('iconToggleRekap');
+            if(wrapper.classList.contains('hidden')) {
+                wrapper.classList.remove('hidden');
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                wrapper.classList.add('hidden');
+                icon.className = 'fa-solid fa-eye';
+            }
+        }
 
             let theadHtml = `<tr><th class="p-2 border-r sticky left-0 bg-gray-100 z-10">Nama Anggota</th>`;
             dateList.forEach(d => {
