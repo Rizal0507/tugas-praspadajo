@@ -911,6 +911,27 @@
             </div>
         </div>
     </div>
+
+    <!-- MODAL PENGELUARAN (YANG HILANG) -->
+    <div id="pengeluaranModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h3 class="font-bold text-gray-800 text-sm">Tarik Tunai / Pengeluaran</h3>
+                <button onclick="closePengeluaranModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="formPengeluaran" class="flex flex-col gap-3">
+                <div><label class="text-[10px] font-bold text-gray-600">Tanggal Pengeluaran</label><input type="date" id="outTanggal" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold"></div>
+                <div><label class="text-[10px] font-bold text-gray-600">Nominal (Rp)</label><input type="text" id="outNominal" onkeyup="formatInputRupiah(this)" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold"></div>
+                <div><label class="text-[10px] font-bold text-gray-600">Tujuan Pengeluaran</label><input type="text" id="outTujuan" required placeholder="Beli minum, dll" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></div>
+                <div><label class="text-[10px] font-bold text-gray-600">Nama Peminta</label><input type="text" id="outPeminta" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></div>
+                <div class="flex gap-2 mt-2">
+                    <button type="button" onclick="closePengeluaranModal()" class="flex-1 bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
+                    <button type="submit" class="flex-1 bg-rose-600 text-white font-bold py-2 rounded-xl text-xs shadow-md">Konfirmasi Tarik</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <!-- MODAL SETTING KAS -->
     <div id="settingKasModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl">
@@ -2973,56 +2994,7 @@
             document.getElementById('rekapPeroranganWrapper').classList.add('hidden');
         }
 
-        function downloadTabelPerorangan() {
-            const originalTable = document.getElementById('tableRekapPerorangan');
-            
-            // Clone tabelnya saja, jangan clone wrapper yang hidden
-            const cloneTable = originalTable.cloneNode(true);
-            
-            // Buat container sementara agar html2canvas bisa merender
-            const tempDiv = document.createElement('div');
-            tempDiv.style.position = 'absolute';
-            tempDiv.style.left = '-9999px';
-            tempDiv.style.top = '0';
-            tempDiv.style.backgroundColor = '#ffffff';
-            tempDiv.style.padding = '20px'; // Beri sedikit jarak
-            tempDiv.appendChild(cloneTable);
-            
-            // Berikan styling ketat pada tabel clone agar rapi
-            cloneTable.style.width = '100%';
-            cloneTable.style.borderCollapse = 'collapse';
-            const cells = cloneTable.querySelectorAll('th, td');
-            cells.forEach(cell => {
-                cell.style.border = '1px solid #e5e7eb';
-                cell.style.padding = '8px 12px';
-                cell.style.textAlign = 'center';
-                cell.style.fontSize = '12px';
-                cell.style.color = '#374151';
-            });
-            // Warna header
-            const headers = cloneTable.querySelectorAll('th');
-            headers.forEach(th => { th.style.backgroundColor = '#f3f4f6'; th.style.fontWeight = 'bold'; });
-
-            document.body.appendChild(tempDiv);
-            showLoading(true, "Menyiapkan gambar...");
-
-            // Tunggu sebentar agar browser selesai rendering
-            setTimeout(() => {
-                html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff', useCors: true }).then(canvas => {
-                    document.body.removeChild(tempDiv);
-                    showLoading(false);
-                    const link = document.createElement('a');
-                    link.download = `Rekap_Kas_${Date.now()}.png`;
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                    showToast("Gambar berhasil diunduh!", "success");
-                }).catch(e => {
-                    if(document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
-                    showLoading(false); showToast("Gagal unduh", "error"); 
-                });
-            }, 100);
-        }
-
+function downloadTabelPerorangan()
         // --- 2. KAS ---
         function renderKasUI() {
             const minKas = keuanganData.settings.minimal || 0;
@@ -3120,9 +3092,12 @@
             });
         });
 
-        function openPengeluaranModal() { document.getElementById('pengeluaranModal').classList.remove('hidden'); document.getElementById('pengeluaranModal').classList.add('flex'); }
-        function closePengeluaranModal() { document.getElementById('pengeluaranModal').classList.add('hidden'); document.getElementById('pengeluaranModal').classList.remove('flex'); }
-        
+        function openPengeluaranModal() { 
+            document.getElementById('formPengeluaran').reset();
+            document.getElementById('outTanggal').value = getLocalToday();
+            document.getElementById('pengeluaranModal').classList.remove('hidden'); 
+            document.getElementById('pengeluaranModal').classList.add('flex'); 
+        }        
         document.getElementById('formPengeluaran').addEventListener('submit', (e) => {
             e.preventDefault();
             showLoading(true, "Menyimpan...");
@@ -3131,10 +3106,11 @@
                 nominal: unformatRupiah(document.getElementById('outNominal').value),
                 tujuan: document.getElementById('outTujuan').value,
                 peminta: document.getElementById('outPeminta').value,
-                dicatatOleh: state.user.nama
+                dicatatOleh: state.user.nama,
+                tanggalKustom: document.getElementById('outTanggal').value
             })}).then(r=>r.json()).then(d => {
                 showLoading(false);
-                if(d.success) { showToast("Pengeluaran dicatat", "success"); closePengeluaranModal(); document.getElementById('formPengeluaran').reset(); loadKeuanganData(); }
+                if(d.success) { showToast("Pengeluaran dicatat", "success"); closePengeluaranModal(); loadKeuanganData(); }
                 else showToast(d.message, "error");
             });
         });
