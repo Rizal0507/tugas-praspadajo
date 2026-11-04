@@ -55,6 +55,29 @@
 
         /* Prevent body scroll during recording (safety) */
         body.locked-scroll { overflow: hidden !important; position: fixed; width: 100%; height: 100%; }
+                /* === BIRTHDAY MARQUEE === */
+        @keyframes marquee-scroll {
+            0%   { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .marquee-wrapper {
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+            width: 100%;
+            -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+            mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+        }
+        .marquee-content {
+            display: inline-block;
+            white-space: nowrap;
+            animation: marquee-scroll 20s linear infinite;
+        }
+        @keyframes birthday-glow-pulse {
+            0%, 100% { color: #db2777; text-shadow: 0 0 2px rgba(219,39,119,0.35); }
+            50%      { color: #f59e0b; text-shadow: 0 0 8px rgba(245,158,11,0.6); }
+        }
+        .birthday-glow { animation: birthday-glow-pulse 2.5s ease-in-out infinite; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans text-gray-800 antialiased flex flex-col items-center relative overflow-hidden">
@@ -99,6 +122,14 @@
                         <span id="mobileGreeting" class="text-[10px] font-extrabold text-blue-500 uppercase tracking-widest">Selamat Pagi</span>
                         <span id="mobileName" class="font-extrabold text-gray-800 text-sm leading-tight truncate">Nama</span>
                         <span id="mobileMotivation" class="text-[10px] text-gray-500 italic mt-0.5 leading-snug whitespace-normal">"Motivasi..."</span>
+                                            <!-- BIRTHDAY: running text doa (jika user sendiri ultah) -->
+                        <div id="birthdaySelfWrap" class="hidden mt-1 marquee-wrapper w-full">
+                            <span id="birthdaySelfText" class="marquee-content text-[10px] font-bold birthday-glow"></span>
+                        </div>
+                        <!-- BIRTHDAY: running text info ultah anggota lain -->
+                        <div id="birthdayOthersWrap" class="hidden mt-1 marquee-wrapper w-full">
+                            <span id="birthdayOthersText" class="marquee-content text-[10px] font-bold text-amber-600"></span>
+                        </div>
                         <span id="mobileDeadlineBadge" class="hidden text-[9px] font-bold mt-1 px-2 py-0.5 rounded-full"></span>
                     </div>
                 </div>
@@ -595,6 +626,9 @@
 
         // State Motivation Card
         let motivTasksCache = [];
+                // State Birthday
+        let todayBirthdays = [];
+        let myBirthdayInfo = null;
 
         const eggQuotes = [
             "Kamu hebat! Kamu sudah menyelesaikan semua tugas hari ini. Yakinlah semua ini akan membuatmu lebih baik.",
@@ -716,8 +750,54 @@
         function updateGreeting() {
             const hour = new Date().getHours();
             let greeting = (hour >= 4 && hour < 11) ? "Selamat Pagi" : (hour >= 11 && hour < 15) ? "Selamat Siang" : (hour >= 15 && hour < 18) ? "Selamat Sore" : "Selamat Malam";
+            if (myBirthdayInfo) greeting = "🎂 Selamat Ulang Tahun!";
             const el = document.getElementById('mobileGreeting');
             if (el) el.textContent = greeting;
+        }
+
+                // === FITUR ULANG TAHUN ===
+        function fetchBirthdays() {
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getTodayBirthdays' }) })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success && d.data && d.data.length > 0) {
+                    todayBirthdays = d.data;
+                    const myUsername = (user.username || '').toLowerCase().trim();
+                    myBirthdayInfo = todayBirthdays.find(b => (b.username || '').toLowerCase().trim() === myUsername) || null;
+                    applyBirthdayUI();
+                }
+            })
+            .catch(e => console.warn('Birthday fetch error:', e));
+        }
+
+        function applyBirthdayUI() {
+            const greetingEl = document.getElementById('mobileGreeting');
+            const motivEl = document.getElementById('mobileMotivation');
+            const selfWrap = document.getElementById('birthdaySelfWrap');
+            const selfText = document.getElementById('birthdaySelfText');
+            const othersWrap = document.getElementById('birthdayOthersWrap');
+            const othersText = document.getElementById('birthdayOthersText');
+            if (!greetingEl || !motivEl) return;
+
+            // === User sendiri yang ulang tahun ===
+            if (myBirthdayInfo) {
+                greetingEl.textContent = "🎂 Selamat Ulang Tahun!";
+                greetingEl.classList.remove('text-blue-500');
+                greetingEl.classList.add('text-pink-600');
+                motivEl.classList.add('hidden');
+                selfWrap.classList.remove('hidden');
+                const panggilan = myBirthdayInfo.namaPanggilan || myBirthdayInfo.nama;
+                selfText.textContent = `🎉 Selamat ulang tahun ${panggilan} yang ke-${myBirthdayInfo.umur}! Semoga panjang umur, sehat selalu, dilancarkan rezekinya, dan sukses dalam setiap latihan. Tetap semangat! 🌻🎂`;
+            }
+
+            // === Anggota lain yang ulang tahun (kecuali diri sendiri) ===
+            const myUsername = (user.username || '').toLowerCase().trim();
+            const others = todayBirthdays.filter(b => (b.username || '').toLowerCase().trim() !== myUsername);
+            if (others.length > 0) {
+                othersWrap.classList.remove('hidden');
+                const names = others.map(b => `${b.namaPanggilan || b.nama} (ke-${b.umur})`).join(', ');
+                othersText.textContent = `🎂 Hari ini ${names} berulang tahun. Jangan lupa ucapkan selamat! 🎉`;
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -748,6 +828,7 @@
             renderMenu();
             fetchConfigAndTasks();
             fetchRiwayatSemua();
+            fetchBirthdays();
             // Motivation card: refresh tiap 60 detik
             if (window.__motivInterval) clearInterval(window.__motivInterval);
             window.__motivInterval = setInterval(() => updateMotivationCard(motivTasksCache), 60000);
