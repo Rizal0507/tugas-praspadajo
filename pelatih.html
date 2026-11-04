@@ -110,6 +110,8 @@
                 <button onclick="switchTab('buatTugas')" id="tabBtnBuatTugas" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors"><i class="fa-solid fa-plus-circle w-4 text-center"></i> <span>Buat Tugas</span></button>
                 <button onclick="switchTab('absensi')" id="tabBtnAbsensi" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors"><i class="fa-solid fa-clipboard-user w-4 text-center"></i> <span>Absen</span></button>
                 <button onclick="switchTab('riwayatAbsensi')" id="tabBtnRiwayatAbsensi" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors"><i class="fa-solid fa-clock-rotate-left w-4 text-center"></i> <span>Riwayat Absen</span></button>
+                <button onclick="switchTab('materi')" id="tabBtnMateri" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors"><i class="fa-solid fa-book-open w-4 text-center"></i> <span>Materi</span></button>
+                <button onclick="switchTab('keuangan')" id="tabBtnKeuangan" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors"><i class="fa-solid fa-money-bill-wave w-4 text-center"></i> <span>Keuangan</span></button>
                 <button onclick="switchTab('anggota')" id="tabBtnAnggota" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors"><i class="fa-solid fa-users-gear w-4 text-center"></i> <span>Anggota</span></button>
                 <button onclick="switchTab('pengaturan')" id="tabBtnPengaturan" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors"><i class="fa-solid fa-gear w-4 text-center"></i> <span>Pengaturan</span></button>
                 <div class="h-px bg-gray-200 my-2"></div>
@@ -409,7 +411,102 @@
                     <div id="riwayatEmptyState" class="py-10 text-center text-gray-400 text-xs font-bold">Pilih tanggal di atas untuk melihat riwayat.</div>
                 </div>
             </section>
+            <!-- VIEW MATERI -->
+            <section id="viewMateri" class="tab-view hidden flex-col gap-5 w-full">
+                <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex justify-between items-center">
+                    <h3 class="font-bold text-gray-800 text-sm"><i class="fa-solid fa-book text-blue-500 mr-1"></i> Daftar Materi</h3>
+                    <button onclick="openMateriModal()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold active:scale-95 shadow-md"><i class="fa-solid fa-plus mr-1"></i> Tambah Materi</button>
+                </div>
+                <div id="materiListContainer" class="flex flex-col gap-3">
+                    <!-- Render Materi via JS -->
+                </div>
+            </section>
 
+            <!-- VIEW KEUANGAN -->
+            <section id="viewKeuangan" class="tab-view hidden flex-col gap-5 w-full">
+                <!-- Sub-Tab Keuangan -->
+                <div class="flex gap-2 overflow-x-auto custom-scroll pb-1">
+                    <button onclick="switchSubTabKeuangan('dashboard')" id="subTabBtnDashboard" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-sm whitespace-nowrap">Dashboard</button>
+                    <button onclick="switchSubTabKeuangan('kas')" id="subTabBtnKas" class="px-4 py-2 bg-white text-gray-600 border border-gray-200 rounded-xl text-xs font-bold shadow-sm whitespace-nowrap">Kas</button>
+                    <button onclick="switchSubTabKeuangan('tabungan')" id="subTabBtnTabungan" class="px-4 py-2 bg-white text-gray-600 border border-gray-200 rounded-xl text-xs font-bold shadow-sm whitespace-nowrap">Tabungan/Dana</button>
+                    <button onclick="openSettingKasModal()" class="ml-auto px-4 py-2 bg-indigo-50 text-indigo-600 border border-indigo-200 rounded-xl text-xs font-bold shadow-sm whitespace-nowrap"><i class="fa-solid fa-gear"></i></button>
+                </div>
+
+                <!-- Sub-View Dashboard -->
+                <div id="subViewKeuanganDashboard" class="flex flex-col gap-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white p-4 rounded-3xl shadow-lg col-span-2">
+                            <span class="text-xs font-medium text-blue-200 block mb-1">Total Saldo Kas</span>
+                            <h2 class="text-3xl font-black" id="dashTotalKas">Rp 0</h2>
+                        </div>
+                        <div class="bg-white p-4 rounded-3xl border shadow-sm">
+                            <span class="text-[10px] font-bold text-emerald-500 block mb-1 uppercase">Pemasukan</span>
+                            <h3 class="text-lg font-bold text-gray-800" id="dashTotalMasuk">Rp 0</h3>
+                        </div>
+                        <div class="bg-white p-4 rounded-3xl border shadow-sm">
+                            <span class="text-[10px] font-bold text-rose-500 block mb-1 uppercase">Pengeluaran</span>
+                            <h3 class="text-lg font-bold text-gray-800" id="dashTotalKeluar">Rp 0</h3>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-3xl border shadow-sm overflow-hidden mt-2">
+                        <div class="p-4 border-b"><h3 class="font-bold text-sm text-gray-800">Riwayat Transaksi Kas</h3></div>
+                        <div class="overflow-x-auto max-h-64 custom-scroll">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-gray-50 text-gray-500 font-bold sticky top-0">
+                                    <tr><th class="p-3">Tanggal</th><th class="p-3">Uang Masuk</th><th class="p-3">Uang Keluar</th><th class="p-3 text-right">Saldo</th></tr>
+                                </thead>
+                                <tbody id="tableDashboardKas" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="dynamicDanaCards" class="flex flex-col gap-4 mt-2"></div>
+                </div>
+
+                <!-- Sub-View Kas -->
+                <div id="subViewKeuanganKas" class="hidden flex-col gap-4">
+                    <div class="bg-white rounded-3xl border shadow-sm flex flex-col">
+                        <div class="p-4 border-b flex justify-between items-center">
+                            <h3 class="font-bold text-sm text-gray-800">Pemasukan Kas</h3>
+                            <span class="text-[10px] text-gray-500 font-bold bg-gray-100 px-2 py-1 rounded">Min: <span id="lblMinKas">Rp 0</span></span>
+                        </div>
+                        <div class="overflow-x-auto max-h-72 custom-scroll">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-gray-50 text-gray-500 font-bold sticky top-0">
+                                    <tr><th class="p-3">Nama</th><th class="p-3">Kekurangan</th><th class="p-3">Input Nominal</th></tr>
+                                </thead>
+                                <tbody id="tableKasMasuk" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-3xl border shadow-sm flex flex-col">
+                        <div class="p-4 border-b flex justify-between items-center">
+                            <h3 class="font-bold text-sm text-gray-800">Pengeluaran Kas</h3>
+                            <button onclick="openPengeluaranModal()" class="bg-rose-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold active:scale-95"><i class="fa-solid fa-minus mr-1"></i> Tarik Tunai</button>
+                        </div>
+                        <div class="overflow-x-auto max-h-64 custom-scroll">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-gray-50 text-gray-500 font-bold sticky top-0">
+                                    <tr><th class="p-3">Tanggal</th><th class="p-3">Tujuan</th><th class="p-3">Nominal</th></tr>
+                                </thead>
+                                <tbody id="tableKasKeluar" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-View Tabungan/Dana -->
+                <div id="subViewKeuanganTabungan" class="hidden flex-col gap-4">
+                     <div class="bg-white p-4 rounded-3xl border shadow-sm flex justify-between items-center">
+                        <h3 class="font-bold text-sm text-gray-800">Daftar Pengumpulan Dana</h3>
+                        <button onclick="openDanaModal()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold active:scale-95"><i class="fa-solid fa-plus mr-1"></i> Buat Dana</button>
+                    </div>
+                    <div id="danaListContainer" class="flex flex-col gap-3"></div>
+                </div>
+            </section>
+            
             <!-- VIEW ANGGOTA (NEW UI) -->
             <section id="viewAnggota" class="tab-view hidden flex-col gap-5">
                 <!-- Form Tambah Akun -->
@@ -711,7 +808,124 @@
             </div>
         </div>
     </div>
+    <!-- MODAL MATERI -->
+    <div id="materiModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-3xl p-5 shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4 border-b pb-3 flex-none">
+                <h3 class="font-bold text-gray-800 text-sm">Form Materi</h3>
+                <button onclick="closeMateriModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="overflow-y-auto custom-scroll flex-grow pr-1">
+                <form id="formMateri" class="flex flex-col gap-3">
+                    <input type="hidden" id="matId" value="">
+                    <div><label class="text-[10px] font-bold text-gray-600">Judul Materi</label><input type="text" id="matJudul" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></div>
+                    <div><label class="text-[10px] font-bold text-gray-600">Deskripsi Singkat</label><textarea id="matDesc" rows="2" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></textarea></div>
+                    <div><label class="text-[10px] font-bold text-gray-600">Teks Materi (Opsional)</label><textarea id="matTeks" rows="3" placeholder="Ketik materi di sini..." class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></textarea></div>
+                    
+                    <div class="flex items-center gap-2 bg-blue-50 p-3 rounded-xl border border-blue-100">
+                        <input type="checkbox" id="matButuhSub" onchange="toggleMateriSub()" class="w-4 h-4 accent-blue-600">
+                        <label class="text-xs font-bold text-blue-800">Butuh Sub-Materi (File/Video/PDF)?</label>
+                    </div>
 
+                    <div id="formSubMateriContainer" class="hidden flex-col gap-3 bg-gray-50 p-3 rounded-xl border">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div><label class="text-[10px] font-bold text-gray-600">Judul Sub-Materi</label><input type="text" id="subJudul" class="w-full px-3 py-1.5 bg-white border rounded-lg text-xs"></div>
+                            <div><label class="text-[10px] font-bold text-gray-600">Tipe</label>
+                                <select id="subTipe" class="w-full px-3 py-1.5 bg-white border rounded-lg text-xs">
+                                    <option value="Video">Video Link (YT/Drive)</option>
+                                    <option value="Gambar">Gambar</option>
+                                    <option value="PDF">PDF (Bisa langsung dibaca)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div><label class="text-[10px] font-bold text-gray-600">Link (Jika Video/PDF external)</label><input type="text" id="subLink" placeholder="https://..." class="w-full px-3 py-1.5 bg-white border rounded-lg text-xs"></div>
+                        <div class="text-center text-[10px] text-gray-400 font-bold">- ATAU UPLOAD FILE (PDF/Gambar) -</div>
+                        <div><input type="file" id="subFile" accept="image/*,application/pdf" class="w-full text-xs"></div>
+                        <button type="button" onclick="addSubMateriToList()" class="bg-gray-200 text-gray-700 font-bold py-2 rounded-xl text-xs">Tambah ke Daftar</button>
+                    </div>
+
+                    <div id="listSubMateri" class="flex flex-col gap-2 mt-2"></div>
+
+                    <div class="mt-2 border-t pt-2">
+                        <label class="text-[10px] font-bold text-gray-600 block mb-1">Target Materi</label>
+                        <select id="matTargetMode" onchange="toggleTargetMateri()" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs mb-2">
+                            <option value="Semua">Semua Anggota</option>
+                            <option value="Spesifik">Anggota Spesifik</option>
+                        </select>
+                        <div id="matTargetCheckboxes" class="hidden max-h-32 overflow-y-auto custom-scroll grid grid-cols-2 gap-1 p-2 border rounded-xl bg-gray-50"></div>
+                    </div>
+
+                    <button type="submit" class="mt-2 w-full bg-blue-600 text-white font-bold py-3 rounded-xl text-xs shadow-md">Simpan Materi</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PENGELUARAN KAS -->
+    <div id="pengeluaranModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+            <h3 class="font-bold text-gray-800 text-sm mb-4">Tarik Tunai / Pengeluaran</h3>
+            <form id="formPengeluaran" class="flex flex-col gap-3">
+                <div><label class="text-[10px] font-bold text-gray-600">Nominal (Rp)</label><input type="number" id="outNominal" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold"></div>
+                <div><label class="text-[10px] font-bold text-gray-600">Tujuan Pengeluaran</label><input type="text" id="outTujuan" required placeholder="Beli minum, dll" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></div>
+                <div><label class="text-[10px] font-bold text-gray-600">Nama Peminta</label><input type="text" id="outPeminta" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></div>
+                <div class="flex gap-2 mt-2">
+                    <button type="button" onclick="closePengeluaranModal()" class="flex-1 bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
+                    <button type="submit" class="flex-1 bg-rose-600 text-white font-bold py-2 rounded-xl text-xs shadow-md">Konfirmasi Tarik</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL SETTING KAS -->
+    <div id="settingKasModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+            <h3 class="font-bold text-gray-800 text-sm mb-4">Setting Kas</h3>
+            <form id="formSettingKas" class="flex flex-col gap-3">
+                <div><label class="text-[10px] font-bold text-gray-600">Minimal Kas (Rp)</label><input type="number" id="setMinKas" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold"></div>
+                <div><label class="text-[10px] font-bold text-gray-600">Frekuensi</label>
+                    <select id="setFrekuensi" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs">
+                        <option value="Harian">Harian</option>
+                        <option value="Mingguan">Mingguan</option>
+                        <option value="Bulanan">Bulanan</option>
+                    </select>
+                </div>
+                <div><label class="text-[10px] font-bold text-gray-600">Target Kas</label>
+                    <select id="setTargetKas" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs">
+                        <option value="Semua">Semua Anggota</option>
+                        <option value="Spesifik">Anggota Spesifik</option>
+                    </select>
+                </div>
+                <div class="flex gap-2 mt-2">
+                    <button type="button" onclick="closeSettingKasModal()" class="flex-1 bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
+                    <button type="submit" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded-xl text-xs shadow-md">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL TUGAS KHUSUS -->
+    <div id="tugasKhususModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl text-center">
+            <h3 class="font-bold text-gray-800 text-sm mb-4">Tugas Khusus</h3>
+            <input type="hidden" id="tkUsername">
+            <div class="flex flex-col gap-3 mb-4">
+                <label class="flex items-center gap-2 cursor-pointer p-2 border rounded-xl hover:bg-gray-50">
+                    <input type="checkbox" id="tkBendahara" class="w-4 h-4 accent-emerald-600">
+                    <span class="text-xs font-bold text-gray-700">Bendahara</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer p-2 border rounded-xl hover:bg-gray-50">
+                    <input type="checkbox" id="tkPetugasAbsen" class="w-4 h-4 accent-blue-600">
+                    <span class="text-xs font-bold text-gray-700">Petugas Absen</span>
+                </label>
+            </div>
+            <div class="flex gap-2">
+                <button type="button" onclick="closeTugasKhususModal()" class="flex-1 bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
+                <button type="button" onclick="saveTugasKhusus()" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded-xl text-xs shadow-md">Simpan</button>
+            </div>
+        </div>
+    </div>
+    
     <div id="loadingOverlay" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-[100] flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity">
         <div class="w-24 h-24 mb-4 flex items-center justify-center">
             <img src="./logo.png" alt="Loading" class="max-h-full max-w-full object-contain animate-pulse drop-shadow-xl" onerror="this.outerHTML='<i class=\'fa-solid fa-shield-halved text-blue-600 text-5xl animate-pulse\'></i>';">
@@ -775,7 +989,7 @@
                 msg += `🎂 Selamat Ulang Tahun ${panggilan} yang ke-${me.umur}! Semoga panjang umur, sehat selalu, dan sukses selalu. `;
             }
             if (others.length > 0) {
-                const list = others.map(b => `${b.namaPanggilan || b.nama} (${b.role}, ${b.kelas}) ke-${b.umur}`).join(', ');
+                const list = others.map(b => `${b.namaPanggilan || b.nama} (${b.role}, ${b.kelas}) berulang tahun ke-${b.umur}`).join(', ');
                 msg += `🎉 Hari ini ${list} berulang tahun. Jangan lupa berikan ucapan!`;
             }
             if (!msg) { banner.classList.add('hidden'); return; }
@@ -2317,6 +2531,485 @@
         function openPasswordModal() { document.getElementById('passwordModal').classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.remove('scale-95'); }
         function closePasswordModal() { document.getElementById('passwordModal').classList.add('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.add('scale-95'); }
         document.getElementById('formGantiPassword').addEventListener('submit', (e) => { e.preventDefault(); showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'gantiPassword', username: state.user.username, oldPassword: document.getElementById('oldPass').value, newPassword: document.getElementById('newPass').value })}).then(r=>r.json()).then(d=>{ showLoading(false); if(d.success) { showToast("Berhasil", "success"); closePasswordModal(); } else showToast(d.message, "error"); }).catch(e=>showLoading(false)); });
+
+                // ================= FITUR BARU: MATERI, KEUANGAN, TUGAS KHUSUS =================
+
+        // === 1. UPDATE SWITCH TAB & FORMAT RUPIAH ===
+        // Timpa fungsi switchTab yang lama dengan yang baru ini (tambahkan 'materi' & 'keuangan')
+        const originalSwitchTab = switchTab;
+        window.switchTab = function(tabKey) {
+            originalSwitchTab(tabKey);
+            if(tabKey === 'materi') loadMateriData();
+            if(tabKey === 'keuangan') loadKeuanganData();
+        };
+
+        function formatRupiah(angka) {
+            if(!angka) return "Rp 0";
+            let number_string = angka.toString().replace(/[^,\d]/g, '');
+            let split = number_string.split(',');
+            let sisa = split[0].length % 3;
+            let rupiah = split[0].substr(0, sisa);
+            let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+            if (ribuan) {
+                let separator = sisa ? '.' : '';
+                rupiah += separator + ribuan.join('.');
+            }
+            return 'Rp ' + rupiah;
+        }
+
+        // === 2. FITUR MATERI ===
+        let tempSubMateriArray = [];
+
+        function toggleMateriSub() {
+            const isChecked = document.getElementById('matButuhSub').checked;
+            const container = document.getElementById('formSubMateriContainer');
+            if(isChecked) { container.classList.remove('hidden'); container.classList.add('flex'); }
+            else { container.classList.add('hidden'); container.classList.remove('flex'); }
+        }
+
+        function toggleTargetMateri() {
+            const mode = document.getElementById('matTargetMode').value;
+            const container = document.getElementById('matTargetCheckboxes');
+            if(mode === 'Spesifik') {
+                container.classList.remove('hidden');
+                const anggotaList = state.members.filter(m => m.role === 'Anggota');
+                container.innerHTML = anggotaList.map(m => `
+                    <label class="flex items-center gap-2 cursor-pointer p-1">
+                        <input type="checkbox" value="${m.username}" class="chk-mat-target w-3 h-3 accent-blue-600">
+                        <span class="text-[10px] truncate">${m.nama}</span>
+                    </label>
+                `).join('');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        function addSubMateriToList() {
+            const judul = document.getElementById('subJudul').value.trim();
+            const tipe = document.getElementById('subTipe').value;
+            const link = document.getElementById('subLink').value.trim();
+            const fileInput = document.getElementById('subFile');
+
+            if(!judul) { showToast("Judul sub-materi wajib diisi", "error"); return; }
+
+            let fileBase64 = null, fileName = null, mimeType = null;
+            if(fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                if(file.size > 25 * 1024 * 1024) { showToast("File maksimal 25MB", "error"); return; }
+                fileName = file.name;
+                mimeType = file.type;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    tempSubMateriArray.push({ judulSub: judul, tipe: tipe, linkFile: link, base64Data: e.target.result, filename: fileName, mimeType: mimeType });
+                    renderListSubMateri();
+                    document.getElementById('subJudul').value = ''; document.getElementById('subLink').value = ''; fileInput.value = '';
+                };
+                reader.readAsDataURL(file);
+            } else if(link) {
+                tempSubMateriArray.push({ judulSub: judul, tipe: tipe, linkFile: link });
+                renderListSubMateri();
+                document.getElementById('subJudul').value = ''; document.getElementById('subLink').value = '';
+            } else {
+                showToast("Isi Link atau Upload File", "error");
+            }
+        }
+
+        function renderListSubMateri() {
+            const container = document.getElementById('listSubMateri');
+            container.innerHTML = tempSubMateriArray.map((sub, i) => `
+                <div class="flex justify-between items-center bg-blue-50 px-3 py-2 rounded-lg border border-blue-100">
+                    <div class="text-[10px] font-bold text-gray-700">${sub.tipe}: ${sub.judulSub}</div>
+                    <button type="button" onclick="tempSubMateriArray.splice(${i},1); renderListSubMateri();" class="text-rose-500"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function openMateriModal() {
+            document.getElementById('formMateri').reset();
+            document.getElementById('matId').value = '';
+            tempSubMateriArray = [];
+            renderListSubMateri();
+            toggleMateriSub();
+            toggleTargetMateri();
+            document.getElementById('materiModal').classList.remove('hidden'); document.getElementById('materiModal').classList.add('flex');
+        }
+        function closeMateriModal() { document.getElementById('materiModal').classList.add('hidden'); document.getElementById('materiModal').classList.remove('flex'); }
+
+        document.getElementById('formMateri').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const modeTarget = document.getElementById('matTargetMode').value;
+            let targetStr = "Semua";
+            if(modeTarget === 'Spesifik') {
+                const checked = Array.from(document.querySelectorAll('.chk-mat-target:checked')).map(cb => cb.value);
+                if(checked.length === 0) { showToast("Pilih minimal 1 target", "error"); return; }
+                targetStr = checked.join(',');
+            }
+
+            const payload = {
+                action: 'saveMateri',
+                id: document.getElementById('matId').value || null,
+                judul: document.getElementById('matJudul').value,
+                deskripsi: document.getElementById('matDesc').value,
+                teksMateri: document.getElementById('matTeks').value,
+                target: targetStr,
+                butuhSub: document.getElementById('matButuhSub').checked,
+                subMateri: tempSubMateriArray
+            };
+
+            showLoading(true, "Menyimpan Materi...");
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+            .then(r => r.json()).then(d => {
+                showLoading(false);
+                if(d.success) { showToast("Materi disimpan!", "success"); closeMateriModal(); loadMateriData(); }
+                else showToast(d.message, "error");
+            }).catch(e => { showLoading(false); showToast("Koneksi gagal", "error"); });
+        });
+
+        function loadMateriData() {
+            showLoading(true, "Memuat Materi...");
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getMateriData', role: 'Pelatih', username: state.user.username }) })
+            .then(r => r.json()).then(d => {
+                showLoading(false);
+                const container = document.getElementById('materiListContainer');
+                if(d.success && d.data.length > 0) {
+                    container.innerHTML = d.data.map(m => `
+                        <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                            <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
+                                <div>
+                                    <h4 class="font-bold text-gray-800 text-sm">${m.judul}</h4>
+                                    <p class="text-[10px] text-gray-500">${m.deskripsi}</p>
+                                </div>
+                                <button onclick="deleteMateri('${m.id}')" class="text-rose-500 hover:bg-rose-50 p-2 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                            <div class="p-4 flex flex-col gap-3">
+                                ${m.teksMateri ? `<div class="text-xs text-gray-700 bg-gray-50 p-3 rounded-xl border">${m.teksMateri}</div>` : ''}
+                                ${m.subMateri.length > 0 ? m.subMateri.map(s => `
+                                    <div class="flex items-center justify-between bg-blue-50 p-2 rounded-lg border border-blue-100">
+                                        <div class="text-[10px] font-bold text-blue-800"><i class="fa-solid fa-paperclip mr-1"></i> ${s.tipe}: ${s.judulSub}</div>
+                                        <a href="${s.linkFile}" target="_blank" class="text-blue-600 text-[10px] underline font-bold">Lihat</a>
+                                    </div>
+                                `).join('') : ''}
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `<div class="p-8 text-center text-xs text-gray-400 bg-white rounded-3xl border">Belum ada materi.</div>`;
+                }
+            }).catch(e => { showLoading(false); showToast("Gagal memuat materi", "error"); });
+        }
+
+        function deleteMateri(id) {
+            if(!confirm("Hapus materi ini?")) return;
+            showLoading(true, "Menghapus...");
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteMateri', id: id }) })
+            .then(r => r.json()).then(d => {
+                showLoading(false);
+                if(d.success) { showToast("Materi dihapus", "success"); loadMateriData(); }
+                else showToast(d.message, "error");
+            }).catch(e => { showLoading(false); showToast("Koneksi gagal", "error"); });
+        }
+
+        // === 3. FITUR KEUANGAN ===
+        let keuanganData = { kas: [], pengeluaran: [], dana: [], transaksi_dana: [], settings: {} };
+
+        function switchSubTabKeuangan(sub) {
+            ['dashboard', 'kas', 'tabungan'].forEach(t => {
+                document.getElementById(`subViewKeuangan${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.add('hidden');
+                const btn = document.getElementById(`subTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                btn.className = "px-4 py-2 bg-white text-gray-600 border border-gray-200 rounded-xl text-xs font-bold shadow-sm whitespace-nowrap";
+            });
+            document.getElementById(`subViewKeuangan${sub.charAt(0).toUpperCase() + sub.slice(1)}`).classList.remove('hidden');
+            document.getElementById(`subViewKeuangan${sub.charAt(0).toUpperCase() + sub.slice(1)}`).classList.add('flex');
+            const activeBtn = document.getElementById(`subTabBtn${sub.charAt(0).toUpperCase() + sub.slice(1)}`);
+            activeBtn.className = "px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-sm whitespace-nowrap";
+        }
+
+        function loadKeuanganData() {
+            showLoading(true, "Memuat Keuangan...");
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getKeuanganData' }) })
+            .then(r => r.json()).then(d => {
+                showLoading(false);
+                if(d.success) {
+                    keuanganData = d;
+                    renderKeuanganDashboard();
+                    renderKasUI();
+                    renderDanaUI();
+                }
+            }).catch(e => { showLoading(false); showToast("Gagal memuat keuangan", "error"); });
+        }
+
+        function renderKeuanganDashboard() {
+            let totalMasuk = 0, totalKeluar = 0;
+            
+            // Gabungkan kas masuk dan pengeluaran untuk tabel
+            let allTrans = [];
+            keuanganData.kas.forEach(k => { totalMasuk += parseInt(k[3]) || 0; allTrans.push({ tgl: k[1], masuk: parseInt(k[3])||0, keluar: 0 }); });
+            keuanganData.pengeluaran.forEach(p => { totalKeluar += parseInt(p[2]) || 0; allTrans.push({ tgl: p[1], masuk: 0, keluar: parseInt(p[2])||0 }); });
+            
+            // Sort by date desc (Asumsi format YYYY-MM-DD)
+            allTrans.sort((a,b) => new Date(b.tgl) - new Date(a.tgl));
+            
+            let saldo = totalMasuk - totalKeluar;
+            document.getElementById('dashTotalKas').textContent = formatRupiah(saldo);
+            document.getElementById('dashTotalMasuk').textContent = formatRupiah(totalMasuk);
+            document.getElementById('dashTotalKeluar').textContent = formatRupiah(totalKeluar);
+
+            let runningSaldo = saldo;
+            document.getElementById('tableDashboardKas').innerHTML = allTrans.slice(0, 10).map(t => {
+                let rowSaldo = runningSaldo;
+                runningSaldo -= (t.masuk - t.keluar); // Kalkulasi mundur untuk baris sebelumnya
+                return `<tr>
+                    <td class="p-3 text-[10px] text-gray-600">${t.tgl.split(' ')[0]}</td>
+                    <td class="p-3 text-[10px] text-emerald-600 font-bold">${t.masuk ? formatRupiah(t.masuk) : '-'}</td>
+                    <td class="p-3 text-[10px] text-rose-600 font-bold">${t.keluar ? formatRupiah(t.keluar) : '-'}</td>
+                    <td class="p-3 text-[10px] font-bold text-gray-800 text-right">${formatRupiah(rowSaldo)}</td>
+                </tr>`;
+            }).join('') || `<tr><td colspan="4" class="p-4 text-center text-xs text-gray-400">Belum ada transaksi</td></tr>`;
+
+            // Render Dynamic Dana Cards
+            const container = document.getElementById('dynamicDanaCards');
+            if(keuanganData.dana.length === 0) {
+                container.innerHTML = '';
+            } else {
+                container.innerHTML = keuanganData.dana.map(dana => {
+                    const idDana = dana[0];
+                    const judul = dana[1];
+                    const targetNominal = parseInt(dana[3]) || 0;
+                    const trxDana = keuanganData.transaksi_dana.filter(t => t[1] === idDana);
+                    const totalTerkumpul = trxDana.reduce((sum, t) => sum + (parseInt(t[4]) || 0), 0);
+                    
+                    return `
+                        <div class="bg-white p-4 rounded-3xl border shadow-sm">
+                            <div class="flex justify-between items-start mb-2 border-b pb-2">
+                                <div>
+                                    <h4 class="font-bold text-sm text-gray-800">${judul}</h4>
+                                    <p class="text-[10px] text-gray-500">Target: ${formatRupiah(targetNominal)} / org</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-xs font-black text-emerald-600">${formatRupiah(totalTerkumpul)}</span>
+                                    <span class="block text-[8px] text-gray-400 uppercase">Terkumpul</span>
+                                </div>
+                            </div>
+                            <button onclick="openTransaksiDanaModal('${idDana}', '${judul}')" class="w-full bg-emerald-50 text-emerald-600 font-bold py-2 rounded-xl text-xs mt-2 border border-emerald-200">+ Setor Dana</button>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function renderKasUI() {
+            document.getElementById('lblMinKas').textContent = formatRupiah(keuanganData.settings.minimal || 0);
+            
+            // Render Tabel Masuk (Anggota)
+            const anggotaList = state.members.filter(m => m.role === 'Anggota');
+            document.getElementById('tableKasMasuk').innerHTML = anggotaList.map(m => {
+                // Hitung total kas yang sudah dibayar oleh user ini di periode ini (Untuk simplifikasi, kita total semua kasnya)
+                const totalDibayar = keuanganData.kas.filter(k => k[2] === m.username).reduce((sum, k) => sum + (parseInt(k[3]) || 0), 0);
+                const minimal = parseInt(keuanganData.settings.minimal) || 0;
+                const kekurangan = Math.max(0, minimal - totalDibayar);
+                
+                return `<tr>
+                    <td class="p-3">
+                        <div class="text-xs font-bold text-gray-800">${m.nama}</div>
+                        <div class="text-[9px] text-gray-500">${m.kelas}</div>
+                    </td>
+                    <td class="p-3 text-[10px] font-bold ${kekurangan > 0 ? 'text-rose-500' : 'text-emerald-500'}">${kekurangan > 0 ? formatRupiah(kekurangan) : 'Lunas'}</td>
+                    <td class="p-3">
+                        <div class="flex gap-2">
+                            <input type="number" id="inputKas_${m.username}" placeholder="Nominal" class="w-24 px-2 py-1 border rounded-lg text-xs outline-none" onchange="autoSaveKas('${m.username}', this.value)">
+                            <button onclick="autoSaveKas('${m.username}', document.getElementById('inputKas_${m.username}').value)" class="bg-blue-100 text-blue-600 px-2 py-1 rounded-lg text-[10px] font-bold active:scale-95"><i class="fa-solid fa-check"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            // Render Tabel Keluar
+            document.getElementById('tableKasKeluar').innerHTML = keuanganData.pengeluaran.slice().reverse().map(p => `
+                <tr>
+                    <td class="p-3 text-[10px] text-gray-600">${p[1].split(' ')[0]}</td>
+                    <td class="p-3 text-xs font-bold text-gray-800">${p[3]}</td>
+                    <td class="p-3 text-xs font-bold text-rose-600">${formatRupiah(p[2])}</td>
+                </tr>
+            `).join('') || `<tr><td colspan="3" class="p-4 text-center text-xs text-gray-400">Belum ada pengeluaran</td></tr>`;
+        }
+
+        function autoSaveKas(username, nominal) {
+            if(!nominal || isNaN(nominal) || nominal <= 0) return;
+            // Auto save tanpa notifikasi berlebih
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'saveKas', username: username, nominal: parseInt(nominal), keterangan: 'Setoran Kas' }) })
+            .then(r => r.json()).then(d => {
+                if(d.success) {
+                    showToast("Kas tersimpan", "success");
+                    document.getElementById(`inputKas_${username}`).value = '';
+                    loadKeuanganData(); // Refresh data
+                }
+            });
+        }
+
+        function openPengeluaranModal() { document.getElementById('pengeluaranModal').classList.remove('hidden'); document.getElementById('pengeluaranModal').classList.add('flex'); }
+        function closePengeluaranModal() { document.getElementById('pengeluaranModal').classList.add('hidden'); document.getElementById('pengeluaranModal').classList.remove('flex'); }
+        
+        document.getElementById('formPengeluaran').addEventListener('submit', (e) => {
+            e.preventDefault();
+            showLoading(true, "Menyimpan...");
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({
+                action: 'savePengeluaran',
+                nominal: document.getElementById('outNominal').value,
+                tujuan: document.getElementById('outTujuan').value,
+                peminta: document.getElementById('outPeminta').value,
+                dicatatOleh: state.user.nama
+            })}).then(r=>r.json()).then(d => {
+                showLoading(false);
+                if(d.success) { showToast("Pengeluaran dicatat", "success"); closePengeluaranModal(); document.getElementById('formPengeluaran').reset(); loadKeuanganData(); }
+                else showToast(d.message, "error");
+            });
+        });
+
+        function openSettingKasModal() {
+            document.getElementById('setMinKas').value = keuanganData.settings.minimal || 0;
+            document.getElementById('settingKasModal').classList.remove('hidden'); document.getElementById('settingKasModal').classList.add('flex');
+        }
+        function closeSettingKasModal() { document.getElementById('settingKasModal').classList.add('hidden'); document.getElementById('settingKasModal').classList.remove('flex'); }
+
+        document.getElementById('formSettingKas').addEventListener('submit', (e) => {
+            e.preventDefault();
+            showLoading(true, "Menyimpan Pengaturan...");
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({
+                action: 'updateSettingKas',
+                settings: {
+                    minimal: document.getElementById('setMinKas').value,
+                    frekuensi: document.getElementById('setFrekuensi').value,
+                    target: document.getElementById('setTargetKas').value
+                }
+            })}).then(r=>r.json()).then(d => {
+                showLoading(false);
+                if(d.success) { showToast("Pengaturan disimpan", "success"); closeSettingKasModal(); loadKeuanganData(); }
+                else showToast(d.message, "error");
+            });
+        });
+
+        function renderDanaUI() {
+            const container = document.getElementById('danaListContainer');
+            container.innerHTML = keuanganData.dana.map(d => `
+                <div class="bg-white p-4 rounded-xl border shadow-sm flex justify-between items-center">
+                    <div>
+                        <h4 class="font-bold text-sm">${d[1]}</h4>
+                        <p class="text-[10px] text-gray-500">Target: ${formatRupiah(d[3])}</p>
+                    </div>
+                    <button onclick="openTransaksiDanaModal('${d[0]}', '${d[1]}')" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-xs font-bold">Setor</button>
+                </div>
+            `).join('') || `<div class="text-xs text-center text-gray-400 p-4">Belum ada pengumpulan dana.</div>`;
+        }
+
+        function openDanaModal() {
+            // Reuse logic: Untuk simplifikasi, kita gunakan prompt (bisa di-upgrade jadi modal nanti)
+            const judul = prompt("Nama Pengumpulan Dana (ex: Study Tour):");
+            if(!judul) return;
+            const target = prompt("Target Nominal per Orang:");
+            if(!target) return;
+            
+            showLoading(true, "Membuat Dana...");
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'saveDana', judul: judul, tujuan: judul, target_nominal: target, deadline: '', target_user: 'Semua' }) })
+            .then(r=>r.json()).then(d => {
+                showLoading(false);
+                if(d.success) { showToast("Dana dibuat", "success"); loadKeuanganData(); }
+                else showToast(d.message, "error");
+            });
+        }
+
+        function openTransaksiDanaModal(idDana, judul) {
+            const nominal = prompt(`Nominal setoran untuk ${judul}:`);
+            if(!nominal) return;
+            showLoading(true, "Menyimpan...");
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'saveTransaksiDana', id_dana: idDana, username: state.user.username, nominal: nominal }) })
+            .then(r=>r.json()).then(d => {
+                showLoading(false);
+                if(d.success) { showToast("Setoran disimpan", "success"); loadKeuanganData(); }
+                else showToast(d.message, "error");
+            });
+        }
+
+        // === 4. TUGAS KHUSUS ===
+        function openTugasKhususModal(username) {
+            const m = state.members.find(x => x.username === username);
+            if(!m) return;
+            document.getElementById('tkUsername').value = username;
+            const tk = m.tugasKhusus || '';
+            document.getElementById('tkBendahara').checked = tk.includes('Bendahara');
+            document.getElementById('tkPetugasAbsen').checked = tk.includes('Petugas Absen');
+            document.getElementById('tugasKhususModal').classList.remove('hidden'); document.getElementById('tugasKhususModal').classList.add('flex');
+        }
+        function closeTugasKhususModal() { document.getElementById('tugasKhususModal').classList.add('hidden'); document.getElementById('tugasKhususModal').classList.remove('flex'); }
+
+        function saveTugasKhusus() {
+            const username = document.getElementById('tkUsername').value;
+            let selected = [];
+            if(document.getElementById('tkBendahara').checked) selected.push('Bendahara');
+            if(document.getElementById('tkPetugasAbsen').checked) selected.push('Petugas Absen');
+            const newTk = selected.join(', ');
+
+            showLoading(true, "Menyimpan...");
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'updateTugasKhusus', username: username, tugasKhusus: newTk }) })
+            .then(r=>r.json()).then(d => {
+                showLoading(false);
+                if(d.success) { showToast("Tugas Khusus disimpan", "success"); closeTugasKhususModal(); loadDashboardData(); }
+                else showToast(d.message, "error");
+            });
+        }
+
+        // Timpa Render Anggota Tables untuk UI Tugas Khusus
+        const originalRenderAnggotaTables = renderAnggotaTables;
+        window.renderAnggotaTables = function() {
+            if (!state.members) return;
+            const tbodyAnggota = document.getElementById('tableAnggotaBody');
+            const anggotaList = state.members.filter(m => m.role === 'Anggota');
+            document.getElementById('memberCountBadge').textContent = anggotaList.length;
+
+            tbodyAnggota.innerHTML = anggotaList.map(m => {
+                const fotoUrl = m.fotoUrl ? getDirectImageLink(m.fotoUrl) : 'https://ui-avatars.com/api/?name=' + m.nama.replace(/ /g, '+') + '&background=e2e8f0&color=64748b';
+                
+                // Badge Tugas Khusus
+                let tkHtml = '-';
+                if(m.tugasKhusus) {
+                    if(m.tugasKhusus.includes('Bendahara')) tkHtml = `<span class="bg-amber-100 text-amber-700 border border-amber-300 px-2 py-1 rounded-lg text-[9px] font-bold mr-1"><i class="fa-solid fa-coins"></i> Bendahara</span>`;
+                    if(m.tugasKhusus.includes('Petugas Absen')) tkHtml += `<span class="bg-emerald-100 text-emerald-700 border border-emerald-300 px-2 py-1 rounded-lg text-[9px] font-bold"><i class="fa-solid fa-clipboard-user"></i> Absen</span>`;
+                } else {
+                    tkHtml = `<button onclick="event.stopPropagation(); openTugasKhususModal('${m.username}')" class="text-gray-400 hover:text-blue-600 text-xs"><i class="fa-solid fa-plus-circle"></i> Set</button>`;
+                }
+
+                return `
+                <tr class="hover:bg-blue-50/50 cursor-pointer border-b" onclick="openProfileModal('${m.username}')">
+                    <td class="py-2 px-3 text-center"><img src="${fotoUrl}" class="w-10 h-10 rounded-full mx-auto object-cover bg-gray-200"></td>
+                    <td class="py-2 px-3">
+                        <div class="font-bold text-gray-800 text-xs">${m.namaPanggilan || m.nama}</div>
+                        <div class="text-[9px] text-gray-500">${m.nama}</div>
+                    </td>
+                    <td class="py-2 px-3 text-center text-xs font-semibold">${m.kelas}</td>
+                    <td class="py-2 px-3 text-center text-[10px] text-gray-600">-</td>
+                    <td class="py-2 px-3 text-center"><span class="text-[10px] px-2 py-0.5 rounded-full font-bold border bg-blue-50 text-blue-600">Anggota</span></td>
+                    <td class="py-2 px-3 text-center">${m.lastActive ? `<span class="text-[9px] text-gray-500">Login</span>` : '-'}</td>
+                    <td class="py-2 px-3 text-center">${tkHtml}</td>
+                </tr>`;
+            }).join('');
+            
+            // Render Pelatih (Simple)
+            const tbodyPelatih = document.getElementById('tablePelatihBody');
+            const pelatihList = state.members.filter(m => m.role === 'Pelatih');
+            tbodyPelatih.innerHTML = pelatihList.map(m => {
+                const fotoUrl = m.fotoUrl ? getDirectImageLink(m.fotoUrl) : 'https://ui-avatars.com/api/?name=' + m.nama.replace(/ /g, '+') + '&background=e2e8f0&color=64748b';
+                return `
+                <tr class="hover:bg-blue-50/50 cursor-pointer border-b" onclick="openProfileModal('${m.username}')">
+                    <td class="py-2 px-3 text-center"><img src="${fotoUrl}" class="w-10 h-10 rounded-full mx-auto object-cover bg-gray-200"></td>
+                    <td class="py-2 px-3"><div class="font-bold text-gray-800 text-xs">${m.nama}</div></td>
+                    <td class="py-2 px-3 text-center text-xs font-semibold">${m.kelas}</td>
+                    <td class="py-2 px-3 text-center text-[10px] text-gray-600">-</td>
+                    <td class="py-2 px-3 text-center"><span class="text-[10px] px-2 py-0.5 rounded-full font-bold border bg-purple-50 text-purple-600">Pelatih</span></td>
+                    <td class="py-2 px-3 text-center">-</td>
+                </tr>`;
+            }).join('');
+        };
+    
+    
     </script>
 </body>
 </html>
