@@ -1892,7 +1892,8 @@
         function toggleEditProfile() {
             isEditingProfile = !isEditingProfile;
             
-            const inputs = document.querySelectorAll('#viewDataAnggota input:not(#dataUsername):not([type="file"]), #viewDataAnggota textarea');
+            // Perbaikan: Hapus :not([type="file"]) agar input foto ikut terbuka
+            const inputs = document.querySelectorAll('#viewDataAnggota input:not(#dataUsername), #viewDataAnggota textarea');
             inputs.forEach(el => el.disabled = !isEditingProfile);
             
             document.getElementById('btnEditProfile').classList.toggle('hidden', isEditingProfile);
