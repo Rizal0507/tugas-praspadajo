@@ -169,16 +169,105 @@
 
             <section id="viewDataAnggota" class="tab-view hidden flex-col gap-4 w-full max-w-md mx-auto">
                 <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                    <div class="bg-blue-600 p-6 text-center text-white">
-                        <i class="fa-solid fa-user-circle text-6xl mb-2 opacity-80"></i>
+                    <div class="bg-blue-600 p-6 text-center text-white relative">
+                        <div class="relative w-24 h-24 mx-auto mb-3">
+                            <img id="userFotoProfil" src="" class="w-24 h-24 aspect-square object-cover rounded-full border-4 border-white shadow-lg bg-gray-200">
+                            <input type="file" id="userFotoUpload" accept="image/*" class="hidden" onchange="handleUserFotoUpload(event)" disabled>
+                            <button type="button" id="btnGantiFoto" onclick="document.getElementById('userFotoUpload').click()" class="hidden absolute bottom-0 right-0 bg-blue-500 hover:bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-md active:scale-95 transition-all"><i class="fa-solid fa-camera text-xs"></i></button>
+                        </div>
                         <h2 id="dataNama" class="text-xl font-bold">Nama Siswa</h2>
                         <p id="dataKelas" class="text-xs text-blue-200">Kelas</p>
                     </div>
+                    
                     <div class="p-5 flex flex-col gap-3 text-sm">
-                        <div class="flex justify-between border-b pb-2"><span class="text-gray-500 font-medium">Nama Lengkap</span><span id="dataNamaLengkap" class="font-bold text-gray-800"></span></div>
-                        <div class="flex justify-between border-b pb-2"><span class="text-gray-500 font-medium">Username</span><span id="dataUsername" class="font-bold text-blue-600"></span></div>
-                        <div class="flex justify-between border-b pb-2"><span class="text-gray-500 font-medium">Kelas</span><span id="dataKelasLengkap" class="font-bold text-gray-800"></span></div>
-                        <div class="flex justify-between border-b pb-2"><span class="text-gray-500 font-medium">Role</span><span id="dataRole" class="font-bold text-gray-800 uppercase"></span></div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Profil Lengkap</span>
+                            <button type="button" id="btnEditProfile" onclick="toggleEditProfile()" class="text-[10px] bg-amber-100 text-amber-700 px-3 py-1 rounded-lg font-bold hover:bg-amber-200 transition-colors"><i class="fa-solid fa-pen-to-square mr-1"></i> Edit Profil</button>
+                            <button type="button" id="btnSaveProfile" onclick="saveProfileChanges()" class="hidden text-[10px] bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg font-bold hover:bg-emerald-200 transition-colors"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan</button>
+                        </div>
+
+                        <!-- Data Diri -->
+                        <div class="grid grid-cols-1 gap-3">
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-500 block">Nama Lengkap</label>
+                                <input type="text" id="editNama" class="w-full px-2 py-1 border-b border-gray-200 text-sm font-bold text-gray-800 disabled:bg-transparent disabled:border-transparent outline-none" disabled>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-500 block">Nama Panggilan</label>
+                                <input type="text" id="editPanggilan" placeholder="-" class="w-full px-2 py-1 border-b border-gray-200 text-sm text-gray-800 disabled:bg-transparent disabled:border-transparent outline-none" disabled>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-500 block">Tempat Lahir</label>
+                                    <input type="text" id="editTempatLahir" placeholder="-" class="w-full px-2 py-1 border-b border-gray-200 text-sm text-gray-800 disabled:bg-transparent disabled:border-transparent outline-none" disabled>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-500 block">Tgl Lahir</label>
+                                    <input type="date" id="editTglLahir" class="w-full px-2 py-1 border-b border-gray-200 text-sm text-gray-800 disabled:bg-transparent disabled:border-transparent outline-none" disabled>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-500 block">Alamat Lengkap</label>
+                                <textarea id="editAlamat" rows="2" placeholder="-" class="w-full px-2 py-1 border-b border-gray-200 text-sm text-gray-800 disabled:bg-transparent disabled:border-transparent outline-none"></textarea>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-500 block">Tinggi (cm)</label>
+                                    <input type="number" id="editTinggi" placeholder="-" class="w-full px-2 py-1 border-b border-gray-200 text-sm text-gray-800 disabled:bg-transparent disabled:border-transparent outline-none" disabled>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-500 block">Berat (kg)</label>
+                                    <input type="number" id="editBerat" placeholder="-" class="w-full px-2 py-1 border-b border-gray-200 text-sm text-gray-800 disabled:bg-transparent disabled:border-transparent outline-none" disabled>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-500 block">Lokasi Rumah (Maps)</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="editMaps" placeholder="Belum dibagikan" class="flex-1 px-2 py-1 border-b border-gray-200 text-sm text-blue-600 disabled:bg-transparent disabled:border-transparent outline-none truncate" disabled>
+                                    <button type="button" id="btnShareLoc" onclick="shareLocation()" class="hidden text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg font-bold border border-indigo-200"><i class="fa-solid fa-location-dot"></i> Ambil</button>
+                                    <a id="linkMapsUser" href="" target="_blank" class="hidden text-[10px] bg-emerald-50 text-emerald-600 px-2 py-1 rounded-lg font-bold border border-emerald-200 flex items-center justify-center"><i class="fa-solid fa-map-location-dot"></i></a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Orang Tua -->
+                        <div class="mt-4 border-t pt-3">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Data Orang Tua</span>
+                            <div class="grid grid-cols-1 gap-3">
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-500 block">Nama Ayah</label>
+                                    <input type="text" id="editNamaAyah" placeholder="-" class="w-full px-2 py-1 border-b border-gray-200 text-sm text-gray-800 disabled:bg-transparent disabled:border-transparent outline-none" disabled>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-[10px] font-bold text-gray-500 block">Pekerjaan Ayah</label>
+                                        <input type="text" id="editKerjaAyah" placeholder="-" class="w-full px-2 py-1 border-b border-gray-200 text-sm text-gray-800 disabled:bg-transparent disabled:border-transparent outline-none" disabled>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-bold text-gray-500 block">WA Ayah</label>
+                                        <input type="tel" id="editWaAyah" placeholder="-" class="w-full px-2 py-1 border-b border-gray-200 text-sm text-gray-800 disabled:bg-transparent disabled:border-transparent outline-none" disabled>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-500 block">Nama Ibu</label>
+                                    <input type="text" id="editNamaIbu" placeholder="-" class="w-full px-2 py-1 border-b border-gray-200 text-sm text-gray-800 disabled:bg-transparent disabled:border-transparent outline-none" disabled>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-[10px] font-bold text-gray-500 block">Pekerjaan Ibu</label>
+                                        <input type="text" id="editKerjaIbu" placeholder="-" class="w-full px-2 py-1 border-b border-gray-200 text-sm text-gray-800 disabled:bg-transparent disabled:border-transparent outline-none" disabled>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-bold text-gray-500 block">WA Ibu</label>
+                                        <input type="tel" id="editWaIbu" placeholder="-" class="w-full px-2 py-1 border-b border-gray-200 text-sm text-gray-800 disabled:bg-transparent disabled:border-transparent outline-none" disabled>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between border-b pb-2 items-center mt-4">
+                            <span class="text-gray-500 font-medium">Username</span><span id="dataUsername" class="font-bold text-blue-600"></span>
+                        </div>
                         <div class="flex justify-between border-b pb-2 items-center">
                             <span class="text-gray-500 font-medium">Password</span>
                             <div class="flex items-center gap-2">
@@ -189,8 +278,6 @@
                     </div>
                 </div>
             </section>
-        </main>
-    </div>
 
     <!-- ABSEN MODAL -->
     <div id="absenModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] hidden flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto custom-scroll">
@@ -665,7 +752,8 @@
             if (window.__motivInterval) clearInterval(window.__motivInterval);
             window.__motivInterval = setInterval(() => updateMotivationCard(motivTasksCache), 60000);
         });
-
+            loadUserProfileUI();
+        });
         function handleLogout() { localStorage.removeItem('userSession'); sessionStorage.removeItem('userSession'); window.location.href = 'index.html'; }
 
         function switchTab(tabKey) {
@@ -1757,7 +1845,159 @@
             // Render data yang sudah difilter
             renderRiwayatNilai(filteredSubs, window.__allTasksCache || activeTasks || []);
         }
+        // ============ LOGIKA EDIT PROFIL ANGGOTA ============
+        let isEditingProfile = false;
+        let userTempFotoBase64 = null;
 
+        function loadUserProfileUI() {
+            const fotoUrl = user.fotoUrl ? getDirectImageLink(user.fotoUrl) : 'https://ui-avatars.com/api/?name=' + user.nama.replace(/ /g, '+') + '&background=e2e8f0&color=64748b';
+            
+            // Tampilkan nama panggilan di greeting jika ada
+            document.getElementById('mobileName').textContent = user.namaPanggilan || user.nama;
+            
+            document.getElementById('userFotoProfil').src = fotoUrl;
+            document.getElementById('dataNama').textContent = user.namaPanggilan || user.nama;
+            document.getElementById('dataKelas').textContent = `Kelas ${user.kelas}`;
+
+            document.getElementById('editNama').value = user.nama || '';
+            document.getElementById('editPanggilan').value = user.namaPanggilan || '';
+            document.getElementById('editTempatLahir').value = user.tempatLahir || '';
+            document.getElementById('editTglLahir').value = user.tglLahir || '';
+            document.getElementById('editAlamat').value = user.alamat || '';
+            document.getElementById('editTinggi').value = user.tinggi || '';
+            document.getElementById('editBerat').value = user.berat || '';
+            
+            const inputMaps = document.getElementById('editMaps');
+            const linkMaps = document.getElementById('linkMapsUser');
+            if(user.maps) {
+                inputMaps.value = user.maps;
+                linkMaps.href = user.maps;
+                linkMaps.classList.remove('hidden');
+            } else {
+                inputMaps.value = "";
+                linkMaps.classList.add('hidden');
+            }
+
+            document.getElementById('editNamaAyah').value = user.namaAyah || '';
+            document.getElementById('editKerjaAyah').value = user.kerjaAyah || '';
+            document.getElementById('editWaAyah').value = user.waAyah || '';
+            document.getElementById('editNamaIbu').value = user.namaIbu || '';
+            document.getElementById('editKerjaIbu').value = user.kerjaIbu || '';
+            document.getElementById('editWaIbu').value = user.waIbu || '';
+
+            document.getElementById('dataUsername').textContent = user.username;
+        }
+
+        function toggleEditProfile() {
+            isEditingProfile = !isEditingProfile;
+            
+            const inputs = document.querySelectorAll('#viewDataAnggota input:not(#dataUsername):not([type="file"]), #viewDataAnggota textarea');
+            inputs.forEach(el => el.disabled = !isEditingProfile);
+            
+            document.getElementById('btnEditProfile').classList.toggle('hidden', isEditingProfile);
+            document.getElementById('btnSaveProfile').classList.toggle('hidden', !isEditingProfile);
+            document.getElementById('btnGantiFoto').classList.toggle('hidden', !isEditingProfile);
+            document.getElementById('btnShareLoc').classList.toggle('hidden', !isEditingProfile);
+            
+            // Nama Lengkap hanya bisa diedit oleh pelatih, tapi disini kita biarkan read-only
+            // sesuai instruksi: "Nama lengkap dan role dan username hanya bisa diedit pelatih"
+            document.getElementById('editNama').disabled = true; 
+        }
+
+        function handleUserFotoUpload(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('userFotoProfil').src = e.target.result;
+                userTempFotoBase64 = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function shareLocation() {
+            if (!navigator.geolocation) {
+                showToast("Fitur lokasi tidak didukung di browser ini.", "error");
+                return;
+            }
+            showToast("Mengambil lokasi...", "info");
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const mapUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+                    document.getElementById('editMaps').value = mapUrl;
+                    showToast("Lokasi berhasil diambil!", "success");
+                },
+                (error) => {
+                    showToast("Gagal mengambil lokasi. Pastikan GPS aktif dan izin diberikan.", "error");
+                },
+                { enableHighAccuracy: true }
+            );
+        }
+
+        function saveProfileChanges() {
+            showLoading(true, "Menyimpan profil...");
+            
+            const payload = {
+                action: 'updateProfile',
+                username: user.username,
+                isPelatihEdit: false, // Anggota tidak bisa edit Nama, Kelas, Role
+                nama: document.getElementById('editNama').value,
+                kelas: user.kelas,
+                role: user.role,
+                namaPanggilan: document.getElementById('editPanggilan').value,
+                tempatLahir: document.getElementById('editTempatLahir').value,
+                tglLahir: document.getElementById('editTglLahir').value,
+                alamat: document.getElementById('editAlamat').value,
+                tinggi: document.getElementById('editTinggi').value,
+                berat: document.getElementById('editBerat').value,
+                maps: document.getElementById('editMaps').value,
+                namaAyah: document.getElementById('editNamaAyah').value,
+                kerjaAyah: document.getElementById('editKerjaAyah').value,
+                waAyah: document.getElementById('editWaAyah').value,
+                namaIbu: document.getElementById('editNamaIbu').value,
+                kerjaIbu: document.getElementById('editKerjaIbu').value,
+                waIbu: document.getElementById('editWaIbu').value,
+                fotoBase64: userTempFotoBase64
+            };
+
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+            .then(r => r.json()).then(d => {
+                showLoading(false);
+                if(d.success) {
+                    showToast("Profil berhasil disimpan!", "success");
+                    
+                    // Update session lokal agar UI langsung berubah
+                    user.namaPanggilan = payload.namaPanggilan;
+                    user.tempatLahir = payload.tempatLahir;
+                    user.tglLahir = payload.tglLahir;
+                    user.alamat = payload.alamat;
+                    user.tinggi = payload.tinggi;
+                    user.berat = payload.berat;
+                    user.maps = payload.maps;
+                    user.namaAyah = payload.namaAyah;
+                    user.kerjaAyah = payload.kerjaAyah;
+                    user.waAyah = payload.waAyah;
+                    user.namaIbu = payload.namaIbu;
+                    user.kerjaIbu = payload.kerjaIbu;
+                    user.waIbu = payload.waIbu;
+                    if(d.fotoUrl) user.fotoUrl = d.fotoUrl;
+
+                    localStorage.setItem('userSession', JSON.stringify(user));
+                    if(sessionStorage.getItem('userSession')) sessionStorage.setItem('userSession', JSON.stringify(user));
+
+                    userTempFotoBase64 = null;
+                    toggleEditProfile(); // Kunci kembali form
+                    loadUserProfileUI(); // Refresh UI
+                } else {
+                    showToast(d.message, "error");
+                }
+            }).catch(e => {
+                showLoading(false);
+                showToast("Gagal koneksi ke server", "error");
+            });
+        }
         function renderRiwayatNilai(mySubs, allTasks) {
             const container = document.getElementById('riwayatNilaiContainer');
             if(mySubs.length === 0) { container.innerHTML = `<div class="p-8 text-center text-xs text-gray-400 bg-white rounded-3xl border">Belum ada tugas yang dikumpulkan.</div>`; return; }
