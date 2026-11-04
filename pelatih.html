@@ -1982,7 +1982,10 @@
             const table = clone.querySelector('table'); if (table) table.style.width = '100%';
             document.body.appendChild(clone);
             setTimeout(() => {
-                html2canvas(clone, { scale: 2, backgroundColor: '#ffffff', useCors: true }).then(canvas => {
+                html2canvas(clone, { 
+                    scale: 2, backgroundColor: '#ffffff', useCORS: true,
+                    ignoreElements: (element) => element.tagName === 'VIDEO' // TAMBAHKAN INI
+                }).then(canvas => {
                     document.body.removeChild(clone);
                     showLoading(false);
                     showUniversalPreview(canvas.toDataURL('image/png'), 'Preview Raport', `Raport_${Date.now()}.png`);
@@ -2984,10 +2987,6 @@
             } else {
                 container.innerHTML = `<div class="p-8 text-center text-xs text-gray-400 bg-white rounded-3xl border">Belum ada tabungan.</div>`;
             }
-
-            // Set default tanggal Buku Besar jika kosong
-            if(!document.getElementById('bukuBesarStartDate').value) document.getElementById('bukuBesarStartDate').value = getLocalToday();
-            if(!document.getElementById('bukuBesarEndDate').value) document.getElementById('bukuBesarEndDate').value = getLocalToday();
             renderBukuBesar();
             renderTabelPerorangan();
         }
@@ -3091,55 +3090,28 @@
         function downloadTabelPerorangan() {
             const originalTable = document.getElementById('tableRekapPerorangan');
             const cloneTable = originalTable.cloneNode(true);
-            
             const tempDiv = document.createElement('div');
-            tempDiv.style.position = 'absolute';
-            tempDiv.style.left = '-9999px';
-            tempDiv.style.top = '0';
-            tempDiv.style.backgroundColor = '#ffffff';
-            tempDiv.style.padding = '20px';
-            tempDiv.appendChild(cloneTable);
-            
-            cloneTable.style.width = 'max-content';
-            cloneTable.style.borderCollapse = 'collapse';
-            
-            const cells = cloneTable.querySelectorAll('th, td');
-            cells.forEach(cell => {
-                cell.style.border = '1px solid #e5e7eb';
-                cell.style.padding = '8px 12px';
-                cell.style.textAlign = 'center';
-                cell.style.fontSize = '12px';
-                cell.style.color = '#374151';
-                cell.style.whiteSpace = 'nowrap';
-            });
-            
-            const headers = cloneTable.querySelectorAll('th');
-            headers.forEach(th => { th.style.backgroundColor = '#f3f4f6'; th.style.fontWeight = 'bold'; });
-
+            tempDiv.style.position = 'absolute'; tempDiv.style.left = '-9999px'; tempDiv.style.top = '0'; tempDiv.style.backgroundColor = '#ffffff'; tempDiv.style.padding = '20px'; tempDiv.appendChild(cloneTable);
+            cloneTable.style.width = 'max-content'; cloneTable.style.borderCollapse = 'collapse';
+            cloneTable.querySelectorAll('th, td').forEach(cell => { cell.style.border = '1px solid #e5e7eb'; cell.style.padding = '8px 12px'; cell.style.textAlign = 'center'; cell.style.fontSize = '12px'; cell.style.color = '#374151'; cell.style.whiteSpace = 'nowrap'; });
+            cloneTable.querySelectorAll('th').forEach(th => { th.style.backgroundColor = '#f3f4f6'; th.style.fontWeight = 'bold'; });
             document.body.appendChild(tempDiv);
             showLoading(true, "Menyiapkan gambar...");
-
             setTimeout(() => {
                 html2canvas(tempDiv, { 
-                    scale: 2, 
-                    backgroundColor: '#ffffff', 
-                    useCors: true,
-                    width: cloneTable.offsetWidth,
-                    height: cloneTable.offsetHeight
+                    scale: 2, backgroundColor: '#ffffff', useCORS: true, width: cloneTable.offsetWidth, height: cloneTable.offsetHeight,
+                    ignoreElements: (element) => element.tagName === 'VIDEO' // TAMBAHKAN INI
                 }).then(canvas => {
                     document.body.removeChild(tempDiv);
                     showLoading(false);
-                    const link = document.createElement('a');
-                    link.download = `Rekap_Kas_${Date.now()}.png`;
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                    showToast("Gambar berhasil diunduh!", "success");
+                    showUniversalPreview(canvas.toDataURL('image/png'), 'Preview Rekap Kas', `Rekap_Kas_${Date.now()}.png`);
                 }).catch(e => {
                     if(document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
                     showLoading(false); showToast("Gagal unduh", "error"); 
                 });
             }, 200);
         }
+        
         function downloadCustomTable(tableId, title, subtitle) {
             const originalTable = document.getElementById(tableId);
             if(!originalTable) return;
@@ -3154,7 +3126,10 @@
             document.body.appendChild(tempDiv);
             showLoading(true, "Menyiapkan gambar...");
             setTimeout(() => {
-                html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff', useCors: true }).then(canvas => {
+                html2canvas(tempDiv, { 
+                    scale: 2, backgroundColor: '#ffffff', useCORS: true,
+                    ignoreElements: (element) => element.tagName === 'VIDEO' // TAMBAHKAN INI
+                }).then(canvas => {
                     document.body.removeChild(tempDiv);
                     showLoading(false);
                     showUniversalPreview(canvas.toDataURL('image/png'), `Preview ${title}`, `${title.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.png`);
@@ -3542,7 +3517,10 @@
             tempDiv.innerHTML = `<div style="text-align: center; margin-bottom: 20px;"><h1 style="font-weight: bold; font-size: 20px; margin: 0;">PRASPADAJO APP</h1><p style="font-size: 14px; color: #555;">Buku Besar Kas</p><p style="font-size: 12px; color: #777;">Periode: ${start ? formatDateIndo(start) : 'Awal'} s/d ${end ? formatDateIndo(end) : 'Akhir'}</p></div><table style="width: 100%; border-collapse: collapse; font-size: 12px;"><thead style="background: #f3f4f6;"><tr><th style="padding: 8px; border: 1px solid #ddd;">Tanggal</th><th style="padding: 8px; border: 1px solid #ddd;">Masuk</th><th style="padding: 8px; border: 1px solid #ddd;">Keluar</th><th style="padding: 8px; border: 1px solid #ddd;">Saldo</th></tr></thead><tbody>${rowsHtml || '<tr><td colspan="4" style="padding: 8px; text-align: center;">Tidak ada data</td></tr>'}</tbody></table>`;
 
             showLoading(true, "Menyiapkan gambar...");
-            html2canvas(tempDiv, { scale: 2 }).then(canvas => {
+            html2canvas(tempDiv, { 
+                scale: 2,
+                ignoreElements: (element) => element.tagName === 'VIDEO' // TAMBAHKAN INI
+            }).then(canvas => {
                 showLoading(false);
                 document.getElementById('modalUnduhBukuBesar').classList.add('hidden');
                 document.getElementById('modalUnduhBukuBesar').classList.remove('flex');
