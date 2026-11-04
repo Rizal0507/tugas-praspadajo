@@ -932,16 +932,37 @@
         function loadDashboardData(isManual = false) {
             if (isManual) state._notifiedUngraded = false;
             showLoading(true, "Memuat Data...");
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getDashboardData' }) }).then(r=>r.json()).then(d => {
-                showLoading(false);
+            
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getDashboardData' }) })
+            .then(r => {
+                if (!r.ok) throw new Error("HTTP Error " + r.status);
+                return r.json();
+            })
+            .then(d => {
                 if (d.success) {
-                    state.tasks = d.tasks; state.members = d.members; state.submissions = d.submissions;
-                    // UBAH BARIS INI: renderUsersTable() menjadi renderAnggotaTables()
-                    renderTaskDropdown(); renderAnggotaTables(); renderCheckboxesAnggota(); filterSubmissions(); renderTaskList();
+                    state.tasks = d.tasks || []; 
+                    state.members = d.members || []; 
+                    state.submissions = d.submissions || [];
+                    
+                    renderTaskDropdown(); 
+                    renderAnggotaTables(); 
+                    renderCheckboxesAnggota(); 
+                    filterSubmissions(); 
+                    renderTaskList();
                     updateUngradedNotification();
                     if (isManual) showToast("Data diperbarui", "success");
+                } else {
+                    showToast(d.message || "Gagal memuat data dari server", "error");
                 }
-            }).catch(e => { showLoading(false); showToast("Koneksi gagal", "error"); });
+            })
+            .catch(e => { 
+                showToast("Koneksi gagal: " + e.message, "error"); 
+                console.error(e);
+            })
+            .finally(() => {
+                // PASTIKAN LOADING SELALU HILANG
+                showLoading(false); 
+            });
         }
 
         function renderTaskDropdown() {
@@ -2016,6 +2037,9 @@
 
         // --- SISTEM DATA ANGGOTA & PELATIH (BARU) ---
         function renderAnggotaTables() {
+            if (!state.members) return; // <--- TAMBAHKAN BARIS INI
+            const tbodyAnggota = document.getElementById('tableAnggotaBody');
+            // ... sisa kode ke bawah tetap sama ...
             const tbodyAnggota = document.getElementById('tableAnggotaBody');
             const tbodyPelatih = document.getElementById('tablePelatihBody');
             
