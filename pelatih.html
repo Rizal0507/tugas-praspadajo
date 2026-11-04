@@ -456,7 +456,7 @@
                         <input type="file" id="profFotoUpload" accept="image/*" class="hidden" onchange="handleProfFotoUpload(event)">
                         <button type="button" onclick="document.getElementById('profFotoUpload').click()" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg border border-blue-200">Ganti Foto</button>
                     </div>
-                    ...
+                    
                     <div>
                         <label class="text-[10px] font-bold text-gray-600">Lokasi Rumah (Share Location dari Anggota)</label>
                         <!-- PERBAIKAN MAPS: Dibuat Readonly dan ada tombol buka -->
@@ -684,61 +684,7 @@
         <p id="loadingText" class="text-blue-700 font-bold text-sm animate-pulse">Memproses...</p>
     </div>
     <div id="toastContainer" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[110] flex flex-col gap-2 pointer-events-none w-full max-w-xs px-4"></div>
-    <!-- ============ MODAL NILAI MASSAL ============ -->
-    <div id="bulkGradeModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
-        <div class="bg-white w-full max-w-2xl rounded-3xl p-5 shadow-2xl flex flex-col max-h-[90vh]">
-            <div class="flex justify-between items-center mb-4 border-b pb-3 flex-none">
-                <h3 class="font-bold text-gray-800 text-sm"><i class="fa-solid fa-layer-group text-indigo-600 mr-1"></i> Penilaian Massal</h3>
-                <button onclick="closeBulkGradeModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 flex-none">
-                <div>
-                    <label class="text-[10px] font-bold text-gray-600 uppercase mb-1 block">Pilih Tanggal (Wajib)</label>
-                    <input type="date" id="bulkGradeDate" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs font-bold outline-none focus:border-indigo-500" onchange="loadBulkGradeData()">
-                </div>
-                <div class="flex items-end gap-2">
-                    <div class="flex-1">
-                        <label class="text-[10px] font-bold text-gray-600 uppercase mb-1 block">Beri Nilai</label>
-                        <select id="bulkGradeValue" class="w-full px-3 py-2 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-xl text-xs font-bold outline-none">
-                            <option value="A">A (Sangat Baik)</option>
-                            <option value="B">B (Baik)</option>
-                            <option value="C">C (Cukup)</option>
-                            <option value="D">D (Kurang)</option>
-                            <option value="E">E (Buruk)</option>
-                        </select>
-                    </div>
-                    <button type="button" onclick="loadBulkGradeData()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl text-xs font-bold active:scale-95 h-[34px]"><i class="fa-solid fa-search"></i></button>
-                </div>
-            </div>
 
-            <div class="mb-3 flex-none">
-                <label class="text-[10px] font-bold text-gray-600 uppercase mb-1 block">Catatan Tambahan (Opsional)</label>
-                <input type="text" id="bulkGradeComment" placeholder="Contoh: Tingkatkan semangat!" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none focus:border-indigo-500">
-            </div>
-
-            <div class="overflow-auto custom-scroll flex-grow border rounded-xl bg-gray-50 mb-4">
-                <table class="w-full text-left border-collapse text-xs">
-                    <thead class="bg-white text-gray-500 uppercase font-bold text-[10px] sticky top-0 shadow-sm z-10">
-                        <tr>
-                            <th class="py-2 px-3 w-10 text-center"><input type="checkbox" id="chkAllBulk" onchange="toggleAllBulk(this)" class="w-4 h-4 cursor-pointer accent-indigo-600"></th>
-                            <th class="py-2 px-3">Nama Anggota</th>
-                            <th class="py-2 px-3">Tugas / Sesi</th>
-                            <th class="py-2 px-3 text-center">Waktu</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBulkGradeBody" class="divide-y divide-gray-200 bg-white">
-                        <tr><td colspan="4" class="py-8 text-center text-gray-400">Pilih tanggal lalu klik ikon pencarian.</td></tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="flex gap-2 justify-end flex-none">
-                <button type="button" onclick="closeBulkGradeModal()" class="px-4 py-2 bg-gray-100 text-gray-600 font-bold rounded-xl text-xs">Batal</button>
-                <button type="button" onclick="executeBulkGrade()" class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl text-xs shadow-md active:scale-95"><i class="fa-solid fa-check-double mr-1"></i> Simpan Terpilih</button>
-            </div>
-        </div>
-    </div>
     <script>
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbwYTFRirtCpDT1vXJ0hSeFtElQR44rdoMPKskHgRPO3OlCr5_D_cXvLQOFzkDt4lY_IYw/exec';
 
