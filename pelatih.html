@@ -422,14 +422,13 @@
                 </div>
             </section>
 
-            <!-- VIEW KEUANGAN (REVISI FINAL) -->
+            <!-- VIEW KEUANGAN (FINAL REVISI) -->
             <section id="viewKeuangan" class="tab-view hidden flex-col gap-5 w-full">
                 <!-- Sub-Tab Keuangan -->
                 <div class="flex gap-1 bg-gray-100 p-1 rounded-2xl mb-2 overflow-x-auto custom-scroll">
                     <button onclick="switchSubTabKeuangan('dashboard')" id="subTabBtnDashboard" class="flex-1 py-2 px-3 bg-white text-blue-600 rounded-xl text-[11px] font-bold shadow-sm transition-all whitespace-nowrap">Dashboard</button>
                     <button onclick="switchSubTabKeuangan('kas')" id="subTabBtnKas" class="flex-1 py-2 px-3 text-gray-500 hover:text-gray-800 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap">Kas</button>
                     <button onclick="switchSubTabKeuangan('tabungan')" id="subTabBtnTabungan" class="flex-1 py-2 px-3 text-gray-500 hover:text-gray-800 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap">Tabungan</button>
-                    <button onclick="openSettingKasModal()" class="px-3 text-indigo-600 bg-indigo-50 rounded-xl font-bold hover:bg-indigo-100 transition-colors"><i class="fa-solid fa-gear"></i></button>
                 </div>
 
                 <!-- Sub-View Dashboard -->
@@ -451,14 +450,11 @@
                             <h3 class="text-lg font-bold text-gray-800" id="dashTotalKeluar">Rp 0</h3>
                         </div>
                     </div>
-                    
-                    <div class="flex gap-2">
-                        <button onclick="openDanaModal()" class="flex-1 bg-emerald-50 text-emerald-600 border border-emerald-200 py-3 rounded-xl text-xs font-bold shadow-sm hover:bg-emerald-100 transition-colors"><i class="fa-solid fa-plus-circle mr-1"></i> Tambah Pengumpulan Dana</button>
-                    </div>
 
-                    <div id="dynamicDanaCards" class="flex flex-col gap-4 mt-2"></div>
+                    <!-- Overview Tabungan -->
+                    <div id="overviewTabunganContainer" class="flex flex-col gap-3 mt-1"></div>
 
-                    <!-- BUKU BESAR (Dipindah ke Dashboard) -->
+                    <!-- Buku Besar Kas -->
                     <div class="bg-white rounded-3xl border shadow-sm flex flex-col mt-2">
                         <div class="p-4 border-b"><h3 class="font-bold text-sm text-gray-800">Buku Besar Kas (Akumulasi Harian)</h3></div>
                         <div class="overflow-x-auto max-h-64 custom-scroll">
@@ -471,11 +467,14 @@
                         </div>
                     </div>
 
-                    <!-- REKAP PERORANGAN (Dipindah ke Dashboard) -->
+                    <!-- Rekap Perorangan Kas -->
                     <div class="bg-white rounded-3xl border shadow-sm flex flex-col mt-2 mb-4">
                         <div class="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                            <h3 class="font-bold text-sm text-gray-800">Rekap Perorangan</h3>
-                            <div class="flex flex-wrap gap-2 items-center w-full sm:w-auto">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-bold text-sm text-gray-800">Rekap Perorangan Kas</h3>
+                                <button onclick="toggleRekapKas()" class="text-gray-400 hover:text-blue-600 transition-colors"><i id="iconToggleRekap" class="fa-solid fa-eye-slash"></i></button>
+                            </div>
+                            <div id="filterRekapContainer" class="flex flex-wrap gap-2 items-center w-full sm:w-auto">
                                 <input type="date" id="rekapStartDate" class="px-2 py-1.5 border rounded-lg text-[10px] outline-none">
                                 <span class="text-xs text-gray-400">-</span>
                                 <input type="date" id="rekapEndDate" class="px-2 py-1.5 border rounded-lg text-[10px] outline-none">
@@ -483,7 +482,7 @@
                                 <button onclick="downloadTabelPerorangan()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md"><i class="fa-solid fa-download mr-1"></i> Unduh</button>
                             </div>
                         </div>
-                        <div id="rekapPeroranganWrapper" class="overflow-x-auto overflow-y-auto max-h-72 custom-scroll p-2 bg-white">
+                        <div id="rekapPeroranganWrapper" class="overflow-x-auto overflow-y-auto max-h-72 custom-scroll p-2 bg-white hidden">
                             <table class="w-full text-left border-collapse text-[10px] min-w-max" id="tableRekapPerorangan">
                                 <thead class="bg-gray-100 text-gray-700 font-bold" id="theadRekapPerorangan"></thead>
                                 <tbody id="tbodyRekapPerorangan" class="divide-y divide-gray-200"></tbody>
@@ -492,33 +491,30 @@
                     </div>
                 </div>
 
-                <!-- Sub-View Kas (Hanya Input & Pengeluaran) -->
+                <!-- Sub-View Kas -->
                 <div id="subViewKeuanganKas" class="hidden flex-col gap-4">
-                    <!-- Filter Tanggal -->
-                    <div class="bg-white p-3 rounded-2xl border shadow-sm flex items-center justify-between">
-                        <label class="text-[10px] font-bold text-gray-600 uppercase">Pilih Tanggal Kas</label>
-                        <input type="date" id="kasDateFilter" onchange="renderKasUI()" class="px-3 py-1.5 bg-gray-50 border rounded-lg text-xs font-bold outline-none text-blue-600">
-                    </div>
-
-                    <!-- Pemasukan -->
                     <div class="bg-white rounded-3xl border shadow-sm flex flex-col">
-                        <div class="p-4 border-b flex justify-between items-center">
-                            <div>
-                                <h3 class="font-bold text-sm text-gray-800">Pemasukan Kas</h3>
-                                <span class="text-[10px] text-gray-500">Min: <span id="lblMinKas">Rp 0</span></span>
+                        <div class="p-4 border-b flex flex-wrap justify-between items-center gap-2 bg-gray-50 rounded-t-3xl">
+                            <h3 class="font-bold text-sm text-gray-800">Pemasukan Kas</h3>
+                            <div class="flex items-center gap-2">
+                                <input type="date" id="kasDateFilter" onchange="renderKasUI()" class="px-2 py-1.5 bg-white border rounded-lg text-xs font-bold outline-none text-blue-600">
+                                <button onclick="openSettingKasModal()" class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center hover:bg-indigo-200 transition-colors"><i class="fa-solid fa-gear"></i></button>
                             </div>
+                        </div>
+                        <div class="p-3 bg-blue-50 border-b flex justify-between items-center text-[10px] font-bold text-blue-800">
+                            <span>Minimal Kas: <span id="lblMinKas">Rp 0</span></span>
+                            <span>Frekuensi: <span id="lblFreqKas">Harian</span></span>
                         </div>
                         <div class="overflow-x-auto max-h-72 custom-scroll">
                             <table class="w-full text-left text-xs">
                                 <thead class="bg-gray-50 text-gray-500 font-bold sticky top-0">
-                                    <tr><th class="p-3">Anggota</th><th class="p-3">Status Hari Ini</th><th class="p-3 text-right">Input Cepat</th></tr>
+                                    <tr><th class="p-3">Anggota</th><th class="p-3">Kas Hari Ini</th><th class="p-3 text-right">Input</th></tr>
                                 </thead>
                                 <tbody id="tableKasMasuk" class="divide-y divide-gray-100"></tbody>
                             </table>
                         </div>
                     </div>
 
-                    <!-- Pengeluaran (Dikembalikan seperti semula) -->
                     <div class="bg-white rounded-3xl border shadow-sm flex flex-col">
                         <div class="p-4 border-b flex justify-between items-center">
                             <h3 class="font-bold text-sm text-gray-800">Pengeluaran Kas</h3>
@@ -535,9 +531,32 @@
                     </div>
                 </div>
 
-                <!-- Sub-View Tabungan/Dana -->
+                <!-- Sub-View Tabungan -->
                 <div id="subViewKeuanganTabungan" class="hidden flex-col gap-4">
-                    <div id="danaListContainer" class="flex flex-col gap-3"></div>
+                    <div class="bg-white p-4 rounded-2xl border shadow-sm flex justify-between items-center">
+                        <select id="selectTabungan" onchange="renderTabunganUI()" class="font-bold text-sm text-gray-800 outline-none bg-transparent max-w-[200px] truncate">
+                            <!-- Options diisi via JS -->
+                        </select>
+                        <button onclick="openTabunganModal()" class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-md active:scale-95"><i class="fa-solid fa-plus-circle mr-1"></i> Tambah Tabungan</button>
+                    </div>
+                    
+                    <div class="bg-white rounded-3xl border shadow-sm flex flex-col">
+                        <div class="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-3xl">
+                            <div>
+                                <h3 class="font-bold text-sm text-gray-800">Tabel Setoran Tabungan</h3>
+                                <span class="text-[10px] text-gray-500" id="lblDeadlineTabungan"></span>
+                            </div>
+                            <input type="date" id="tabunganDateFilter" onchange="renderTabunganUI()" class="px-2 py-1.5 bg-white border rounded-lg text-xs font-bold outline-none text-emerald-600">
+                        </div>
+                        <div class="overflow-x-auto max-h-[400px] custom-scroll">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-gray-50 text-gray-500 font-bold sticky top-0">
+                                    <tr><th class="p-3">Anggota</th><th class="p-3 text-center">Total Terkumpul</th><th class="p-3 text-center">Saldo Hari Ini</th><th class="p-3 text-right">Input</th></tr>
+                                </thead>
+                                <tbody id="tableTabungan" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </section>
             
@@ -898,76 +917,54 @@
     <div id="settingKasModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl">
             <div class="flex justify-between items-center mb-4 border-b pb-3">
-                <h3 class="font-bold text-gray-800 text-sm">Setting Kas</h3>
-                <button onclick="closeSettingKasModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+                <h3 class="font-bold text-gray-800 text-sm">Setting Target Kas</h3>
+                <button onclick="closeSettingKasModal()" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form id="formSettingKas" class="flex flex-col gap-3">
-                <div><label class="text-[10px] font-bold text-gray-600">Minimal Kas / Hari (Rp)</label><input type="number" id="setMinKas" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold"></div>
-                <div class="flex gap-2 mt-2">
-                    <button type="button" onclick="closeSettingKasModal()" class="flex-1 bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
-                    <button type="submit" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded-xl text-xs shadow-md">Simpan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL TAMBAH DANA -->
-    <div id="danaModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl">
-            <div class="flex justify-between items-center mb-4 border-b pb-3">
-                <h3 class="font-bold text-gray-800 text-sm">Buat Pengumpulan Dana</h3>
-                <button onclick="closeDanaModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <form id="formDana" class="flex flex-col gap-3">
-                <div><label class="text-[10px] font-bold text-gray-600">Nama Pengumpulan (ex: Study Tour)</label><input type="text" id="danaJudul" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold"></div>
-                <div><label class="text-[10px] font-bold text-gray-600">Target Nominal per Orang (Rp)</label><input type="number" id="danaTarget" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold"></div>
-                <div class="flex gap-2 mt-2">
-                    <button type="button" onclick="closeDanaModal()" class="flex-1 bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
-                    <button type="submit" class="flex-1 bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs shadow-md">Simpan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    <!-- MODAL PENGELUARAN KAS -->
-    <div id="pengeluaranModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl">
-            <h3 class="font-bold text-gray-800 text-sm mb-4">Tarik Tunai / Pengeluaran</h3>
-            <form id="formPengeluaran" class="flex flex-col gap-3">
-                <div><label class="text-[10px] font-bold text-gray-600">Nominal (Rp)</label><input type="number" id="outNominal" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold"></div>
-                <div><label class="text-[10px] font-bold text-gray-600">Tujuan Pengeluaran</label><input type="text" id="outTujuan" required placeholder="Beli minum, dll" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></div>
-                <div><label class="text-[10px] font-bold text-gray-600">Nama Peminta</label><input type="text" id="outPeminta" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></div>
-                <div class="flex gap-2 mt-2">
-                    <button type="button" onclick="closePengeluaranModal()" class="flex-1 bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
-                    <button type="submit" class="flex-1 bg-rose-600 text-white font-bold py-2 rounded-xl text-xs shadow-md">Konfirmasi Tarik</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL SETTING KAS -->
-    <div id="settingKasModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl">
-            <h3 class="font-bold text-gray-800 text-sm mb-4">Setting Kas</h3>
-            <form id="formSettingKas" class="flex flex-col gap-3">
-                <div><label class="text-[10px] font-bold text-gray-600">Minimal Kas (Rp)</label><input type="number" id="setMinKas" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold"></div>
-                <div><label class="text-[10px] font-bold text-gray-600">Frekuensi</label>
-                    <select id="setFrekuensi" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-600 block mb-1">Tipe Target</label>
+                    <select id="setTipeKas" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs font-bold outline-none">
                         <option value="Harian">Harian</option>
                         <option value="Mingguan">Mingguan</option>
-                        <option value="Bulanan">Bulanan</option>
                     </select>
                 </div>
-                <div><label class="text-[10px] font-bold text-gray-600">Target Kas</label>
-                    <select id="setTargetKas" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs">
-                        <option value="Semua">Semua Anggota</option>
-                        <option value="Spesifik">Anggota Spesifik</option>
-                    </select>
-                </div>
+                <div><label class="text-[10px] font-bold text-gray-600 block mb-1">Nominal Target (Rp)</label><input type="text" id="setMinKas" onkeyup="formatInputRupiah(this)" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold"></div>
                 <div class="flex gap-2 mt-2">
                     <button type="button" onclick="closeSettingKasModal()" class="flex-1 bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
                     <button type="submit" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded-xl text-xs shadow-md">Simpan</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL TAMBAH TABUNGAN -->
+    <div id="tabunganModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl p-5 shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4 border-b pb-3 flex-none">
+                <h3 class="font-bold text-gray-800 text-sm">Buat Tabungan Baru</h3>
+                <button onclick="closeTabunganModal()" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="overflow-y-auto custom-scroll flex-grow pr-1">
+                <form id="formTabungan" class="flex flex-col gap-3">
+                    <div><label class="text-[10px] font-bold text-gray-600">Nama Tabungan (ex: Kaos Polo)</label><input type="text" id="danaJudul" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold"></div>
+                    <div><label class="text-[10px] font-bold text-gray-600">Target Nominal / Orang (Rp)</label><input type="text" id="danaTarget" onkeyup="formatInputRupiah(this)" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold"></div>
+                    <div><label class="text-[10px] font-bold text-gray-600">Batas Waktu (Deadline)</label><input type="date" id="danaDeadline" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold text-gray-700"></div>
+                    
+                    <div class="mt-2 border-t pt-2">
+                        <label class="text-[10px] font-bold text-gray-600 block mb-1">Target Anggota</label>
+                        <select id="danaTargetUser" onchange="toggleTargetTabungan()" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs mb-2">
+                            <option value="Semua">Semua Anggota</option>
+                            <option value="Spesifik">Anggota Spesifik</option>
+                        </select>
+                        <div id="danaCheckboxes" class="hidden max-h-32 overflow-y-auto custom-scroll grid grid-cols-2 gap-1 p-2 border rounded-xl bg-gray-50"></div>
+                    </div>
+
+                    <div class="flex gap-2 mt-4 flex-none">
+                        <button type="button" onclick="closeTabunganModal()" class="flex-1 bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
+                        <button type="submit" class="flex-1 bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs shadow-md">Simpan Tabungan</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -2777,6 +2774,19 @@
         // === 3. FITUR KEUANGAN (REVISI FINAL) ===
         let keuanganData = { kas: [], pengeluaran: [], dana: [], transaksi_dana: [], settings: {} };
 
+        function formatInputRupiah(el) {
+            let val = el.value.replace(/[^0-9]/g, '');
+            if(val) {
+                el.value = parseInt(val).toLocaleString('id-ID');
+            } else {
+                el.value = '';
+            }
+        }
+
+        function unformatRupiah(str) {
+            return parseInt(String(str).replace(/\./g, '')) || 0;
+        }
+
         function switchSubTabKeuangan(sub) {
             ['dashboard', 'kas', 'tabungan'].forEach(t => {
                 document.getElementById(`subViewKeuangan${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.add('hidden');
@@ -2792,6 +2802,10 @@
                 if(!document.getElementById('kasDateFilter').value) document.getElementById('kasDateFilter').value = getLocalToday();
                 renderKasUI(); 
             }
+            if(sub === 'tabungan') {
+                if(!document.getElementById('tabunganDateFilter').value) document.getElementById('tabunganDateFilter').value = getLocalToday();
+                populateSelectTabungan();
+            }
         }
 
         function loadKeuanganData() {
@@ -2802,8 +2816,6 @@
                 if(d.success) {
                     keuanganData = d;
                     renderKeuanganDashboard();
-                    renderDanaUI();
-                    // Render tanggal default untuk rekap
                     if(!document.getElementById('rekapStartDate').value) {
                         document.getElementById('rekapStartDate').value = getLocalToday();
                         document.getElementById('rekapEndDate').value = getLocalToday();
@@ -2814,13 +2826,11 @@
 
         function parseDateString(dateStr) {
             if (!dateStr) return '';
-            // Jika dari GAS berbentuk ISO 2026-11-04T11:10:10.000Z
             if (String(dateStr).includes('T')) {
                 const d = new Date(dateStr);
                 const pad = (n) => String(n).padStart(2, '0');
                 return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
             }
-            // Jika sudah string biasa
             return String(dateStr).split(' ')[0];
         }
 
@@ -2835,51 +2845,56 @@
             document.getElementById('dashTotalMasuk').textContent = formatRupiah(totalMasuk);
             document.getElementById('dashTotalKeluar').textContent = formatRupiah(totalKeluar);
 
-            // Render Dana Cards
-            const container = document.getElementById('dynamicDanaCards');
-            if(keuanganData.dana.length === 0) {
-                container.innerHTML = '';
-            } else {
+            // Overview Tabungan (Card)
+            const container = document.getElementById('overviewTabunganContainer');
+            if(keuanganData.dana.length > 0) {
                 container.innerHTML = keuanganData.dana.map(dana => {
                     const idDana = dana[0];
                     const judul = dana[1];
                     const targetNominal = parseInt(dana[3]) || 0;
+                    const deadline = dana[4] ? parseDateString(dana[4]) : '-';
                     const trxDana = keuanganData.transaksi_dana.filter(t => t[1] === idDana);
                     const totalTerkumpul = trxDana.reduce((sum, t) => sum + (parseInt(t[4]) || 0), 0);
                     
                     return `
-                        <div class="bg-white p-4 rounded-3xl border shadow-sm relative overflow-hidden">
-                            <div class="flex justify-between items-start mb-2 border-b pb-2">
+                        <div class="bg-white p-4 rounded-2xl border shadow-sm mt-2">
+                            <div class="flex justify-between items-center border-b pb-2 mb-2">
                                 <div>
                                     <h4 class="font-bold text-sm text-gray-800">${judul}</h4>
-                                    <p class="text-[10px] text-gray-500">Target: ${formatRupiah(targetNominal)} / org</p>
+                                    <p class="text-[10px] text-gray-500">Target: ${formatRupiah(targetNominal)} • Deadline: ${deadline}</p>
                                 </div>
-                                <div class="text-right">
-                                    <span class="text-sm font-black text-emerald-600">${formatRupiah(totalTerkumpul)}</span>
-                                    <span class="block text-[8px] text-gray-400 uppercase">Terkumpul</span>
-                                </div>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="openSetorDanaModal('${idDana}', '${judul}')" class="flex-1 bg-emerald-50 text-emerald-600 font-bold py-2 rounded-xl text-xs border border-emerald-200">+ Setor Dana</button>
+                                <span class="text-xs font-black text-emerald-600">${formatRupiah(totalTerkumpul)}</span>
                             </div>
                         </div>
                     `;
                 }).join('');
+            } else {
+                container.innerHTML = '';
             }
 
             renderBukuBesar();
             renderTabelPerorangan();
         }
 
+        function toggleRekapKas() {
+            const wrapper = document.getElementById('rekapPeroranganWrapper');
+            const icon = document.getElementById('iconToggleRekap');
+            if(wrapper.classList.contains('hidden')) {
+                wrapper.classList.remove('hidden');
+                icon.className = 'fa-solid fa-eye';
+            } else {
+                wrapper.classList.add('hidden');
+                icon.className = 'fa-solid fa-eye-slash';
+            }
+        }
+
         function renderBukuBesar() {
             let grouped = {};
-            // Kumpulkan pemasukan
             keuanganData.kas.forEach(k => {
                 const tgl = parseDateString(k[1]);
                 if(!grouped[tgl]) grouped[tgl] = { masuk: 0, keluar: 0 };
                 grouped[tgl].masuk += parseInt(k[3]) || 0;
             });
-            // Kumpulkan pengeluaran
             keuanganData.pengeluaran.forEach(p => {
                 const tgl = parseDateString(p[1]);
                 if(!grouped[tgl]) grouped[tgl] = { masuk: 0, keluar: 0 };
@@ -2887,13 +2902,11 @@
             });
 
             const sortedDates = Object.keys(grouped).sort((a,b) => new Date(b) - new Date(a));
-            
             let saldoBerjalan = 0;
             const rowsHtml = sortedDates.map(tgl => {
                 const m = grouped[tgl].masuk;
                 const k = grouped[tgl].keluar;
                 saldoBerjalan += (m - k);
-                
                 const [y, mo, d] = tgl.split('-');
                 return `<tr>
                     <td class="p-3 text-[10px] font-bold text-gray-700">${d}/${mo}/${y}</td>
@@ -2902,7 +2915,6 @@
                     <td class="p-3 text-[10px] font-bold text-gray-800 text-right">${formatRupiah(saldoBerjalan)}</td>
                 </tr>`;
             }).join('');
-
             document.getElementById('tableBukuBesar').innerHTML = rowsHtml || `<tr><td colspan="4" class="p-4 text-center text-xs text-gray-400">Belum ada transaksi</td></tr>`;
         }
 
@@ -2919,7 +2931,6 @@
                 curr.setDate(curr.getDate() + 1);
             }
 
-            // Header Matriks
             let theadHtml = `<tr><th class="p-2 border-r sticky left-0 bg-gray-100 z-10">Nama Anggota</th>`;
             dateList.forEach(d => {
                 const [y, mo, day] = d.split('-');
@@ -2928,12 +2939,10 @@
             theadHtml += `<th class="p-2 text-center text-blue-700">Total</th></tr>`;
             document.getElementById('theadRekapPerorangan').innerHTML = theadHtml;
 
-            // Body Matriks
             const anggotaList = state.members.filter(m => m.role === 'Anggota');
             document.getElementById('tbodyRekapPerorangan').innerHTML = anggotaList.map(m => {
                 let rowHtml = `<tr><td class="p-2 font-bold border-r sticky left-0 bg-white">${m.nama}</td>`;
                 let totalMingguan = 0;
-
                 dateList.forEach(d => {
                     const trx = keuanganData.kas.filter(k => k[2] === m.username && parseDateString(k[1]) === d);
                     const totalHari = trx.reduce((sum, k) => sum + (parseInt(k[3]) || 0), 0);
@@ -2948,15 +2957,12 @@
         function downloadTabelPerorangan() {
             const originalTable = document.getElementById('tableRekapPerorangan');
             const cloneContainer = originalTable.cloneNode(true);
-            
-            // Styling clone agar full width
             cloneContainer.style.position = 'absolute';
             cloneContainer.style.left = '-9999px';
             cloneContainer.style.width = 'max-content'; 
             cloneContainer.style.backgroundColor = '#ffffff';
-            cloneContainer.className = 'w-full text-left border-collapse text-[12px] min-w-max'; // perbesar font sedikit
+            cloneContainer.className = 'w-full text-left border-collapse text-[12px] min-w-max'; 
             
-            // Rapikan padding
             const style = document.createElement('style');
             style.innerHTML = `td, th { padding: 8px 12px !important; border: 1px solid #e5e7eb !important; }`;
             cloneContainer.appendChild(style);
@@ -2964,42 +2970,48 @@
             document.body.appendChild(cloneContainer);
             showLoading(true, "Menyiapkan gambar...");
 
-            html2canvas(cloneContainer, { scale: 2, backgroundColor: '#ffffff', useCORS: true }).then(canvas => {
+            html2canvas(cloneContainer, { scale: 2, backgroundColor: '#ffffff', useCors: true }).then(canvas => {
                 document.body.removeChild(cloneContainer);
                 showLoading(false);
                 const link = document.createElement('a');
                 link.download = `Rekap_Kas_${Date.now()}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-                showToast("Gambar berhasil diunduh!", "success");
+                showToast("Gambar diunduh!", "success");
             }).catch(e => {
                 if(document.body.contains(cloneContainer)) document.body.removeChild(cloneContainer);
                 showLoading(false); showToast("Gagal unduh", "error"); 
             });
         }
 
-        // --- 2. KAS (Pemasukan & Pengeluaran) ---
+        // --- 2. KAS ---
         function renderKasUI() {
             const minKas = keuanganData.settings.minimal || 0;
+            const freq = keuanganData.settings.frekuensi || 'Harian';
             document.getElementById('lblMinKas').textContent = formatRupiah(minKas);
+            document.getElementById('lblFreqKas').textContent = freq;
             
             const filterDate = document.getElementById('kasDateFilter').value || getLocalToday();
             const anggotaList = state.members.filter(m => m.role === 'Anggota');
 
-            // Tabel Masuk
             document.getElementById('tableKasMasuk').innerHTML = anggotaList.map(m => {
                 const trxHariIni = keuanganData.kas.filter(k => k[2] === m.username && parseDateString(k[1]) === filterDate);
                 const totalHariIni = trxHariIni.reduce((sum, k) => sum + (parseInt(k[3]) || 0), 0);
                 
                 let inputHtml = '';
-                // Jika minimal 0 atau belum mencapai minimal, tampilkan tombol
                 if (minKas > 0 && totalHariIni >= minKas) {
                     inputHtml = `<span class="text-emerald-500 font-bold text-[10px] bg-emerald-50 px-2 py-1 rounded-lg"><i class="fa-solid fa-check-circle mr-1"></i> Lunas</span>`;
                 } else {
-                    inputHtml = `<div class="flex flex-wrap gap-1 justify-end">
-                        <button onclick="quickSaveKas('${m.username}', 1000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold hover:bg-blue-100">1k</button>
-                        <button onclick="quickSaveKas('${m.username}', 2000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold hover:bg-blue-100">2k</button>
-                        <button onclick="quickSaveKas('${m.username}', 5000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold hover:bg-blue-100">5k</button>
+                    inputHtml = `<div class="flex flex-col items-end gap-1">
+                        <div class="flex gap-1">
+                            <button onclick="quickSaveKas('${m.username}', 1000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">1k</button>
+                            <button onclick="quickSaveKas('${m.username}', 2000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">2k</button>
+                            <button onclick="quickSaveKas('${m.username}', 5000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">5k</button>
+                        </div>
+                        <div class="flex gap-1 w-full max-w-[120px]">
+                            <input type="text" id="manualKas_${m.username}" onkeyup="formatInputRupiah(this)" placeholder="Nominal..." class="w-full px-2 py-1 border rounded-lg text-[10px] outline-none text-right">
+                            <button onclick="manualSaveKas('${m.username}', '${filterDate}')" class="bg-blue-600 text-white px-2 py-1 rounded-lg text-[10px]"><i class="fa-solid fa-check"></i></button>
+                        </div>
                     </div>`;
                 }
 
@@ -3013,7 +3025,6 @@
                 </tr>`;
             }).join('');
 
-            // Tabel Keluar
             document.getElementById('tableKasKeluar').innerHTML = keuanganData.pengeluaran.slice().reverse().map(p => {
                 const [y, mo, d] = parseDateString(p[1]).split('-');
                 return `<tr>
@@ -3029,15 +3040,22 @@
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ 
                 action: 'saveKas', username: username, nominal: nominal, keterangan: 'Kas', tanggalKustom: tanggal
             })}).then(r => r.json()).then(d => {
-                if(d.success) {
-                    showToast("Berhasil", "success");
-                    loadKeuanganData(); 
-                } else { showToast("Gagal", "error"); }
+                if(d.success) { showToast("Berhasil", "success"); loadKeuanganData(); renderKasUI(); } 
+                else { showToast("Gagal", "error"); }
             });
         }
 
+        function manualSaveKas(username, tanggal) {
+            const inputEl = document.getElementById(`manualKas_${username}`);
+            const val = unformatRupiah(inputEl.value);
+            if(val <= 0) { showToast("Masukkan nominal valid", "error"); return; }
+            quickSaveKas(username, val, tanggal);
+            inputEl.value = '';
+        }
+
         function openSettingKasModal() {
-            document.getElementById('setMinKas').value = keuanganData.settings.minimal || 0;
+            document.getElementById('setMinKas').value = keuanganData.settings.minimal ? keuanganData.settings.minimal.toLocaleString('id-ID') : 0;
+            document.getElementById('setTipeKas').value = keuanganData.settings.frekuensi || 'Harian';
             document.getElementById('settingKasModal').classList.remove('hidden'); document.getElementById('settingKasModal').classList.add('flex');
         }
         function closeSettingKasModal() { document.getElementById('settingKasModal').classList.add('hidden'); document.getElementById('settingKasModal').classList.remove('flex'); }
@@ -3047,7 +3065,7 @@
             showLoading(true, "Menyimpan...");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({
                 action: 'updateSettingKas',
-                settings: { minimal: document.getElementById('setMinKas').value }
+                settings: { minimal: unformatRupiah(document.getElementById('setMinKas').value), frekuensi: document.getElementById('setTipeKas').value }
             })}).then(r=>r.json()).then(d => {
                 showLoading(false);
                 if(d.success) { showToast("Tersimpan", "success"); closeSettingKasModal(); loadKeuanganData(); }
@@ -3063,7 +3081,7 @@
             showLoading(true, "Menyimpan...");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({
                 action: 'savePengeluaran',
-                nominal: document.getElementById('outNominal').value,
+                nominal: unformatRupiah(document.getElementById('outNominal').value),
                 tujuan: document.getElementById('outTujuan').value,
                 peminta: document.getElementById('outPeminta').value,
                 dicatatOleh: state.user.nama
@@ -3074,50 +3092,129 @@
             });
         });
 
-        // --- 3. DANA & TABUNGAN ---
-        function renderDanaUI() {
-            const container = document.getElementById('danaListContainer');
-            container.innerHTML = keuanganData.dana.map(d => {
-                const id = d[0];
-                const judul = d[1];
-                const target = d[3];
-                return `
-                <div class="bg-white p-4 rounded-2xl border shadow-sm flex justify-between items-center">
-                    <div>
-                        <h4 class="font-bold text-sm">${judul}</h4>
-                        <p class="text-[10px] text-gray-500">Target: ${formatRupiah(target)}</p>
-                    </div>
-                    <button onclick="openSetorDanaModal('${id}', '${judul}')" class="bg-emerald-100 text-emerald-700 px-3 py-2 rounded-xl text-xs font-bold shadow-sm">+ Setor</button>
-                </div>`;
-            }).join('') || `<div class="text-xs text-center text-gray-400 p-4">Belum ada pengumpulan dana.</div>`;
+        // --- 3. TABUNGAN ---
+        function populateSelectTabungan() {
+            const sel = document.getElementById('selectTabungan');
+            sel.innerHTML = keuanganData.dana.map(d => `<option value="${d[0]}">${d[1]}</option>`).join('');
+            renderTabunganUI();
         }
 
-        function openSetorDanaModal(idDana, judul) {
-            const nominal = prompt(`Masukkan Nominal Setoran untuk ${judul}:`);
-            if(!nominal || isNaN(nominal)) return;
-            showLoading(true, "Menyimpan...");
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'saveTransaksiDana', id_dana: idDana, username: state.user.username, nominal: parseInt(nominal) }) })
-            .then(r=>r.json()).then(d => {
-                showLoading(false);
-                if(d.success) { showToast("Setoran disimpan", "success"); loadKeuanganData(); }
-                else showToast(d.message, "error");
+        function renderTabunganUI() {
+            const idDana = document.getElementById('selectTabungan').value;
+            if(!idDana) { document.getElementById('tableTabungan').innerHTML = '<tr><td colspan="4" class="text-center text-gray-400 p-4">Belum ada tabungan.</td></tr>'; return; }
+            
+            const dana = keuanganData.dana.find(d => d[0] === idDana);
+            if(!dana) return;
+
+            const targetNominal = parseInt(dana[3]) || 0;
+            const deadline = dana[4] ? parseDateString(dana[4]) : '-';
+            document.getElementById('lblDeadlineTabungan').textContent = `Target: ${formatRupiah(targetNominal)} • Deadline: ${deadline}`;
+
+            const filterDate = document.getElementById('tabunganDateFilter').value || getLocalToday();
+            const anggotaList = state.members.filter(m => m.role === 'Anggota');
+
+            document.getElementById('tableTabungan').innerHTML = anggotaList.map(m => {
+                // Hitung total terkumpul sepanjang waktu
+                const trxAll = keuanganData.transaksi_dana.filter(t => t[1] === idDana && t[3] === m.username);
+                const totalTerkumpul = trxAll.reduce((sum, t) => sum + (parseInt(t[4]) || 0), 0);
+                
+                // Hitung setoran pada tanggal filter
+                const trxHariIni = trxAll.filter(t => parseDateString(t[2]) === filterDate);
+                const saldoHariIni = trxHariIni.reduce((sum, t) => sum + (parseInt(t[4]) || 0), 0);
+
+                // Warna total terkumpul
+                let colorClass = 'text-rose-600'; // 0
+                if(totalTerkumpul > 0) colorClass = 'text-amber-500'; // Proses
+                if(totalTerkumpul >= targetNominal) colorClass = 'text-emerald-600'; // Achieve
+
+                return `<tr class="hover:bg-gray-50">
+                    <td class="p-3">
+                        <div class="text-xs font-bold text-gray-800">${m.nama}</div>
+                        <div class="text-[9px] text-gray-500">${m.kelas}</div>
+                    </td>
+                    <td class="p-3 text-center text-[11px] font-black ${colorClass}">${formatRupiah(totalTerkumpul)}</td>
+                    <td class="p-3 text-center text-[10px] font-bold text-blue-600">${saldoHariIni > 0 ? formatRupiah(saldoHariIni) : '-'}</td>
+                    <td class="p-3 text-right">
+                        <div class="flex flex-col items-end gap-1">
+                            <div class="flex gap-1">
+                                <button onclick="quickSaveTabungan('${idDana}', '${m.username}', 10000, '${filterDate}')" class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded-lg text-[9px] font-bold">10k</button>
+                                <button onclick="quickSaveTabungan('${idDana}', '${m.username}', 20000, '${filterDate}')" class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded-lg text-[9px] font-bold">20k</button>
+                                <button onclick="quickSaveTabungan('${idDana}', '${m.username}', 50000, '${filterDate}')" class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded-lg text-[9px] font-bold">50k</button>
+                            </div>
+                            <div class="flex gap-1 w-full max-w-[120px]">
+                                <input type="text" id="manualTab_${m.username}" onkeyup="formatInputRupiah(this)" placeholder="Nominal..." class="w-full px-2 py-1 border rounded-lg text-[10px] outline-none text-right">
+                                <button onclick="manualSaveTabungan('${idDana}', '${m.username}', '${filterDate}')" class="bg-emerald-600 text-white px-2 py-1 rounded-lg text-[10px]"><i class="fa-solid fa-check"></i></button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function quickSaveTabungan(idDana, username, nominal, tanggal) {
+            showToast("Menyimpan...", "info");
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ 
+                action: 'saveTransaksiDana', id_dana: idDana, username: username, nominal: nominal, tanggalKustom: tanggal
+            })}).then(r => r.json()).then(d => {
+                if(d.success) { showToast("Berhasil", "success"); loadKeuanganData(); renderTabunganUI(); } 
+                else { showToast("Gagal", "error"); }
             });
         }
 
-        function openDanaModal() { document.getElementById('danaModal').classList.remove('hidden'); document.getElementById('danaModal').classList.add('flex'); }
-        function closeDanaModal() { document.getElementById('danaModal').classList.add('hidden'); document.getElementById('danaModal').classList.remove('flex'); }
+        function manualSaveTabungan(idDana, username, tanggal) {
+            const inputEl = document.getElementById(`manualTab_${username}`);
+            const val = unformatRupiah(inputEl.value);
+            if(val <= 0) { showToast("Masukkan nominal valid", "error"); return; }
+            quickSaveTabungan(idDana, username, val, tanggal);
+            inputEl.value = '';
+        }
 
-        document.getElementById('formDana').addEventListener('submit', (e) => {
+        function openTabunganModal() {
+            document.getElementById('formTabungan').reset();
+            document.getElementById('danaCheckboxes').innerHTML = '';
+            document.getElementById('danaCheckboxes').classList.add('hidden');
+            document.getElementById('tabunganModal').classList.remove('hidden'); document.getElementById('tabunganModal').classList.add('flex');
+        }
+        function closeTabunganModal() { document.getElementById('tabunganModal').classList.add('hidden'); document.getElementById('tabunganModal').classList.remove('flex'); }
+
+        function toggleTargetTabungan() {
+            const mode = document.getElementById('danaTargetUser').value;
+            const container = document.getElementById('danaCheckboxes');
+            if(mode === 'Spesifik') {
+                container.classList.remove('hidden');
+                const anggotaList = state.members.filter(m => m.role === 'Anggota');
+                container.innerHTML = anggotaList.map(m => `
+                    <label class="flex items-center gap-2 cursor-pointer p-1">
+                        <input type="checkbox" value="${m.username}" class="chk-dana-target w-3 h-3 accent-emerald-600">
+                        <span class="text-[10px] truncate">${m.nama}</span>
+                    </label>
+                `).join('');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        document.getElementById('formTabungan').addEventListener('submit', (e) => {
             e.preventDefault();
+            const mode = document.getElementById('danaTargetUser').value;
+            let targetStr = "Semua";
+            if(mode === 'Spesifik') {
+                const checked = Array.from(document.querySelectorAll('.chk-dana-target:checked')).map(cb => cb.value);
+                if(checked.length === 0) { showToast("Pilih minimal 1 target", "error"); return; }
+                targetStr = checked.join(',');
+            }
+
             showLoading(true, "Menyimpan...");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ 
                 action: 'saveDana', 
                 judul: document.getElementById('danaJudul').value, 
-                target_nominal: document.getElementById('danaTarget').value, 
-                tujuan: '-', deadline: '', target_user: 'Semua' 
+                target_nominal: unformatRupiah(document.getElementById('danaTarget').value), 
+                deadline: document.getElementById('danaDeadline').value,
+                target_user: targetStr,
+                tujuan: '-'
             })}).then(r=>r.json()).then(d => {
                 showLoading(false);
-                if(d.success) { showToast("Dana dibuat", "success"); closeDanaModal(); document.getElementById('formDana').reset(); loadKeuanganData(); }
+                if(d.success) { showToast("Tabungan dibuat", "success"); closeTabunganModal(); loadKeuanganData(); populateSelectTabungan(); }
                 else showToast(d.message, "error");
             });
         });
