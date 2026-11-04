@@ -278,7 +278,10 @@
                     </div>
                 </div>
             </section>
+        </main>
+    </div>
 
+    <!-- ABSEN MODAL -->
     <!-- ABSEN MODAL -->
     <div id="absenModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] hidden flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto custom-scroll">
         <div class="bg-white w-full max-w-md rounded-3xl border border-gray-100 shadow-2xl relative my-auto flex flex-col gap-4 p-5">
@@ -751,11 +754,12 @@
             // Motivation card: refresh tiap 60 detik
             if (window.__motivInterval) clearInterval(window.__motivInterval);
             window.__motivInterval = setInterval(() => updateMotivationCard(motivTasksCache), 60000);
+            
+            // Panggil fungsi memuat profil di sini
+            loadUserProfileUI(); 
         });
-            loadUserProfileUI();
-        });
-        function handleLogout() { localStorage.removeItem('userSession'); sessionStorage.removeItem('userSession'); window.location.href = 'index.html'; }
 
+        function handleLogout() { localStorage.removeItem('userSession'); sessionStorage.removeItem('userSession'); window.location.href = 'index.html'; }
         function switchTab(tabKey) {
             const tabs = ['dashboard', 'riwayatTugas', 'riwayatLatihan', 'materi', 'dataAnggota'];
             if (window.innerWidth < 768) {
