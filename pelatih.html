@@ -470,15 +470,13 @@
                     <!-- Rekap Perorangan Kas -->
                     <div class="bg-white rounded-3xl border shadow-sm flex flex-col mt-2 mb-4">
                         <div class="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                            <div class="flex items-center gap-2">
-                                <h3 class="font-bold text-sm text-gray-800">Rekap Perorangan Kas</h3>
-                                <button onclick="toggleRekapKas()" class="text-gray-400 hover:text-blue-600 transition-colors"><i id="iconToggleRekap" class="fa-solid fa-eye-slash"></i></button>
-                            </div>
-                            <div id="filterRekapContainer" class="flex flex-wrap gap-2 items-center w-full sm:w-auto">
+                            <h3 class="font-bold text-sm text-gray-800">Rekap Perorangan Kas</h3>
+                            <div class="flex flex-wrap gap-2 items-center w-full sm:w-auto">
                                 <input type="date" id="rekapStartDate" class="px-2 py-1.5 border rounded-lg text-[10px] outline-none">
                                 <span class="text-xs text-gray-400">-</span>
                                 <input type="date" id="rekapEndDate" class="px-2 py-1.5 border rounded-lg text-[10px] outline-none">
                                 <button onclick="renderTabelPerorangan()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold">Tampilkan</button>
+                                <button onclick="hideTabelPerorangan()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold">Sembunyikan</button>
                                 <button onclick="downloadTabelPerorangan()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md"><i class="fa-solid fa-download mr-1"></i> Unduh</button>
                             </div>
                         </div>
@@ -489,7 +487,6 @@
                             </table>
                         </div>
                     </div>
-                </div>
 
                 <!-- Sub-View Kas -->
                 <div id="subViewKeuanganKas" class="hidden flex-col gap-4">
@@ -2820,6 +2817,10 @@
                         document.getElementById('rekapStartDate').value = getLocalToday();
                         document.getElementById('rekapEndDate').value = getLocalToday();
                     }
+                    // Pastikan opsi tabungan di-load jika tab tabungan sudah terbuka
+                    if(!document.getElementById('subViewKeuanganTabungan').classList.contains('hidden')) {
+                        populateSelectTabungan();
+                    }
                 }
             }).catch(e => { showLoading(false); showToast("Gagal memuat keuangan", "error"); });
         }
@@ -2954,34 +2955,58 @@
             }).join('');
         }
 
+        function hideTabelPerorangan() {
+            document.getElementById('rekapPeroranganWrapper').classList.add('hidden');
+        }
+
         function downloadTabelPerorangan() {
             const originalTable = document.getElementById('tableRekapPerorangan');
-            const cloneContainer = originalTable.cloneNode(true);
-            cloneContainer.style.position = 'absolute';
-            cloneContainer.style.left = '-9999px';
-            cloneContainer.style.width = 'max-content'; 
-            cloneContainer.style.backgroundColor = '#ffffff';
-            cloneContainer.className = 'w-full text-left border-collapse text-[12px] min-w-max'; 
             
-            const style = document.createElement('style');
-            style.innerHTML = `td, th { padding: 8px 12px !important; border: 1px solid #e5e7eb !important; }`;
-            cloneContainer.appendChild(style);
+            // Clone tabelnya saja, jangan clone wrapper yang hidden
+            const cloneTable = originalTable.cloneNode(true);
+            
+            // Buat container sementara agar html2canvas bisa merender
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.top = '0';
+            tempDiv.style.backgroundColor = '#ffffff';
+            tempDiv.style.padding = '20px'; // Beri sedikit jarak
+            tempDiv.appendChild(cloneTable);
+            
+            // Berikan styling ketat pada tabel clone agar rapi
+            cloneTable.style.width = '100%';
+            cloneTable.style.borderCollapse = 'collapse';
+            const cells = cloneTable.querySelectorAll('th, td');
+            cells.forEach(cell => {
+                cell.style.border = '1px solid #e5e7eb';
+                cell.style.padding = '8px 12px';
+                cell.style.textAlign = 'center';
+                cell.style.fontSize = '12px';
+                cell.style.color = '#374151';
+            });
+            // Warna header
+            const headers = cloneTable.querySelectorAll('th');
+            headers.forEach(th => { th.style.backgroundColor = '#f3f4f6'; th.style.fontWeight = 'bold'; });
 
-            document.body.appendChild(cloneContainer);
+            document.body.appendChild(tempDiv);
             showLoading(true, "Menyiapkan gambar...");
 
-            html2canvas(cloneContainer, { scale: 2, backgroundColor: '#ffffff', useCors: true }).then(canvas => {
-                document.body.removeChild(cloneContainer);
-                showLoading(false);
-                const link = document.createElement('a');
-                link.download = `Rekap_Kas_${Date.now()}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                showToast("Gambar diunduh!", "success");
-            }).catch(e => {
-                if(document.body.contains(cloneContainer)) document.body.removeChild(cloneContainer);
-                showLoading(false); showToast("Gagal unduh", "error"); 
-            });
+            // Tunggu sebentar agar browser selesai rendering
+            setTimeout(() => {
+                html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff', useCors: true }).then(canvas => {
+                    document.body.removeChild(tempDiv);
+                    showLoading(false);
+                    const link = document.createElement('a');
+                    link.download = `Rekap_Kas_${Date.now()}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    showToast("Gambar berhasil diunduh!", "success");
+                }).catch(e => {
+                    if(document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
+                    showLoading(false); showToast("Gagal unduh", "error"); 
+                });
+            }, 100);
         }
 
         // --- 2. KAS ---
@@ -2994,26 +3019,22 @@
             const filterDate = document.getElementById('kasDateFilter').value || getLocalToday();
             const anggotaList = state.members.filter(m => m.role === 'Anggota');
 
+            // Tabel Pemasukan (Poin 2: Tidak ada "Lunas", selalu bisa input)
             document.getElementById('tableKasMasuk').innerHTML = anggotaList.map(m => {
                 const trxHariIni = keuanganData.kas.filter(k => k[2] === m.username && parseDateString(k[1]) === filterDate);
                 const totalHariIni = trxHariIni.reduce((sum, k) => sum + (parseInt(k[3]) || 0), 0);
                 
-                let inputHtml = '';
-                if (minKas > 0 && totalHariIni >= minKas) {
-                    inputHtml = `<span class="text-emerald-500 font-bold text-[10px] bg-emerald-50 px-2 py-1 rounded-lg"><i class="fa-solid fa-check-circle mr-1"></i> Lunas</span>`;
-                } else {
-                    inputHtml = `<div class="flex flex-col items-end gap-1">
-                        <div class="flex gap-1">
-                            <button onclick="quickSaveKas('${m.username}', 1000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">1k</button>
-                            <button onclick="quickSaveKas('${m.username}', 2000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">2k</button>
-                            <button onclick="quickSaveKas('${m.username}', 5000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">5k</button>
-                        </div>
-                        <div class="flex gap-1 w-full max-w-[120px]">
-                            <input type="text" id="manualKas_${m.username}" onkeyup="formatInputRupiah(this)" placeholder="Nominal..." class="w-full px-2 py-1 border rounded-lg text-[10px] outline-none text-right">
-                            <button onclick="manualSaveKas('${m.username}', '${filterDate}')" class="bg-blue-600 text-white px-2 py-1 rounded-lg text-[10px]"><i class="fa-solid fa-check"></i></button>
-                        </div>
-                    </div>`;
-                }
+                let inputHtml = `<div class="flex flex-col items-end gap-1">
+                    <div class="flex gap-1">
+                        <button onclick="quickSaveKas('${m.username}', 1000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">1k</button>
+                        <button onclick="quickSaveKas('${m.username}', 2000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">2k</button>
+                        <button onclick="quickSaveKas('${m.username}', 5000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">5k</button>
+                    </div>
+                    <div class="flex gap-1 w-full max-w-[120px]">
+                        <input type="text" id="manualKas_${m.username}" onkeyup="formatInputRupiah(this)" placeholder="Nominal..." class="w-full px-2 py-1 border rounded-lg text-[10px] outline-none text-right">
+                        <button onclick="manualSaveKas('${m.username}', '${filterDate}')" class="bg-blue-600 text-white px-2 py-1 rounded-lg text-[10px]"><i class="fa-solid fa-check"></i></button>
+                    </div>
+                </div>`;
 
                 return `<tr class="hover:bg-gray-50">
                     <td class="p-3">
@@ -3025,23 +3046,35 @@
                 </tr>`;
             }).join('');
 
-            document.getElementById('tableKasKeluar').innerHTML = keuanganData.pengeluaran.slice().reverse().map(p => {
-                const [y, mo, d] = parseDateString(p[1]).split('-');
+            // Tabel Pengeluaran (Poin 5: Filter berdasarkan tanggal)
+            const pengeluaranHariIni = keuanganData.pengeluaran.filter(p => parseDateString(p[1]) === filterDate);
+            
+            document.getElementById('tableKasKeluar').innerHTML = pengeluaranHariIni.reverse().map(p => {
                 return `<tr>
-                    <td class="p-3 text-[10px] text-gray-600">${d}/${mo}/${y}</td>
+                    <td class="p-3 text-[10px] text-gray-600">${filterDate.split('-').reverse().join('/')}</td>
                     <td class="p-3 text-xs font-bold text-gray-800">${p[3]}</td>
                     <td class="p-3 text-xs font-bold text-rose-600 text-right">${formatRupiah(p[2])}</td>
                 </tr>`;
-            }).join('') || `<tr><td colspan="3" class="p-4 text-center text-xs text-gray-400">Belum ada pengeluaran</td></tr>`;
+            }).join('') || `<tr><td colspan="3" class="p-4 text-center text-xs text-gray-400">Belum ada pengeluaran hari ini</td></tr>`;
         }
 
         function quickSaveKas(username, nominal, tanggal) {
-            showToast("Menyimpan...", "info");
+            // Simpan ke array lokal sementara agar UI langsung update
+            const tempId = 'KAS_TEMP_' + Date.now();
+            keuanganData.kas.push([tempId, tanggal + " " + new Date().toTimeString().split(' ')[0], username, nominal, 'Kas']);
+            
+            renderKasUI(); // Update tabel pemasukan langsung
+            renderBukuBesar(); // Update buku besar langsung
+            renderTabelPerorangan(); // Update rekap perorangan langsung
+
+            // Kirim ke server di background
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ 
                 action: 'saveKas', username: username, nominal: nominal, keterangan: 'Kas', tanggalKustom: tanggal
             })}).then(r => r.json()).then(d => {
-                if(d.success) { showToast("Berhasil", "success"); loadKeuanganData(); renderKasUI(); } 
-                else { showToast("Gagal", "error"); }
+                if(!d.success) { showToast("Gagal sinkronisasi ke server", "error"); }
+                // Jika sukses, tidak perlu fetch ulang semua data. Cukup diamkan.
+            }).catch(e => {
+                showToast("Koneksi lambat, data tersimpan lokal", "info");
             });
         }
 
@@ -3049,10 +3082,10 @@
             const inputEl = document.getElementById(`manualKas_${username}`);
             const val = unformatRupiah(inputEl.value);
             if(val <= 0) { showToast("Masukkan nominal valid", "error"); return; }
+            
             quickSaveKas(username, val, tanggal);
-            inputEl.value = '';
+            inputEl.value = ''; // Langsung bersihkan input
         }
-
         function openSettingKasModal() {
             document.getElementById('setMinKas').value = keuanganData.settings.minimal ? keuanganData.settings.minimal.toLocaleString('id-ID') : 0;
             document.getElementById('setTipeKas').value = keuanganData.settings.frekuensi || 'Harian';
@@ -3173,7 +3206,10 @@
             document.getElementById('formTabungan').reset();
             document.getElementById('danaCheckboxes').innerHTML = '';
             document.getElementById('danaCheckboxes').classList.add('hidden');
-            document.getElementById('tabunganModal').classList.remove('hidden'); document.getElementById('tabunganModal').classList.add('flex');
+            // Set default deadline ke hari ini
+            document.getElementById('danaDeadline').value = getLocalToday();
+            document.getElementById('tabunganModal').classList.remove('hidden'); 
+            document.getElementById('tabunganModal').classList.add('flex');
         }
         function closeTabunganModal() { document.getElementById('tabunganModal').classList.add('hidden'); document.getElementById('tabunganModal').classList.remove('flex'); }
 
