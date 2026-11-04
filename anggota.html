@@ -829,6 +829,9 @@
             fetchConfigAndTasks();
             fetchRiwayatSemua();
             fetchBirthdays();
+                        // === FITUR STATUS ONLINE (Heartbeat) ===
+            sendHeartbeat(); // Kirim saat pertama kali buka
+            setInterval(sendHeartbeat, 240000); // Kirim ulang setiap 4 menit
             // Motivation card: refresh tiap 60 detik
             if (window.__motivInterval) clearInterval(window.__motivInterval);
             window.__motivInterval = setInterval(() => updateMotivationCard(motivTasksCache), 60000);
@@ -2327,4 +2330,11 @@
         function openPasswordModal() { document.getElementById('passwordModal').classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.remove('scale-95'); }
         function closePasswordModal() { document.getElementById('passwordModal').classList.add('opacity-0', 'pointer-events-none'); document.getElementById('passwordModalContent').classList.add('scale-95'); }
         document.getElementById('formGantiPassword').addEventListener('submit', (e) => { e.preventDefault(); showLoading(true, "Verifikasi..."); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'gantiPassword', username: user.username, oldPassword: document.getElementById('oldPass').value, newPassword: document.getElementById('newPass').value })}).then(r=>r.json()).then(d=>{ showLoading(false); if(d.success) { showToast("Password diganti", "success"); closePasswordModal(); } else showToast(d.message, "error"); }).catch(e=>showLoading(false)); });
+            function sendHeartbeat() {
+            if (!user || !user.username) return;
+            fetch(GAS_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: 'heartbeat', username: user.username }) 
+            }).catch(e => console.log('Heartbeat gagal'));
+        }
     </script>
