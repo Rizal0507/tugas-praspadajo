@@ -726,10 +726,7 @@
             document.getElementById('mobileName').textContent = user.nama;
             document.getElementById('dataNama').textContent = user.nama;
             document.getElementById('dataKelas').textContent = `Kelas ${user.kelas}`;
-            document.getElementById('dataNamaLengkap').textContent = user.nama;
             document.getElementById('dataUsername').textContent = user.username;
-            document.getElementById('dataKelasLengkap').textContent = user.kelas;
-            document.getElementById('dataRole').textContent = user.role;
             updateGreeting();
             if (window.__greetingInterval) clearInterval(window.__greetingInterval);
             window.__greetingInterval = setInterval(updateGreeting, 30000);
