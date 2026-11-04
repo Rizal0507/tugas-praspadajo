@@ -3185,18 +3185,6 @@
             renderKasUI(); renderBukuBesar(); renderTabelPerorangan();
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteKas', username: username, tanggal: tanggal }) }).catch(e=>{});
         }            
-            renderKasUI();
-            renderBukuBesar();
-            renderTabelPerorangan();
-
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ 
-                action: 'saveKas', username: username, nominal: nominal, keterangan: 'Kas', tanggalKustom: tanggal
-            })}).then(r => r.json()).then(d => {
-                if(!d.success) { showToast("Gagal sinkronisasi ke server", "error"); }
-            }).catch(e => {
-                showToast("Koneksi lambat, data tersimpan lokal", "info");
-            });
-        }
 
         function manualSaveKas(username, tanggal) {
             const inputEl = document.getElementById(`manualKas_${username}`);
