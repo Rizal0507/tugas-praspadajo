@@ -790,9 +790,10 @@
                 selfText.textContent = `🎉 Selamat ulang tahun ${panggilan} yang ke-${myBirthdayInfo.umur}! Semoga panjang umur, sehat selalu, dilancarkan rezekinya, dan sukses dalam setiap latihan. Tetap semangat! 🌻🎂`;
             }
 
-            // === Anggota lain yang ulang tahun (kecuali diri sendiri) ===
+            // === Anggota lain yang ulang tahun (termasuk jika user sendiri tidak ultah) ===
             const myUsername = (user.username || '').toLowerCase().trim();
             const others = todayBirthdays.filter(b => (b.username || '').toLowerCase().trim() !== myUsername);
+            
             if (others.length > 0) {
                 othersWrap.classList.remove('hidden');
                 const names = others.map(b => `${b.namaPanggilan || b.nama} (ke-${b.umur})`).join(', ');
