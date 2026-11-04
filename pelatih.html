@@ -467,15 +467,6 @@
                             </table>
                         </div>
                     </div>
-                        <div id="bukuBesarWrapper" class="overflow-x-auto max-h-64 custom-scroll p-2 bg-white">
-                            <table class="w-full text-left text-xs" id="tableBukuBesarRaw">
-                                <thead class="bg-gray-50 text-gray-500 font-bold sticky top-0">
-                                    <tr><th class="p-3">Tanggal</th><th class="p-3">Masuk</th><th class="p-3">Keluar</th><th class="p-3 text-right">Saldo</th></tr>
-                                </thead>
-                                <tbody id="tableBukuBesar" class="divide-y divide-gray-100"></tbody>
-                            </table>
-                        </div>
-                    </div>
 
                     <!-- Rekap Perorangan Kas -->
                     <div class="bg-white rounded-3xl border shadow-sm flex flex-col mt-2">
@@ -508,7 +499,6 @@
                                 <thead class="bg-gray-50 text-gray-500 font-bold sticky top-0">
                                     <tr><th class="p-3">Judul</th><th class="p-3">Target/Org</th><th class="p-3">Target Akumulatif</th><th class="p-3">Terkumpul</th><th class="p-3">Deadline</th><th class="p-3 text-center">Aksi</th></tr>
                                 </thead>
-                                <tbody id="overviewTabunganBody" class="divide-y divide-gray-100"></tbody>
                             </table>
                         </div>
                     </div>
@@ -1067,18 +1057,14 @@
     </div>
 
     <!-- MODAL PENGELUARAN TABUNGAN -->
-    <div id="pengeluaranTabunganModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl">
-            <h3 class="font-bold text-gray-800 text-sm mb-4 border-b pb-3">Tarik Dana Tabungan</h3>
             <form id="formPengeluaranTabungan" class="flex flex-col gap-3">
                 <div>
                     <div class="flex justify-between items-center mb-1">
                         <label class="text-[10px] font-bold text-gray-600">Nominal (Rp)</label>
                         <span id="lblMaxDana" class="text-[10px] font-bold text-rose-600">Maks: Rp 0</span>
                     </div>
-                    <input type="number" id="outTabNominal" onkeyup="formatInputRupiah(this)" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold">
+                    <input type="text" id="outTabNominal" onkeyup="formatInputRupiah(this)" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold">
                 </div>
-                <div><label class="text-[10px] font-bold text-gray-600">Nominal (Rp)</label><input type="text" id="outTabNominal" onkeyup="formatInputRupiah(this)" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold"></div>
                 <div><label class="text-[10px] font-bold text-gray-600">Tujuan</label><input type="text" id="outTabTujuan" required placeholder="Beli kaos, dll" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></div>
                 <div><label class="text-[10px] font-bold text-gray-600">Nama Peminta</label><input type="text" id="outTabPeminta" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></div>
                 <div class="flex gap-2 mt-2">
