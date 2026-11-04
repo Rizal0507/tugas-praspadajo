@@ -41,6 +41,28 @@
         .drag-handle:active { cursor: grabbing; }
         .sortable-ghost { opacity: 0.4; background-color: #eff6ff !important; border: 2px dashed #3b82f6 !important; }
         .form-locked { opacity: 0.6; pointer-events: none; }
+                
+        /* === BIRTHDAY MARQUEE === */
+        @keyframes marquee-scroll {
+            0%   { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .marquee-wrapper {
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+            width: 100%;
+            -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+            mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+        }
+        .marquee-content {
+            display: inline-block;
+            white-space: nowrap;
+            animation: marquee-scroll 22s linear infinite;
+        }
+        .birthday-banner-glow {
+            box-shadow: 0 4px 20px rgba(236, 72, 153, 0.35), 0 2px 6px rgba(245, 158, 11, 0.25);
+        }
         
         /* Optimasi Tabel Mobile */
         @media (max-width: 768px) {
@@ -98,6 +120,17 @@
         <!-- MAIN CONTENT -->
         <main class="flex-grow p-3 sm:p-6 bg-gray-50 flex flex-col h-screen md:h-[850px] overflow-y-auto custom-scroll relative w-full">
 
+            <!-- === BIRTHDAY BANNER (tampil di semua tab & desktop) === -->
+            <div id="birthdayBanner" class="hidden mb-4 rounded-2xl overflow-hidden flex-none birthday-banner-glow">
+                <div class="flex items-center gap-2 px-3 py-2.5 bg-gradient-to-r from-pink-500 via-fuchsia-500 to-amber-500 text-white">
+                    <i class="fa-solid fa-cake-candles text-lg flex-none animate-pulse"></i>
+                    <div class="marquee-wrapper flex-grow">
+                        <span id="birthdayBannerText" class="marquee-content text-xs font-bold"></span>
+                    </div>
+                    <button onclick="document.getElementById('birthdayBanner').classList.add('hidden')" class="text-white/70 hover:text-white flex-none" title="Tutup"><i class="fa-solid fa-xmark text-xs"></i></button>
+                </div>
+            </div>
+            
             <div class="md:hidden flex items-center justify-between bg-white p-3 rounded-2xl shadow-sm mb-4 border border-gray-100 flex-none">
                 <div class="flex items-center gap-2">
                     <button onclick="toggleSidebar()" class="bg-blue-50 text-blue-600 p-2 rounded-lg"><i class="fa-solid fa-bars"></i></button>
@@ -709,7 +742,46 @@
         let localHasDatang = false;
 
         let currentMetroRow = null;
+                // State Birthday
+        let todayBirthdays = [];
+        // === FITUR ULANG TAHUN (Pelatih) ===
+        function fetchBirthdays() {
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getTodayBirthdays' }) })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success && d.data && d.data.length > 0) {
+                    todayBirthdays = d.data;
+                    applyBirthdayBanner();
+                }
+            })
+            .catch(e => console.warn('Birthday fetch error:', e));
+        }
 
+        function applyBirthdayBanner() {
+            const banner = document.getElementById('birthdayBanner');
+            const textEl = document.getElementById('birthdayBannerText');
+            if (!banner || !textEl) return;
+            if (todayBirthdays.length === 0) { banner.classList.add('hidden'); return; }
+
+            const myUsername = (state && state.user && state.user.username ? state.user.username : '').toLowerCase().trim();
+            const me = todayBirthdays.find(b => (b.username || '').toLowerCase().trim() === myUsername);
+            const others = todayBirthdays.filter(b => (b.username || '').toLowerCase().trim() !== myUsername);
+
+            let msg = '';
+            if (me) {
+                const panggilan = me.namaPanggilan || me.nama;
+                msg += `🎂 Selamat Ulang Tahun ${panggilan} yang ke-${me.umur}! Semoga panjang umur, sehat selalu, dan sukses selalu. `;
+            }
+            if (others.length > 0) {
+                const list = others.map(b => `${b.namaPanggilan || b.nama} (${b.role}, ${b.kelas}) ke-${b.umur}`).join(', ');
+                msg += `🎉 Hari ini ${list} berulang tahun. Jangan lupa berikan ucapan!`;
+            }
+            if (!msg) { banner.classList.add('hidden'); return; }
+
+            textEl.textContent = msg.trim();
+            banner.classList.remove('hidden');
+        }
+        
         document.addEventListener('DOMContentLoaded', () => {
             const raw = localStorage.getItem('userSession') || sessionStorage.getItem('userSession');
             if (raw) {
@@ -725,6 +797,7 @@
             document.getElementById('inputFilterDate').value = getLocalToday();
             
             loadDashboardData();
+            fetchBirthdays();
         });
 
         function toggleSidebar() {
