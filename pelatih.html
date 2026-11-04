@@ -425,26 +425,29 @@
             <!-- VIEW KEUANGAN -->
             <section id="viewKeuangan" class="tab-view hidden flex-col gap-5 w-full">
                 <!-- Sub-Tab Keuangan -->
-                <div class="flex gap-2 overflow-x-auto custom-scroll pb-1">
-                    <button onclick="switchSubTabKeuangan('dashboard')" id="subTabBtnDashboard" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-sm whitespace-nowrap">Dashboard</button>
-                    <button onclick="switchSubTabKeuangan('kas')" id="subTabBtnKas" class="px-4 py-2 bg-white text-gray-600 border border-gray-200 rounded-xl text-xs font-bold shadow-sm whitespace-nowrap">Kas</button>
-                    <button onclick="switchSubTabKeuangan('tabungan')" id="subTabBtnTabungan" class="px-4 py-2 bg-white text-gray-600 border border-gray-200 rounded-xl text-xs font-bold shadow-sm whitespace-nowrap">Tabungan/Dana</button>
-                    <button onclick="openSettingKasModal()" class="ml-auto px-4 py-2 bg-indigo-50 text-indigo-600 border border-indigo-200 rounded-xl text-xs font-bold shadow-sm whitespace-nowrap"><i class="fa-solid fa-gear"></i></button>
+                <div class="flex gap-1 bg-gray-100 p-1 rounded-2xl mb-2 overflow-x-auto custom-scroll">
+                    <button onclick="switchSubTabKeuangan('dashboard')" id="subTabBtnDashboard" class="flex-1 py-2 px-3 bg-white text-blue-600 rounded-xl text-[11px] font-bold shadow-sm transition-all whitespace-nowrap">Dashboard</button>
+                    <button onclick="switchSubTabKeuangan('kas')" id="subTabBtnKas" class="flex-1 py-2 px-3 text-gray-500 hover:text-gray-800 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap">Kas</button>
+                    <button onclick="switchSubTabKeuangan('tabungan')" id="subTabBtnTabungan" class="flex-1 py-2 px-3 text-gray-500 hover:text-gray-800 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap">Tabungan</button>
+                    <button onclick="openSettingKasModal()" class="px-3 text-indigo-600 bg-indigo-50 rounded-xl font-bold hover:bg-indigo-100 transition-colors"><i class="fa-solid fa-gear"></i></button>
                 </div>
 
                 <!-- Sub-View Dashboard -->
                 <div id="subViewKeuanganDashboard" class="flex flex-col gap-4">
                     <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white p-4 rounded-3xl shadow-lg col-span-2">
+                        <div class="bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 text-white p-5 rounded-3xl shadow-lg col-span-2 relative overflow-hidden">
+                            <div class="absolute -right-4 -top-4 text-8xl opacity-10"><i class="fa-solid fa-wallet"></i></div>
                             <span class="text-xs font-medium text-blue-200 block mb-1">Total Saldo Kas</span>
-                            <h2 class="text-3xl font-black" id="dashTotalKas">Rp 0</h2>
+                            <h2 class="text-3xl font-black tracking-tight" id="dashTotalKas">Rp 0</h2>
                         </div>
-                        <div class="bg-white p-4 rounded-3xl border shadow-sm">
-                            <span class="text-[10px] font-bold text-emerald-500 block mb-1 uppercase">Pemasukan</span>
+                        <div class="bg-white p-4 rounded-3xl border shadow-sm relative overflow-hidden">
+                            <div class="absolute right-2 top-2 w-8 h-8 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500"><i class="fa-solid fa-arrow-down"></i></div>
+                            <span class="text-[10px] font-bold text-emerald-500 block mb-1 uppercase tracking-wider">Pemasukan</span>
                             <h3 class="text-lg font-bold text-gray-800" id="dashTotalMasuk">Rp 0</h3>
                         </div>
-                        <div class="bg-white p-4 rounded-3xl border shadow-sm">
-                            <span class="text-[10px] font-bold text-rose-500 block mb-1 uppercase">Pengeluaran</span>
+                        <div class="bg-white p-4 rounded-3xl border shadow-sm relative overflow-hidden">
+                            <div class="absolute right-2 top-2 w-8 h-8 bg-rose-50 rounded-full flex items-center justify-center text-rose-500"><i class="fa-solid fa-arrow-up"></i></div>
+                            <span class="text-[10px] font-bold text-rose-500 block mb-1 uppercase tracking-wider">Pengeluaran</span>
                             <h3 class="text-lg font-bold text-gray-800" id="dashTotalKeluar">Rp 0</h3>
                         </div>
                     </div>
@@ -538,7 +541,7 @@
                                     <th class="py-2 px-3 text-center">TTL</th>
                                     <th class="py-2 px-3 text-center">Role</th>
                                     <th class="py-2 px-3 text-center">Status</th> <!-- KOLOM BARU -->
-                                    <th class="py-2 px-3 text-center">Hak Absen</th>
+                                    <th class="py-2 px-3 text-center">Tugas Khusus</th>
                                 </tr>
                             </thead>
                             <tbody id="tableAnggotaBody" class="divide-y divide-gray-100"></tbody>
@@ -1041,8 +1044,9 @@
         function handleLogout() { localStorage.removeItem('userSession'); sessionStorage.removeItem('userSession'); window.location.href = 'index.html'; }
 
         function switchTab(tabKey) {
-            const tabs = ['monitoring', 'buatTugas', 'absensi', 'riwayatAbsensi', 'anggota', 'pengaturan'];
-            const tabNames = { 'monitoring': 'Monitoring', 'buatTugas': 'Buat Tugas', 'absensi': 'Absensi', 'riwayatAbsensi': 'Riwayat Absen', 'anggota': 'Kelola Anggota', 'pengaturan': 'Pengaturan' };
+            const tabs = ['monitoring', 'buatTugas', 'absensi', 'riwayatAbsensi', 'materi', 'keuangan', 'anggota', 'pengaturan'];
+            const tabNames = { 'monitoring': 'Monitoring', 'buatTugas': 'Buat Tugas', 'absensi': 'Absensi', 'riwayatAbsensi': 'Riwayat Absen', 'materi': 'Materi Pembelajaran', 'keuangan': 'Keuangan', 'anggota': 'Kelola Anggota', 'pengaturan': 'Pengaturan' };
+            
             if (window.innerWidth < 768) {
                 const sidebar = document.getElementById('sidebar');
                 if (!sidebar.classList.contains('-translate-x-full')) toggleSidebar();
@@ -1058,7 +1062,9 @@
                         document.getElementById('mobileTitle').textContent = tabNames[t];
                         if (t === 'absensi') { renderAbsensiTable(); checkTodayAbsensiStatus(); }
                         if (t === 'riwayatAbsensi') loadRiwayatAbsensi();
-                        if (t === 'pengaturan') loadConfig(); // Panggil muat config saat tab pengaturan dibuka
+                        if (t === 'pengaturan') loadConfig();
+                        if (t === 'materi') loadMateriData();
+                        if (t === 'keuangan') loadKeuanganData();
                     } else {
                         btn.classList.remove('bg-blue-600', 'text-white');
                         btn.classList.add('text-gray-600', 'hover:bg-gray-100');
@@ -1067,7 +1073,6 @@
                 }
             });
         }
-
         function setupFlatpickr() {
             const type = document.getElementById('tipePengumpulan').value;
             const inputEl = document.getElementById('tanggalPengerjaan');
@@ -2343,10 +2348,9 @@
                 // === LOGIKA STATUS ONLINE ===
                 let statusHtml = '';
                 if (m.lastActive) {
-                    // Ganti strip dengan slash agar kompatibel dengan Safari/iOS
                     let lastActDate = new Date(String(m.lastActive).replace(/-/g, '/')); 
                     let now = new Date();
-                    let diffMins = (now - lastActDate) / 60000; // selisih dalam menit
+                    let diffMins = (now - lastActDate) / 60000;
 
                     if (diffMins <= 10) {
                         statusHtml = `<span class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded-lg text-[9px] font-bold inline-flex items-center gap-1"><i class="fa-solid fa-circle text-[6px] animate-pulse"></i> Online</span>`;
@@ -2361,19 +2365,23 @@
                     statusHtml = `<span class="bg-gray-100 text-gray-400 border border-gray-200 px-2 py-1 rounded-lg text-[9px] font-bold">Belum Pernah</span>`;
                 }
 
-                let hakAbsenBtn = '-';
+                // === LOGIKA TUGAS KHUSUS ===
+                let tkHtml = '-';
                 if(!isPelatih) {
-                    if(m.hakAbsen) {
-                        hakAbsenBtn = `<button onclick="event.stopPropagation(); toggleHakAbsenStatus('${m.username}', true)" class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded-lg text-[9px] font-bold active:scale-95 transition-transform"><i class="fa-solid fa-toggle-on text-emerald-500 mr-1 text-sm align-middle"></i> Aktif</button>`;
+                    if(m.tugasKhusus) {
+                        let badges = [];
+                        if(m.tugasKhusus.includes('Bendahara')) badges.push(`<span class="bg-amber-100 text-amber-700 border border-amber-300 px-2 py-1 rounded-lg text-[9px] font-bold shadow-sm"><i class="fa-solid fa-coins"></i> Bendahara</span>`);
+                        if(m.tugasKhusus.includes('Petugas Absen')) badges.push(`<span class="bg-emerald-100 text-emerald-700 border border-emerald-300 px-2 py-1 rounded-lg text-[9px] font-bold shadow-sm"><i class="fa-solid fa-clipboard-user"></i> Absen</span>`);
+                        tkHtml = `<div class="flex flex-col gap-1 items-center">${badges.join('')}</div>`;
                     } else {
-                        hakAbsenBtn = `<button onclick="event.stopPropagation(); toggleHakAbsenStatus('${m.username}', false)" class="bg-gray-50 text-gray-400 border border-gray-200 px-2 py-1 rounded-lg text-[9px] font-bold active:scale-95 transition-transform hover:bg-gray-100 hover:text-gray-600"><i class="fa-solid fa-toggle-off text-gray-300 mr-1 text-sm align-middle"></i> Nonaktif</button>`;
+                        tkHtml = `<button onclick="event.stopPropagation(); openTugasKhususModal('${m.username}')" class="text-gray-400 hover:text-blue-600 text-[10px] font-bold bg-gray-50 px-2 py-1 rounded-lg border hover:border-blue-300 transition-all"><i class="fa-solid fa-plus-circle mr-1"></i> Set</button>`;
                     }
                 }
 
                 return `
-                <tr class="hover:bg-blue-50/50 cursor-pointer transition-colors border-b" onclick="openProfileModal('${m.username}')">
+                <tr class="hover:bg-blue-50/50 cursor-pointer transition-colors border-b group" onclick="openProfileModal('${m.username}')">
                     <td class="py-2 px-3 text-center">
-                        <img src="${fotoUrl}" alt="Foto" class="w-10 h-10 aspect-square overflow-hidden rounded-full object-cover border shadow-sm mx-auto bg-gray-200">
+                        <img src="${fotoUrl}" alt="Foto" class="w-10 h-10 aspect-square overflow-hidden rounded-full object-cover border shadow-sm mx-auto bg-gray-200 group-hover:scale-105 transition-transform">
                     </td>
                     <td class="py-2 px-3">
                         <div class="font-bold text-gray-800 text-xs">${m.namaPanggilan || m.nama}</div>
@@ -2383,7 +2391,7 @@
                     <td class="py-2 px-3 text-center text-[10px] text-gray-600">${ttl}</td>
                     <td class="py-2 px-3 text-center"><span class="text-[10px] px-2 py-0.5 rounded-full font-bold border ${isPelatih?'bg-purple-50 text-purple-600':'bg-blue-50 text-blue-600'}">${m.role}</span></td>
                     <td class="py-2 px-3 text-center">${statusHtml}</td>
-                    ${!isPelatih ? `<td class="py-2 px-3 text-center">${hakAbsenBtn}</td>` : ''}
+                    ${!isPelatih ? `<td class="py-2 px-3 text-center">${tkHtml}</td>` : ''}
                 </tr>`;
             };
 
@@ -2399,6 +2407,7 @@
                 tbodyPelatih.innerHTML = pelatihList.map(m => createRow(m, true)).join('');
             }
         }
+        
         function openProfileModal(username) {
             const m = state.members.find(x => x.username === username);
             if(!m) return;
@@ -2534,14 +2543,6 @@
 
                 // ================= FITUR BARU: MATERI, KEUANGAN, TUGAS KHUSUS =================
 
-        // === 1. UPDATE SWITCH TAB & FORMAT RUPIAH ===
-        // Timpa fungsi switchTab yang lama dengan yang baru ini (tambahkan 'materi' & 'keuangan')
-        const originalSwitchTab = switchTab;
-        window.switchTab = function(tabKey) {
-            originalSwitchTab(tabKey);
-            if(tabKey === 'materi') loadMateriData();
-            if(tabKey === 'keuangan') loadKeuanganData();
-        };
 
         function formatRupiah(angka) {
             if(!angka) return "Rp 0";
@@ -2957,59 +2958,6 @@
             });
         }
 
-        // Timpa Render Anggota Tables untuk UI Tugas Khusus
-        const originalRenderAnggotaTables = renderAnggotaTables;
-        window.renderAnggotaTables = function() {
-            if (!state.members) return;
-            const tbodyAnggota = document.getElementById('tableAnggotaBody');
-            const anggotaList = state.members.filter(m => m.role === 'Anggota');
-            document.getElementById('memberCountBadge').textContent = anggotaList.length;
-
-            tbodyAnggota.innerHTML = anggotaList.map(m => {
-                const fotoUrl = m.fotoUrl ? getDirectImageLink(m.fotoUrl) : 'https://ui-avatars.com/api/?name=' + m.nama.replace(/ /g, '+') + '&background=e2e8f0&color=64748b';
-                
-                // Badge Tugas Khusus
-                let tkHtml = '-';
-                if(m.tugasKhusus) {
-                    if(m.tugasKhusus.includes('Bendahara')) tkHtml = `<span class="bg-amber-100 text-amber-700 border border-amber-300 px-2 py-1 rounded-lg text-[9px] font-bold mr-1"><i class="fa-solid fa-coins"></i> Bendahara</span>`;
-                    if(m.tugasKhusus.includes('Petugas Absen')) tkHtml += `<span class="bg-emerald-100 text-emerald-700 border border-emerald-300 px-2 py-1 rounded-lg text-[9px] font-bold"><i class="fa-solid fa-clipboard-user"></i> Absen</span>`;
-                } else {
-                    tkHtml = `<button onclick="event.stopPropagation(); openTugasKhususModal('${m.username}')" class="text-gray-400 hover:text-blue-600 text-xs"><i class="fa-solid fa-plus-circle"></i> Set</button>`;
-                }
-
-                return `
-                <tr class="hover:bg-blue-50/50 cursor-pointer border-b" onclick="openProfileModal('${m.username}')">
-                    <td class="py-2 px-3 text-center"><img src="${fotoUrl}" class="w-10 h-10 rounded-full mx-auto object-cover bg-gray-200"></td>
-                    <td class="py-2 px-3">
-                        <div class="font-bold text-gray-800 text-xs">${m.namaPanggilan || m.nama}</div>
-                        <div class="text-[9px] text-gray-500">${m.nama}</div>
-                    </td>
-                    <td class="py-2 px-3 text-center text-xs font-semibold">${m.kelas}</td>
-                    <td class="py-2 px-3 text-center text-[10px] text-gray-600">-</td>
-                    <td class="py-2 px-3 text-center"><span class="text-[10px] px-2 py-0.5 rounded-full font-bold border bg-blue-50 text-blue-600">Anggota</span></td>
-                    <td class="py-2 px-3 text-center">${m.lastActive ? `<span class="text-[9px] text-gray-500">Login</span>` : '-'}</td>
-                    <td class="py-2 px-3 text-center">${tkHtml}</td>
-                </tr>`;
-            }).join('');
-            
-            // Render Pelatih (Simple)
-            const tbodyPelatih = document.getElementById('tablePelatihBody');
-            const pelatihList = state.members.filter(m => m.role === 'Pelatih');
-            tbodyPelatih.innerHTML = pelatihList.map(m => {
-                const fotoUrl = m.fotoUrl ? getDirectImageLink(m.fotoUrl) : 'https://ui-avatars.com/api/?name=' + m.nama.replace(/ /g, '+') + '&background=e2e8f0&color=64748b';
-                return `
-                <tr class="hover:bg-blue-50/50 cursor-pointer border-b" onclick="openProfileModal('${m.username}')">
-                    <td class="py-2 px-3 text-center"><img src="${fotoUrl}" class="w-10 h-10 rounded-full mx-auto object-cover bg-gray-200"></td>
-                    <td class="py-2 px-3"><div class="font-bold text-gray-800 text-xs">${m.nama}</div></td>
-                    <td class="py-2 px-3 text-center text-xs font-semibold">${m.kelas}</td>
-                    <td class="py-2 px-3 text-center text-[10px] text-gray-600">-</td>
-                    <td class="py-2 px-3 text-center"><span class="text-[10px] px-2 py-0.5 rounded-full font-bold border bg-purple-50 text-purple-600">Pelatih</span></td>
-                    <td class="py-2 px-3 text-center">-</td>
-                </tr>`;
-            }).join('');
-        };
-    
-    
     </script>
 </body>
 </html>
