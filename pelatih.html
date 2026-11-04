@@ -489,18 +489,9 @@
                         </div>
                     </div>
 
-                    <!-- Overview Tabungan (Pindah ke bawah & jadi tabel - Poin 3) -->
                     <!-- Ringkasan Tabungan -->
                     <div class="flex flex-col mt-2 mb-4">
                         <div id="overviewTabunganContainer" class="flex flex-col gap-4"></div>
-                    </div>
-                        <div class="overflow-x-auto max-h-64 custom-scroll p-2">
-                            <table class="w-full text-left text-xs">
-                                <thead class="bg-gray-50 text-gray-500 font-bold sticky top-0">
-                                    <tr><th class="p-3">Judul</th><th class="p-3">Target/Org</th><th class="p-3">Target Akumulatif</th><th class="p-3">Terkumpul</th><th class="p-3">Deadline</th><th class="p-3 text-center">Aksi</th></tr>
-                                </thead>
-                            </table>
-                        </div>
                     </div>
                 </div>
 
@@ -1057,6 +1048,9 @@
     </div>
 
     <!-- MODAL PENGELUARAN TABUNGAN -->
+    <div id="pengeluaranTabunganModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+            <h3 class="font-bold text-gray-800 text-sm mb-4 border-b pb-3">Tarik Dana Tabungan</h3>
             <form id="formPengeluaranTabungan" class="flex flex-col gap-3">
                 <div>
                     <div class="flex justify-between items-center mb-1">
