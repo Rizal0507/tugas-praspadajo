@@ -2885,47 +2885,50 @@
             return parseInt(String(str).replace(/\./g, '')) || 0;
         }
 
-function switchSubTabKeuangan(sub) {
-    try {
-        const subviews = ['dashboard', 'kas', 'tabungan'];
-        
-        subviews.forEach(t => {
-            const view = document.getElementById(`subViewKeuangan${t.charAt(0).toUpperCase() + t.slice(1)}`);
-            const btn  = document.getElementById(`subTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
-            if (view) {
-                view.classList.add('hidden');
-                view.classList.remove('flex');
-            }
-            if (btn) {
-                btn.className = "flex-1 py-2 px-3 text-gray-500 hover:text-gray-800 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap";
-            }
-        });
+        function switchSubTabKeuangan(sub) {
+            try {
+                const subviews = ['dashboard', 'kas', 'tabungan'];
+                
+                subviews.forEach(t => {
+                    const view = document.getElementById(`subViewKeuangan${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                    const btn  = document.getElementById(`subTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                    if (view) {
+                        view.classList.add('hidden');
+                        view.classList.remove('flex');
+                        view.style.display = 'none'; // PAKSA SEMBUNYIKAN
+                    }
+                    if (btn) {
+                        btn.className = "flex-1 py-2 px-3 text-gray-500 hover:text-gray-800 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap";
+                    }
+                });
 
-        const targetView = document.getElementById(`subViewKeuangan${sub.charAt(0).toUpperCase() + sub.slice(1)}`);
-        const targetBtn  = document.getElementById(`subTabBtn${sub.charAt(0).toUpperCase() + sub.slice(1)}`);
-        
-        if (targetView) {
-            targetView.classList.remove('hidden');
-            targetView.classList.add('flex');
-        }
-        if (targetBtn) {
-            targetBtn.className = "flex-1 py-2 px-3 bg-white text-blue-600 rounded-xl text-[11px] font-bold shadow-sm transition-all whitespace-nowrap";
-        }
+                const targetView = document.getElementById(`subViewKeuangan${sub.charAt(0).toUpperCase() + sub.slice(1)}`);
+                const targetBtn  = document.getElementById(`subTabBtn${sub.charAt(0).toUpperCase() + sub.slice(1)}`);
+                
+                if (targetView) {
+                    targetView.classList.remove('hidden');
+                    targetView.classList.add('flex');
+                    targetView.style.display = 'flex'; // PAKSA MUNCULKAN
+                    targetView.style.flexDirection = 'column'; // PASTIKAN TATA LETAK KE BAWAH
+                }
+                if (targetBtn) {
+                    targetBtn.className = "flex-1 py-2 px-3 bg-white text-blue-600 rounded-xl text-[11px] font-bold shadow-sm transition-all whitespace-nowrap";
+                }
 
-        if (sub === 'kas') {
-            const df = document.getElementById('kasDateFilter');
-            if (df && !df.value) df.value = getLocalToday();
-            renderKasUI();
-        } else if (sub === 'tabungan') {
-            const df = document.getElementById('tabunganDateFilter');
-            if (df && !df.value) df.value = getLocalToday();
-            populateSelectTabungan();
+                if (sub === 'kas') {
+                    const df = document.getElementById('kasDateFilter');
+                    if (df && !df.value) df.value = getLocalToday();
+                    renderKasUI();
+                } else if (sub === 'tabungan') {
+                    const df = document.getElementById('tabunganDateFilter');
+                    if (df && !df.value) df.value = getLocalToday();
+                    populateSelectTabungan();
+                }
+            } catch (err) {
+                console.error('switchSubTabKeuangan error:', err);
+                showToast('Gagal memuat data keuangan', 'error');
+            }
         }
-    } catch (err) {
-        console.error('switchSubTabKeuangan error:', err);
-        showToast('Gagal memuat data keuangan', 'error');
-    }
-}
 
         function loadKeuanganData() {
             showLoading(true, "Memuat Keuangan...");
@@ -3743,7 +3746,13 @@ function fullCanvasOptions(el) {
         ignoreElements: (e) => e.tagName === 'VIDEO'
     };
 }
+let _downloadLock = false;
+
         function downloadExportImage() {
+            if (_downloadLock) return; // KUNCI ANTI DOUBLE KLIK
+            _downloadLock = true;
+            setTimeout(() => { _downloadLock = false; }, 1500);
+
             const container = document.getElementById('exportTableContainer');
             const title = document.getElementById('exportModalTitle').textContent;
             
@@ -3767,9 +3776,8 @@ function fullCanvasOptions(el) {
                     scale: 2, backgroundColor: '#ffffff', useCORS: true,
                     ignoreElements: (element) => element.tagName === 'VIDEO'
                 }).then(canvas => {
-                    document.body.removeChild(tempDiv);
+                    if(document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
                     showLoading(false);
-                    // Panggil universal preview
                     showUniversalPreview(canvas.toDataURL('image/png'), `Preview ${title}`, `${title.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.png`);
                 }).catch(e => {
                     if(document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
@@ -3778,56 +3786,56 @@ function fullCanvasOptions(el) {
             }, 200);
         }
 
-let _previewLock = false;
+        let _previewLock = false;
 
-function closeUniversalPreview() {
-    const m = document.getElementById('universalPreviewModal');
-    m.classList.add('hidden'); m.classList.remove('flex');
-}
-
-function showUniversalPreview(base64Img, title, filename) {
-    if (_previewLock) return;           // guard anti double-popup
-    _previewLock = true;
-    setTimeout(() => { _previewLock = false; }, 400);
-
-    // Tutup SEMUA modal yang mungkin masih terbuka
-    ['exportModal', 'raportModal', 'modalUnduhBukuBesar', 'bulkGradeModal',
-     'materiModal', 'profileModal', 'metroModal', 'viewVideoModal',
-     'errorLogModal', 'pengeluaranTabunganModal', 'editTabunganModal'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) { el.classList.add('hidden'); el.classList.remove('flex'); }
-    });
-
-    document.getElementById('universalPreviewTitle').textContent = title;
-    document.getElementById('universalPreviewImg').src = base64Img;
-
-    const oldBtn = document.getElementById('universalBtnDownload');
-    const newBtn = oldBtn.cloneNode(true);
-    oldBtn.parentNode.replaceChild(newBtn, oldBtn);
-
-    newBtn.addEventListener('click', () => {
-        try {
-            const byteString = atob(base64Img.split(',')[1]);
-            const arr = new Uint8Array(byteString.length);
-            for (let i = 0; i < byteString.length; i++) arr[i] = byteString.charCodeAt(i);
-            const blob = new Blob([arr], { type: 'image/png' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = filename; a.style.display = 'none';
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1500);
-            showToast("Gambar berhasil diunduh!", "success");
-        } catch (e) {
-            console.error(e);
-            showToast("Gagal mengunduh, tekan lama gambar untuk menyimpan", "error");
+        function closeUniversalPreview() {
+            const m = document.getElementById('universalPreviewModal');
+            m.classList.add('hidden'); m.classList.remove('flex');
         }
-    });
 
-    const modal = document.getElementById('universalPreviewModal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
+        function showUniversalPreview(base64Img, title, filename) {
+            if (_previewLock) return; // KUNCI ANTI DOUBLE POPUP
+            _previewLock = true;
+            setTimeout(() => { _previewLock = false; }, 1000);
+
+            // Tutup SEMUA modal yang mungkin masih terbuka
+            ['exportModal', 'raportModal', 'modalUnduhBukuBesar', 'bulkGradeModal',
+             'materiModal', 'profileModal', 'metroModal', 'viewVideoModal',
+             'errorLogModal', 'pengeluaranTabunganModal', 'editTabunganModal'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.classList.add('hidden'); el.classList.remove('flex'); }
+            });
+
+            document.getElementById('universalPreviewTitle').textContent = title;
+            document.getElementById('universalPreviewImg').src = base64Img;
+
+            const oldBtn = document.getElementById('universalBtnDownload');
+            const newBtn = oldBtn.cloneNode(true);
+            oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+
+            newBtn.addEventListener('click', () => {
+                try {
+                    const byteString = atob(base64Img.split(',')[1]);
+                    const arr = new Uint8Array(byteString.length);
+                    for (let i = 0; i < byteString.length; i++) arr[i] = byteString.charCodeAt(i);
+                    const blob = new Blob([arr], { type: 'image/png' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = filename; a.style.display = 'none';
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1500);
+                    showToast("Gambar berhasil diunduh!", "success");
+                } catch (e) {
+                    console.error(e);
+                    showToast("Gagal mengunduh, tekan lama gambar untuk menyimpan", "error");
+                }
+            });
+
+            const modal = document.getElementById('universalPreviewModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
         
     </script>
 </body>
