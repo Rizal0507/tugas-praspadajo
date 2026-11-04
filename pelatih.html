@@ -422,7 +422,7 @@
                 </div>
             </section>
 
-            <!-- VIEW KEUANGAN -->
+            <!-- VIEW KEUANGAN (REVISI) -->
             <section id="viewKeuangan" class="tab-view hidden flex-col gap-5 w-full">
                 <!-- Sub-Tab Keuangan -->
                 <div class="flex gap-1 bg-gray-100 p-1 rounded-2xl mb-2 overflow-x-auto custom-scroll">
@@ -452,49 +452,70 @@
                         </div>
                     </div>
                     
-                    <div class="bg-white rounded-3xl border shadow-sm overflow-hidden mt-2">
-                        <div class="p-4 border-b"><h3 class="font-bold text-sm text-gray-800">Riwayat Transaksi Kas</h3></div>
-                        <div class="overflow-x-auto max-h-64 custom-scroll">
-                            <table class="w-full text-left text-xs">
-                                <thead class="bg-gray-50 text-gray-500 font-bold sticky top-0">
-                                    <tr><th class="p-3">Tanggal</th><th class="p-3">Uang Masuk</th><th class="p-3">Uang Keluar</th><th class="p-3 text-right">Saldo</th></tr>
-                                </thead>
-                                <tbody id="tableDashboardKas" class="divide-y divide-gray-100"></tbody>
-                            </table>
-                        </div>
+                    <div class="flex gap-2">
+                        <button onclick="openDanaModal()" class="flex-1 bg-emerald-50 text-emerald-600 border border-emerald-200 py-3 rounded-xl text-xs font-bold shadow-sm hover:bg-emerald-100 transition-colors"><i class="fa-solid fa-plus-circle mr-1"></i> Tambah Pengumpulan Dana</button>
                     </div>
 
                     <div id="dynamicDanaCards" class="flex flex-col gap-4 mt-2"></div>
                 </div>
 
-                <!-- Sub-View Kas -->
+                <!-- Sub-View Kas (Dengan Buku Besar & Tabel Perorangan) -->
                 <div id="subViewKeuanganKas" class="hidden flex-col gap-4">
+                    
+                    <!-- Filter Tanggal Kas -->
+                    <div class="bg-white p-3 rounded-2xl border shadow-sm flex items-center justify-between">
+                        <label class="text-[10px] font-bold text-gray-600 uppercase">Pilih Tanggal Kas</label>
+                        <input type="date" id="kasDateFilter" onchange="renderKasUI()" class="px-3 py-1.5 bg-gray-50 border rounded-lg text-xs font-bold outline-none text-blue-600">
+                    </div>
+
+                    <!-- Tabel Pemasukan Kas (Input Cepat) -->
                     <div class="bg-white rounded-3xl border shadow-sm flex flex-col">
                         <div class="p-4 border-b flex justify-between items-center">
-                            <h3 class="font-bold text-sm text-gray-800">Pemasukan Kas</h3>
-                            <span class="text-[10px] text-gray-500 font-bold bg-gray-100 px-2 py-1 rounded">Min: <span id="lblMinKas">Rp 0</span></span>
+                            <div>
+                                <h3 class="font-bold text-sm text-gray-800">Pemasukan Kas</h3>
+                                <span class="text-[10px] text-gray-500">Min: <span id="lblMinKas">Rp 0</span></span>
+                            </div>
+                            <button onclick="openPengeluaranModal()" class="bg-rose-50 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg text-[10px] font-bold active:scale-95"><i class="fa-solid fa-minus mr-1"></i> Tarik Tunai</button>
                         </div>
                         <div class="overflow-x-auto max-h-72 custom-scroll">
                             <table class="w-full text-left text-xs">
                                 <thead class="bg-gray-50 text-gray-500 font-bold sticky top-0">
-                                    <tr><th class="p-3">Nama</th><th class="p-3">Kekurangan</th><th class="p-3">Input Nominal</th></tr>
+                                    <tr><th class="p-3">Anggota</th><th class="p-3">Status Hari Ini</th><th class="p-3">Input Cepat</th></tr>
                                 </thead>
                                 <tbody id="tableKasMasuk" class="divide-y divide-gray-100"></tbody>
                             </table>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-3xl border shadow-sm flex flex-col">
-                        <div class="p-4 border-b flex justify-between items-center">
-                            <h3 class="font-bold text-sm text-gray-800">Pengeluaran Kas</h3>
-                            <button onclick="openPengeluaranModal()" class="bg-rose-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold active:scale-95"><i class="fa-solid fa-minus mr-1"></i> Tarik Tunai</button>
-                        </div>
+                    <!-- Tabel Buku Besar Kas (Akumulasi Harian) -->
+                    <div class="bg-white rounded-3xl border shadow-sm flex flex-col mt-2">
+                        <div class="p-4 border-b"><h3 class="font-bold text-sm text-gray-800">Buku Besar Kas (Akumulasi Harian)</h3></div>
                         <div class="overflow-x-auto max-h-64 custom-scroll">
                             <table class="w-full text-left text-xs">
                                 <thead class="bg-gray-50 text-gray-500 font-bold sticky top-0">
-                                    <tr><th class="p-3">Tanggal</th><th class="p-3">Tujuan</th><th class="p-3">Nominal</th></tr>
+                                    <tr><th class="p-3">Tanggal</th><th class="p-3">Masuk</th><th class="p-3">Keluar</th><th class="p-3 text-right">Saldo</th></tr>
                                 </thead>
-                                <tbody id="tableKasKeluar" class="divide-y divide-gray-100"></tbody>
+                                <tbody id="tableBukuBesar" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Tabel Perorangan (Matriks) -->
+                    <div class="bg-white rounded-3xl border shadow-sm flex flex-col mt-2">
+                        <div class="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                            <h3 class="font-bold text-sm text-gray-800">Rekap Perorangan</h3>
+                            <div class="flex gap-2 items-center w-full sm:w-auto">
+                                <input type="date" id="rekapStartDate" class="px-2 py-1 border rounded-lg text-[10px] outline-none">
+                                <span class="text-xs text-gray-400">-</span>
+                                <input type="date" id="rekapEndDate" class="px-2 py-1 border rounded-lg text-[10px] outline-none">
+                                <button onclick="renderTabelPerorangan()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold">Filter</button>
+                                <button onclick="downloadTabelPerorangan()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold"><i class="fa-solid fa-download"></i> PNG</button>
+                            </div>
+                        </div>
+                        <div id="rekapPeroranganWrapper" class="overflow-x-auto overflow-y-auto max-h-72 custom-scroll p-2 bg-white">
+                            <table class="w-full text-left border-collapse text-[10px] min-w-max" id="tableRekapPerorangan">
+                                <thead class="bg-gray-100 text-gray-700 font-bold" id="theadRekapPerorangan"></thead>
+                                <tbody id="tbodyRekapPerorangan" class="divide-y divide-gray-200"></tbody>
                             </table>
                         </div>
                     </div>
@@ -502,10 +523,6 @@
 
                 <!-- Sub-View Tabungan/Dana -->
                 <div id="subViewKeuanganTabungan" class="hidden flex-col gap-4">
-                     <div class="bg-white p-4 rounded-3xl border shadow-sm flex justify-between items-center">
-                        <h3 class="font-bold text-sm text-gray-800">Daftar Pengumpulan Dana</h3>
-                        <button onclick="openDanaModal()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold active:scale-95"><i class="fa-solid fa-plus mr-1"></i> Buat Dana</button>
-                    </div>
                     <div id="danaListContainer" class="flex flex-col gap-3"></div>
                 </div>
             </section>
@@ -2710,19 +2727,26 @@
             }).catch(e => { showLoading(false); showToast("Koneksi gagal", "error"); });
         }
 
-        // === 3. FITUR KEUANGAN ===
+        // === 3. FITUR KEUANGAN (REVISI TOTAL) ===
         let keuanganData = { kas: [], pengeluaran: [], dana: [], transaksi_dana: [], settings: {} };
 
         function switchSubTabKeuangan(sub) {
             ['dashboard', 'kas', 'tabungan'].forEach(t => {
                 document.getElementById(`subViewKeuangan${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.add('hidden');
                 const btn = document.getElementById(`subTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
-                btn.className = "px-4 py-2 bg-white text-gray-600 border border-gray-200 rounded-xl text-xs font-bold shadow-sm whitespace-nowrap";
+                btn.className = "flex-1 py-2 px-3 text-gray-500 hover:text-gray-800 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap";
             });
             document.getElementById(`subViewKeuangan${sub.charAt(0).toUpperCase() + sub.slice(1)}`).classList.remove('hidden');
             document.getElementById(`subViewKeuangan${sub.charAt(0).toUpperCase() + sub.slice(1)}`).classList.add('flex');
             const activeBtn = document.getElementById(`subTabBtn${sub.charAt(0).toUpperCase() + sub.slice(1)}`);
-            activeBtn.className = "px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-sm whitespace-nowrap";
+            activeBtn.className = "flex-1 py-2 px-3 bg-white text-blue-600 rounded-xl text-[11px] font-bold shadow-sm transition-all whitespace-nowrap";
+            
+            if(sub === 'kas') {
+                document.getElementById('kasDateFilter').value = getLocalToday();
+                document.getElementById('rekapStartDate').value = getLocalToday();
+                document.getElementById('rekapEndDate').value = getLocalToday();
+                renderKasUI(); // Render dengan tanggal hari ini
+            }
         }
 
         function loadKeuanganData() {
@@ -2733,41 +2757,23 @@
                 if(d.success) {
                     keuanganData = d;
                     renderKeuanganDashboard();
-                    renderKasUI();
                     renderDanaUI();
+                    // renderKasUI dipanggil saat tab kas dibuka
                 }
             }).catch(e => { showLoading(false); showToast("Gagal memuat keuangan", "error"); });
         }
 
+        // --- 1. DASHBOARD ---
         function renderKeuanganDashboard() {
             let totalMasuk = 0, totalKeluar = 0;
-            
-            // Gabungkan kas masuk dan pengeluaran untuk tabel
-            let allTrans = [];
-            keuanganData.kas.forEach(k => { totalMasuk += parseInt(k[3]) || 0; allTrans.push({ tgl: k[1], masuk: parseInt(k[3])||0, keluar: 0 }); });
-            keuanganData.pengeluaran.forEach(p => { totalKeluar += parseInt(p[2]) || 0; allTrans.push({ tgl: p[1], masuk: 0, keluar: parseInt(p[2])||0 }); });
-            
-            // Sort by date desc (Asumsi format YYYY-MM-DD)
-            allTrans.sort((a,b) => new Date(b.tgl) - new Date(a.tgl));
+            keuanganData.kas.forEach(k => { totalMasuk += parseInt(k[3]) || 0; });
+            keuanganData.pengeluaran.forEach(p => { totalKeluar += parseInt(p[2]) || 0; });
             
             let saldo = totalMasuk - totalKeluar;
             document.getElementById('dashTotalKas').textContent = formatRupiah(saldo);
             document.getElementById('dashTotalMasuk').textContent = formatRupiah(totalMasuk);
             document.getElementById('dashTotalKeluar').textContent = formatRupiah(totalKeluar);
 
-            let runningSaldo = saldo;
-            document.getElementById('tableDashboardKas').innerHTML = allTrans.slice(0, 10).map(t => {
-                let rowSaldo = runningSaldo;
-                runningSaldo -= (t.masuk - t.keluar); // Kalkulasi mundur untuk baris sebelumnya
-                return `<tr>
-                    <td class="p-3 text-[10px] text-gray-600">${t.tgl.split(' ')[0]}</td>
-                    <td class="p-3 text-[10px] text-emerald-600 font-bold">${t.masuk ? formatRupiah(t.masuk) : '-'}</td>
-                    <td class="p-3 text-[10px] text-rose-600 font-bold">${t.keluar ? formatRupiah(t.keluar) : '-'}</td>
-                    <td class="p-3 text-[10px] font-bold text-gray-800 text-right">${formatRupiah(rowSaldo)}</td>
-                </tr>`;
-            }).join('') || `<tr><td colspan="4" class="p-4 text-center text-xs text-gray-400">Belum ada transaksi</td></tr>`;
-
-            // Render Dynamic Dana Cards
             const container = document.getElementById('dynamicDanaCards');
             if(keuanganData.dana.length === 0) {
                 container.innerHTML = '';
@@ -2780,71 +2786,177 @@
                     const totalTerkumpul = trxDana.reduce((sum, t) => sum + (parseInt(t[4]) || 0), 0);
                     
                     return `
-                        <div class="bg-white p-4 rounded-3xl border shadow-sm">
+                        <div class="bg-white p-4 rounded-3xl border shadow-sm relative overflow-hidden">
                             <div class="flex justify-between items-start mb-2 border-b pb-2">
                                 <div>
                                     <h4 class="font-bold text-sm text-gray-800">${judul}</h4>
                                     <p class="text-[10px] text-gray-500">Target: ${formatRupiah(targetNominal)} / org</p>
                                 </div>
                                 <div class="text-right">
-                                    <span class="text-xs font-black text-emerald-600">${formatRupiah(totalTerkumpul)}</span>
+                                    <span class="text-sm font-black text-emerald-600">${formatRupiah(totalTerkumpul)}</span>
                                     <span class="block text-[8px] text-gray-400 uppercase">Terkumpul</span>
                                 </div>
                             </div>
-                            <button onclick="openTransaksiDanaModal('${idDana}', '${judul}')" class="w-full bg-emerald-50 text-emerald-600 font-bold py-2 rounded-xl text-xs mt-2 border border-emerald-200">+ Setor Dana</button>
+                            <div class="flex gap-2">
+                                <button onclick="openSetorDanaModal('${idDana}', '${judul}')" class="flex-1 bg-emerald-50 text-emerald-600 font-bold py-2 rounded-xl text-xs border border-emerald-200">+ Setor Dana</button>
+                                <button onclick="lihatRiwayatDana('${idDana}', '${judul}')" class="bg-gray-100 text-gray-600 px-3 py-2 rounded-xl text-xs font-bold"><i class="fa-solid fa-list"></i></button>
+                            </div>
                         </div>
                     `;
                 }).join('');
             }
         }
 
+        // --- 2. KAS (Pemasukan, Buku Besar, Rekap) ---
         function renderKasUI() {
             document.getElementById('lblMinKas').textContent = formatRupiah(keuanganData.settings.minimal || 0);
             
-            // Render Tabel Masuk (Anggota)
+            const filterDate = document.getElementById('kasDateFilter').value || getLocalToday();
             const anggotaList = state.members.filter(m => m.role === 'Anggota');
+            const minimal = parseInt(keuanganData.settings.minimal) || 0;
+
+            // Render Tabel Pemasukan dengan Tombol Cepat
             document.getElementById('tableKasMasuk').innerHTML = anggotaList.map(m => {
-                // Hitung total kas yang sudah dibayar oleh user ini di periode ini (Untuk simplifikasi, kita total semua kasnya)
-                const totalDibayar = keuanganData.kas.filter(k => k[2] === m.username).reduce((sum, k) => sum + (parseInt(k[3]) || 0), 0);
-                const minimal = parseInt(keuanganData.settings.minimal) || 0;
-                const kekurangan = Math.max(0, minimal - totalDibayar);
+                // Cari transaksi user ini pada tanggal filterDate
+                const trxHariIni = keuanganData.kas.filter(k => {
+                    const tglTrx = k[1].split(' ')[0]; // Ambil YYYY-MM-DD
+                    return k[2] === m.username && tglTrx === filterDate;
+                });
+                const totalHariIni = trxHariIni.reduce((sum, k) => sum + (parseInt(k[3]) || 0), 0);
                 
-                return `<tr>
+                // Tampilkan input jika belum mencapai minimal
+                let inputHtml = '';
+                if (totalHariIni >= minimal) {
+                    inputHtml = `<span class="text-emerald-500 font-bold text-[10px] bg-emerald-50 px-2 py-1 rounded-lg"><i class="fa-solid fa-check-circle mr-1"></i> Lunas ${formatRupiah(totalHariIni)}</span>`;
+                } else {
+                    inputHtml = `<div class="flex flex-wrap gap-1 justify-end">
+                        <button onclick="quickSaveKas('${m.username}', 1000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">Rp 1.000</button>
+                        <button onclick="quickSaveKas('${m.username}', 2000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">Rp 2.000</button>
+                        <button onclick="quickSaveKas('${m.username}', 5000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">Rp 5.000</button>
+                    </div>`;
+                }
+
+                return `<tr class="hover:bg-gray-50">
                     <td class="p-3">
                         <div class="text-xs font-bold text-gray-800">${m.nama}</div>
                         <div class="text-[9px] text-gray-500">${m.kelas}</div>
                     </td>
-                    <td class="p-3 text-[10px] font-bold ${kekurangan > 0 ? 'text-rose-500' : 'text-emerald-500'}">${kekurangan > 0 ? formatRupiah(kekurangan) : 'Lunas'}</td>
-                    <td class="p-3">
-                        <div class="flex gap-2">
-                            <input type="number" id="inputKas_${m.username}" placeholder="Nominal" class="w-24 px-2 py-1 border rounded-lg text-xs outline-none" onchange="autoSaveKas('${m.username}', this.value)">
-                            <button onclick="autoSaveKas('${m.username}', document.getElementById('inputKas_${m.username}').value)" class="bg-blue-100 text-blue-600 px-2 py-1 rounded-lg text-[10px] font-bold active:scale-95"><i class="fa-solid fa-check"></i></button>
-                        </div>
-                    </td>
+                    <td class="p-3 text-[10px] font-bold">${totalHariIni > 0 ? `<span class="text-blue-600">${formatRupiah(totalHariIni)}</span>` : `<span class="text-gray-400">Belum bayar</span>`}</td>
+                    <td class="p-3 text-right">${inputHtml}</td>
                 </tr>`;
             }).join('');
 
-            // Render Tabel Keluar
-            document.getElementById('tableKasKeluar').innerHTML = keuanganData.pengeluaran.slice().reverse().map(p => `
-                <tr>
-                    <td class="p-3 text-[10px] text-gray-600">${p[1].split(' ')[0]}</td>
-                    <td class="p-3 text-xs font-bold text-gray-800">${p[3]}</td>
-                    <td class="p-3 text-xs font-bold text-rose-600">${formatRupiah(p[2])}</td>
-                </tr>
-            `).join('') || `<tr><td colspan="3" class="p-4 text-center text-xs text-gray-400">Belum ada pengeluaran</td></tr>`;
+            renderBukuBesar();
+            renderTabelPerorangan();
         }
 
-        function autoSaveKas(username, nominal) {
-            if(!nominal || isNaN(nominal) || nominal <= 0) return;
-            // Auto save tanpa notifikasi berlebih
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'saveKas', username: username, nominal: parseInt(nominal), keterangan: 'Setoran Kas' }) })
-            .then(r => r.json()).then(d => {
+        function quickSaveKas(username, nominal, tanggal) {
+            showToast("Menyimpan...", "info");
+            // Kirim ke server
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ 
+                action: 'saveKas', 
+                username: username, 
+                nominal: nominal, 
+                keterangan: 'Setoran Kas Tanggal ' + tanggal,
+                tanggalKustom: tanggal // Pastikan GAS mendukung ini, jika tidak, akan pakai tanggal hari ini
+            })}).then(r => r.json()).then(d => {
                 if(d.success) {
-                    showToast("Kas tersimpan", "success");
-                    document.getElementById(`inputKas_${username}`).value = '';
-                    loadKeuanganData(); // Refresh data
-                }
+                    showToast("Berhasil disimpan", "success");
+                    loadKeuanganData(); // Reload data saja
+                } else { showToast("Gagal", "error"); }
             });
+        }
+
+        function renderBukuBesar() {
+            // Akumulasi per tanggal
+            let grouped = {};
+            keuanganData.kas.forEach(k => {
+                const tgl = k[1].split(' ')[0]; // YYYY-MM-DD
+                if(!grouped[tgl]) grouped[tgl] = { masuk: 0, keluar: 0 };
+                grouped[tgl].masuk += parseInt(k[3]) || 0;
+            });
+            keuanganData.pengeluaran.forEach(p => {
+                const tgl = p[1].split(' ')[0];
+                if(!grouped[tgl]) grouped[tgl] = { masuk: 0, keluar: 0 };
+                grouped[tgl].keluar += parseInt(p[2]) || 0;
+            });
+
+            // Sortir tanggal desc
+            const sortedDates = Object.keys(grouped).sort((a,b) => new Date(b) - new Date(a));
+            
+            let saldoBerjalan = 0;
+            const rowsHtml = sortedDates.map(tgl => {
+                const m = grouped[tgl].masuk;
+                const k = grouped[tgl].keluar;
+                saldoBerjalan += (m - k);
+                
+                // Format tanggal cantik (DD/MM/YYYY)
+                const [y, mo, d] = tgl.split('-');
+                return `<tr>
+                    <td class="p-3 text-[10px] font-bold text-gray-700">${d}/${mo}/${y}</td>
+                    <td class="p-3 text-[10px] text-emerald-600 font-bold">${m ? formatRupiah(m) : '-'}</td>
+                    <td class="p-3 text-[10px] text-rose-600 font-bold">${k ? formatRupiah(k) : '-'}</td>
+                    <td class="p-3 text-[10px] font-bold text-gray-800 text-right">${formatRupiah(saldoBerjalan)}</td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('tableBukuBesar').innerHTML = rowsHtml || `<tr><td colspan="4" class="p-4 text-center text-xs text-gray-400">Belum ada transaksi</td></tr>`;
+        }
+
+        function renderTabelPerorangan() {
+            const start = document.getElementById('rekapStartDate').value;
+            const end = document.getElementById('rekapEndDate').value;
+            if(!start || !end) return;
+
+            // Buat array tanggal dari start ke end
+            let dateList = [];
+            let curr = new Date(start);
+            let endDate = new Date(end);
+            while (curr <= endDate) {
+                dateList.push(curr.toISOString().split('T')[0]);
+                curr.setDate(curr.getDate() + 1);
+            }
+
+            // Header Tabel
+            let theadHtml = `<tr><th class="p-2 border-r sticky left-0 bg-gray-100 z-10">Nama Anggota</th>`;
+            dateList.forEach(d => {
+                const [y, mo, day] = d.split('-');
+                theadHtml += `<th class="p-2 text-center border-r">${day}/${mo}</th>`;
+            });
+            theadHtml += `<th class="p-2 text-center text-blue-700">Total</th></tr>`;
+            document.getElementById('theadRekapPerorangan').innerHTML = theadHtml;
+
+            // Body Tabel
+            const anggotaList = state.members.filter(m => m.role === 'Anggota');
+            document.getElementById('tbodyRekapPerorangan').innerHTML = anggotaList.map(m => {
+                let rowHtml = `<tr><td class="p-2 font-bold border-r sticky left-0 bg-white">${m.nama}</td>`;
+                let totalMingguan = 0;
+
+                dateList.forEach(d => {
+                    const trx = keuanganData.kas.filter(k => {
+                        const tglTrx = k[1].split(' ')[0];
+                        return k[2] === m.username && tglTrx === d;
+                    });
+                    const totalHari = trx.reduce((sum, k) => sum + (parseInt(k[3]) || 0), 0);
+                    totalMingguan += totalHari;
+                    rowHtml += `<td class="p-2 text-center border-r text-[10px] ${totalHari ? 'text-blue-600 font-bold' : 'text-gray-300'}">${totalHari ? formatRupiah(totalHari) : '-'}</td>`;
+                });
+                rowHtml += `<td class="p-2 text-center font-black text-blue-700 bg-blue-50">${formatRupiah(totalMingguan)}</td></tr>`;
+                return rowHtml;
+            }).join('');
+        }
+
+        function downloadTabelPerorangan() {
+            const el = document.getElementById('rekapPeroranganWrapper');
+            showLoading(true, "Menyiapkan gambar...");
+            html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true }).then(canvas => {
+                showLoading(false);
+                const link = document.createElement('a');
+                link.download = `Rekap_Kas_${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                showToast("Gambar berhasil diunduh!", "success");
+            }).catch(e => { showLoading(false); showToast("Gagal unduh", "error"); });
         }
 
         function openPengeluaranModal() { document.getElementById('pengeluaranModal').classList.remove('hidden'); document.getElementById('pengeluaranModal').classList.add('flex'); }
@@ -2866,44 +2978,39 @@
             });
         });
 
-        function openSettingKasModal() {
-            document.getElementById('setMinKas').value = keuanganData.settings.minimal || 0;
-            document.getElementById('settingKasModal').classList.remove('hidden'); document.getElementById('settingKasModal').classList.add('flex');
-        }
-        function closeSettingKasModal() { document.getElementById('settingKasModal').classList.add('hidden'); document.getElementById('settingKasModal').classList.remove('flex'); }
-
-        document.getElementById('formSettingKas').addEventListener('submit', (e) => {
-            e.preventDefault();
-            showLoading(true, "Menyimpan Pengaturan...");
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({
-                action: 'updateSettingKas',
-                settings: {
-                    minimal: document.getElementById('setMinKas').value,
-                    frekuensi: document.getElementById('setFrekuensi').value,
-                    target: document.getElementById('setTargetKas').value
-                }
-            })}).then(r=>r.json()).then(d => {
-                showLoading(false);
-                if(d.success) { showToast("Pengaturan disimpan", "success"); closeSettingKasModal(); loadKeuanganData(); }
-                else showToast(d.message, "error");
-            });
-        });
-
+        // --- 3. TABUNGAN / DANA ---
         function renderDanaUI() {
             const container = document.getElementById('danaListContainer');
-            container.innerHTML = keuanganData.dana.map(d => `
-                <div class="bg-white p-4 rounded-xl border shadow-sm flex justify-between items-center">
+            container.innerHTML = keuanganData.dana.map(d => {
+                const id = d[0];
+                const judul = d[1];
+                const target = d[3];
+                return `
+                <div class="bg-white p-4 rounded-2xl border shadow-sm flex justify-between items-center">
                     <div>
-                        <h4 class="font-bold text-sm">${d[1]}</h4>
-                        <p class="text-[10px] text-gray-500">Target: ${formatRupiah(d[3])}</p>
+                        <h4 class="font-bold text-sm">${judul}</h4>
+                        <p class="text-[10px] text-gray-500">Target: ${formatRupiah(target)}</p>
                     </div>
-                    <button onclick="openTransaksiDanaModal('${d[0]}', '${d[1]}')" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-xs font-bold">Setor</button>
-                </div>
-            `).join('') || `<div class="text-xs text-center text-gray-400 p-4">Belum ada pengumpulan dana.</div>`;
+                    <button onclick="openSetorDanaModal('${id}', '${judul}')" class="bg-emerald-100 text-emerald-700 px-3 py-2 rounded-xl text-xs font-bold shadow-sm">+ Setor</button>
+                </div>`;
+            }).join('') || `<div class="text-xs text-center text-gray-400 p-4">Belum ada pengumpulan dana.</div>`;
+        }
+
+        // Modal Setor Dana
+        function openSetorDanaModal(idDana, judul) {
+            const nominal = prompt(`Masukkan Nominal Setoran untuk ${judul}:`);
+            if(!nominal || isNaN(nominal)) return;
+            
+            showLoading(true, "Menyimpan...");
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'saveTransaksiDana', id_dana: idDana, username: state.user.username, nominal: parseInt(nominal) }) })
+            .then(r=>r.json()).then(d => {
+                showLoading(false);
+                if(d.success) { showToast("Setoran disimpan", "success"); loadKeuanganData(); }
+                else showToast(d.message, "error");
+            });
         }
 
         function openDanaModal() {
-            // Reuse logic: Untuk simplifikasi, kita gunakan prompt (bisa di-upgrade jadi modal nanti)
             const judul = prompt("Nama Pengumpulan Dana (ex: Study Tour):");
             if(!judul) return;
             const target = prompt("Target Nominal per Orang:");
@@ -2917,19 +3024,6 @@
                 else showToast(d.message, "error");
             });
         }
-
-        function openTransaksiDanaModal(idDana, judul) {
-            const nominal = prompt(`Nominal setoran untuk ${judul}:`);
-            if(!nominal) return;
-            showLoading(true, "Menyimpan...");
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'saveTransaksiDana', id_dana: idDana, username: state.user.username, nominal: nominal }) })
-            .then(r=>r.json()).then(d => {
-                showLoading(false);
-                if(d.success) { showToast("Setoran disimpan", "success"); loadKeuanganData(); }
-                else showToast(d.message, "error");
-            });
-        }
-
         // === 4. TUGAS KHUSUS ===
         function openTugasKhususModal(username) {
             const m = state.members.find(x => x.username === username);
