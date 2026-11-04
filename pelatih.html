@@ -424,7 +424,6 @@
 
             <!-- VIEW KEUANGAN (FINAL REVISI) -->
             <section id="viewKeuangan" class="tab-view hidden flex-col gap-5 w-full">
-                <!-- Sub-Tab Keuangan -->
                 <div class="flex gap-1 bg-gray-100 p-1 rounded-2xl mb-2 overflow-x-auto custom-scroll">
                     <button onclick="switchSubTabKeuangan('dashboard')" id="subTabBtnDashboard" class="flex-1 py-2 px-3 bg-white text-blue-600 rounded-xl text-[11px] font-bold shadow-sm transition-all whitespace-nowrap">Dashboard</button>
                     <button onclick="switchSubTabKeuangan('kas')" id="subTabBtnKas" class="flex-1 py-2 px-3 text-gray-500 hover:text-gray-800 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap">Kas</button>
@@ -451,14 +450,19 @@
                         </div>
                     </div>
 
-                    <!-- Overview Tabungan -->
-                    <div id="overviewTabunganContainer" class="flex flex-col gap-3 mt-1"></div>
-
-                    <!-- Buku Besar Kas -->
+                    <!-- Buku Besar Kas (Poin 5: Filter & Unduh) -->
                     <div class="bg-white rounded-3xl border shadow-sm flex flex-col mt-2">
-                        <div class="p-4 border-b"><h3 class="font-bold text-sm text-gray-800">Buku Besar Kas (Akumulasi Harian)</h3></div>
-                        <div class="overflow-x-auto max-h-64 custom-scroll">
-                            <table class="w-full text-left text-xs">
+                        <div class="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                            <h3 class="font-bold text-sm text-gray-800">Buku Besar Kas</h3>
+                            <div class="flex flex-wrap gap-2 items-center w-full sm:w-auto">
+                                <input type="date" id="bukuBesarStartDate" onchange="renderBukuBesar()" class="px-2 py-1.5 border rounded-lg text-[10px] outline-none">
+                                <span class="text-xs text-gray-400">-</span>
+                                <input type="date" id="bukuBesarEndDate" onchange="renderBukuBesar()" class="px-2 py-1.5 border rounded-lg text-[10px] outline-none">
+                                <button onclick="downloadBukuBesar()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md"><i class="fa-solid fa-download mr-1"></i> Unduh</button>
+                            </div>
+                        </div>
+                        <div id="bukuBesarWrapper" class="overflow-x-auto max-h-64 custom-scroll p-2 bg-white">
+                            <table class="w-full text-left text-xs" id="tableBukuBesarRaw">
                                 <thead class="bg-gray-50 text-gray-500 font-bold sticky top-0">
                                     <tr><th class="p-3">Tanggal</th><th class="p-3">Masuk</th><th class="p-3">Keluar</th><th class="p-3 text-right">Saldo</th></tr>
                                 </thead>
@@ -468,15 +472,15 @@
                     </div>
 
                     <!-- Rekap Perorangan Kas -->
-                    <div class="bg-white rounded-3xl border shadow-sm flex flex-col mt-2 mb-4">
+                    <div class="bg-white rounded-3xl border shadow-sm flex flex-col mt-2">
                         <div class="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                             <h3 class="font-bold text-sm text-gray-800">Rekap Perorangan Kas</h3>
                             <div class="flex flex-wrap gap-2 items-center w-full sm:w-auto">
                                 <input type="date" id="rekapStartDate" class="px-2 py-1.5 border rounded-lg text-[10px] outline-none">
                                 <span class="text-xs text-gray-400">-</span>
                                 <input type="date" id="rekapEndDate" class="px-2 py-1.5 border rounded-lg text-[10px] outline-none">
-<button onclick="renderTabelPerorangan()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold">Tampilkan</button>
-<button onclick="toggleRekapKas()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold" title="Sembunyikan/Tampilkan"><i id="iconToggleRekap" class="fa-solid fa-eye"></i></button>
+                                <button onclick="renderTabelPerorangan()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold">Tampilkan</button>
+                                <button onclick="toggleRekapKas()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold" title="Sembunyikan/Tampilkan"><i id="iconToggleRekap" class="fa-solid fa-eye"></i></button>
                                 <button onclick="downloadTabelPerorangan()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md"><i class="fa-solid fa-download mr-1"></i> Unduh</button>
                             </div>
                         </div>
@@ -484,6 +488,19 @@
                             <table class="w-full text-left border-collapse text-[10px] min-w-max" id="tableRekapPerorangan">
                                 <thead class="bg-gray-100 text-gray-700 font-bold" id="theadRekapPerorangan"></thead>
                                 <tbody id="tbodyRekapPerorangan" class="divide-y divide-gray-200"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Overview Tabungan (Pindah ke bawah & jadi tabel - Poin 3) -->
+                    <div class="bg-white rounded-3xl border shadow-sm flex flex-col mt-2 mb-4">
+                        <div class="p-4 border-b"><h3 class="font-bold text-sm text-gray-800">Ringkasan Tabungan</h3></div>
+                        <div class="overflow-x-auto max-h-64 custom-scroll p-2">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-gray-50 text-gray-500 font-bold sticky top-0">
+                                    <tr><th class="p-3">Judul</th><th class="p-3">Target/Org</th><th class="p-3">Target Akumulatif</th><th class="p-3">Terkumpul</th><th class="p-3">Deadline</th><th class="p-3 text-center">Aksi</th></tr>
+                                </thead>
+                                <tbody id="overviewTabunganBody" class="divide-y divide-gray-100"></tbody>
                             </table>
                         </div>
                     </div>
@@ -552,6 +569,22 @@
                                     <tr><th class="p-3">Anggota</th><th class="p-3 text-center">Total Terkumpul</th><th class="p-3 text-center">Saldo Hari Ini</th><th class="p-3 text-right">Input</th></tr>
                                 </thead>
                                 <tbody id="tableTabungan" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Pengeluaran Tabungan (Poin 3) -->
+                    <div class="bg-white rounded-3xl border shadow-sm flex flex-col">
+                        <div class="p-4 border-b flex justify-between items-center">
+                            <h3 class="font-bold text-sm text-gray-800">Pengeluaran Tabungan</h3>
+                            <button onclick="openPengeluaranTabunganModal()" class="bg-rose-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold active:scale-95 shadow-sm"><i class="fa-solid fa-minus mr-1"></i> Tarik Dana</button>
+                        </div>
+                        <div class="overflow-x-auto max-h-64 custom-scroll">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-gray-50 text-gray-500 font-bold sticky top-0">
+                                    <tr><th class="p-3">Tanggal</th><th class="p-3">Tujuan</th><th class="p-3 text-right">Nominal</th></tr>
+                                </thead>
+                                <tbody id="tableTabunganKeluar" class="divide-y divide-gray-100"></tbody>
                             </table>
                         </div>
                     </div>
@@ -1006,6 +1039,38 @@
                 <button type="button" onclick="closeTugasKhususModal()" class="flex-1 bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
                 <button type="button" onclick="saveTugasKhusus()" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded-xl text-xs shadow-md">Simpan</button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT TABUNGAN -->
+    <div id="editTabunganModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+            <h3 class="font-bold text-gray-800 text-sm mb-4 border-b pb-3">Revisi Tabungan</h3>
+            <form id="formEditTabungan" class="flex flex-col gap-3">
+                <input type="hidden" id="editDanaId">
+                <div><label class="text-[10px] font-bold text-gray-600">Target Nominal / Orang (Rp)</label><input type="text" id="editDanaTarget" onkeyup="formatInputRupiah(this)" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold"></div>
+                <div><label class="text-[10px] font-bold text-gray-600">Batas Waktu (Deadline)</label><input type="date" id="editDanaDeadline" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold text-gray-700"></div>
+                <div class="flex gap-2 mt-2">
+                    <button type="button" onclick="document.getElementById('editTabunganModal').classList.add('hidden')" class="flex-1 bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
+                    <button type="submit" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded-xl text-xs shadow-md">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL PENGELUARAN TABUNGAN -->
+    <div id="pengeluaranTabunganModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+            <h3 class="font-bold text-gray-800 text-sm mb-4 border-b pb-3">Tarik Dana Tabungan</h3>
+            <form id="formPengeluaranTabungan" class="flex flex-col gap-3">
+                <div><label class="text-[10px] font-bold text-gray-600">Nominal (Rp)</label><input type="text" id="outTabNominal" onkeyup="formatInputRupiah(this)" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold"></div>
+                <div><label class="text-[10px] font-bold text-gray-600">Tujuan</label><input type="text" id="outTabTujuan" required placeholder="Beli kaos, dll" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></div>
+                <div><label class="text-[10px] font-bold text-gray-600">Nama Peminta</label><input type="text" id="outTabPeminta" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></div>
+                <div class="flex gap-2 mt-2">
+                    <button type="button" onclick="document.getElementById('pengeluaranTabunganModal').classList.add('hidden')" class="flex-1 bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
+                    <button type="submit" class="flex-1 bg-rose-600 text-white font-bold py-2 rounded-xl text-xs shadow-md">Konfirmasi Tarik</button>
+                </div>
+            </form>
         </div>
     </div>
     
@@ -2867,36 +2932,50 @@
             document.getElementById('dashTotalMasuk').textContent = formatRupiah(totalMasuk);
             document.getElementById('dashTotalKeluar').textContent = formatRupiah(totalKeluar);
 
-            const container = document.getElementById('overviewTabunganContainer');
+            // Overview Tabungan Tabel
+            const anggotaList = state.members.filter(m => m.role === 'Anggota');
+            const container = document.getElementById('overviewTabunganBody');
             if(keuanganData.dana.length > 0) {
                 container.innerHTML = keuanganData.dana.map(dana => {
                     const idDana = dana[0];
                     const judul = dana[1];
                     const targetNominal = parseInt(dana[3]) || 0;
                     const deadline = dana[4] ? parseDateString(dana[4]) : '-';
+                    const targetUser = dana[5] || 'Semua';
+                    
+                    // Hitung akumulatif target
+                    let jumlahTarget = anggotaList.length;
+                    if(targetUser !== 'Semua') {
+                        jumlahTarget = targetUser.split(',').length;
+                    }
+                    const targetAkumulatif = targetNominal * jumlahTarget;
+
                     const trxDana = keuanganData.transaksi_dana.filter(t => t[1] === idDana);
                     const totalTerkumpul = trxDana.reduce((sum, t) => sum + (parseInt(t[4]) || 0), 0);
                     
                     return `
-                        <div class="bg-white p-4 rounded-2xl border shadow-sm mt-2">
-                            <div class="flex justify-between items-center border-b pb-2 mb-2">
-                                <div>
-                                    <h4 class="font-bold text-sm text-gray-800">${judul}</h4>
-                                    <p class="text-[10px] text-gray-500">Target: ${formatRupiah(targetNominal)} • Deadline: ${deadline}</p>
-                                </div>
-                                <span class="text-xs font-black text-emerald-600">${formatRupiah(totalTerkumpul)}</span>
-                            </div>
-                        </div>
+                        <tr>
+                            <td class="p-3 font-bold text-gray-800">${judul}</td>
+                            <td class="p-3 text-gray-600">${formatRupiah(targetNominal)}</td>
+                            <td class="p-3 font-semibold text-indigo-600">${formatRupiah(targetAkumulatif)}</td>
+                            <td class="p-3 font-black text-emerald-600">${formatRupiah(totalTerkumpul)}</td>
+                            <td class="p-3 text-[10px] text-gray-500">${deadline}</td>
+                            <td class="p-3 text-center">
+                                <button onclick="openEditTabungan('${idDana}', '${targetNominal}', '${dana[4]}')" class="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-100" title="Revisi"><i class="fa-solid fa-pen"></i></button>
+                            </td>
+                        </tr>
                     `;
                 }).join('');
             } else {
-                container.innerHTML = '';
+                container.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-gray-400">Belum ada tabungan.</td></tr>`;
             }
 
+            // Set default tanggal Buku Besar jika kosong
+            if(!document.getElementById('bukuBesarStartDate').value) document.getElementById('bukuBesarStartDate').value = getLocalToday();
+            if(!document.getElementById('bukuBesarEndDate').value) document.getElementById('bukuBesarEndDate').value = getLocalToday();
             renderBukuBesar();
             renderTabelPerorangan();
         }
-
         function toggleRekapKas() {
             const wrapper = document.getElementById('rekapPeroranganWrapper');
             const icon = document.getElementById('iconToggleRekap');
@@ -2910,14 +2989,19 @@
         }
 
         function renderBukuBesar() {
+            const start = document.getElementById('bukuBesarStartDate').value;
+            const end = document.getElementById('bukuBesarEndDate').value;
+            
             let grouped = {};
             keuanganData.kas.forEach(k => {
                 const tgl = parseDateString(k[1]);
+                if(start && end && (tgl < start || tgl > end)) return;
                 if(!grouped[tgl]) grouped[tgl] = { masuk: 0, keluar: 0 };
                 grouped[tgl].masuk += parseInt(k[3]) || 0;
             });
             keuanganData.pengeluaran.forEach(p => {
                 const tgl = parseDateString(p[1]);
+                if(start && end && (tgl < start || tgl > end)) return;
                 if(!grouped[tgl]) grouped[tgl] = { masuk: 0, keluar: 0 };
                 grouped[tgl].keluar += parseInt(p[2]) || 0;
             });
@@ -2937,6 +3021,22 @@
                 </tr>`;
             }).join('');
             document.getElementById('tableBukuBesar').innerHTML = rowsHtml || `<tr><td colspan="4" class="p-4 text-center text-xs text-gray-400">Belum ada transaksi</td></tr>`;
+        }
+
+        function downloadBukuBesar() {
+            const originalTable = document.getElementById('tableBukuBesarRaw');
+            const cloneTable = originalTable.cloneNode(true);
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'absolute'; tempDiv.style.left = '-9999px'; tempDiv.style.backgroundColor = '#ffffff'; tempDiv.style.padding = '20px'; tempDiv.appendChild(cloneTable);
+            cloneTable.style.width = '100%'; cloneTable.style.borderCollapse = 'collapse';
+            cloneTable.querySelectorAll('th, td').forEach(cell => { cell.style.border = '1px solid #e5e7eb'; cell.style.padding = '8px 12px'; cell.style.textAlign = 'center'; });
+            cloneTable.querySelectorAll('th').forEach(th => { th.style.backgroundColor = '#f3f4f6'; });
+            document.body.appendChild(tempDiv);
+            html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
+                document.body.removeChild(tempDiv);
+                const link = document.createElement('a'); link.download = `Buku_Besar_${Date.now()}.png`; link.href = canvas.toDataURL('image/png'); link.click();
+                showToast("Gambar diunduh!", "success");
+            });
         }
 
         function renderTabelPerorangan() {
@@ -3033,11 +3133,6 @@
 
         // --- 2. KAS ---
         function renderKasUI() {
-            const minKas = keuanganData.settings.minimal || 0;
-            const freq = keuanganData.settings.frekuensi || 'Harian';
-            document.getElementById('lblMinKas').textContent = formatRupiah(minKas);
-            document.getElementById('lblFreqKas').textContent = freq;
-            
             const filterDate = document.getElementById('kasDateFilter').value || getLocalToday();
             const anggotaList = state.members.filter(m => m.role === 'Anggota');
 
@@ -3047,9 +3142,9 @@
                 
                 let inputHtml = `<div class="flex flex-col items-end gap-1">
                     <div class="flex gap-1">
-                        <button onclick="quickSaveKas('${m.username}', 1000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">1k</button>
-                        <button onclick="quickSaveKas('${m.username}', 2000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">2k</button>
-                        <button onclick="quickSaveKas('${m.username}', 5000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">5k</button>
+                        <button onclick="quickSaveKas('${m.username}', 10000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">10k</button>
+                        <button onclick="quickSaveKas('${m.username}', 50000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">50k</button>
+                        <button onclick="deleteKas('${m.username}', '${filterDate}')" class="bg-rose-50 text-rose-600 border border-rose-200 px-2 py-1 rounded-lg text-[9px] font-bold" title="Hapus Input Terakhir"><i class="fa-solid fa-trash"></i></button>
                     </div>
                     <div class="flex gap-1 w-full max-w-[120px]">
                         <input type="text" id="manualKas_${m.username}" onkeyup="formatInputRupiah(this)" placeholder="Nominal..." class="w-full px-2 py-1 border rounded-lg text-[10px] outline-none text-right">
@@ -3067,21 +3162,29 @@
                 </tr>`;
             }).join('');
 
-            const pengeluaranHariIni = keuanganData.pengeluaran.filter(p => parseDateString(p[1]) === filterDate);
-            
-            document.getElementById('tableKasKeluar').innerHTML = pengeluaranHariIni.reverse().map(p => {
+            // Tabel Pengeluaran Kas
+            document.getElementById('tableKasKeluar').innerHTML = keuanganData.pengeluaran.slice().reverse().map(p => {
                 return `<tr>
-                    <td class="p-3 text-[10px] text-gray-600">${filterDate.split('-').reverse().join('/')}</td>
+                    <td class="p-3 text-[10px] text-gray-600">${parseDateString(p[1]).split('-').reverse().join('/')}</td>
                     <td class="p-3 text-xs font-bold text-gray-800">${p[3]}</td>
                     <td class="p-3 text-xs font-bold text-rose-600 text-right">${formatRupiah(p[2])}</td>
                 </tr>`;
-            }).join('') || `<tr><td colspan="3" class="p-4 text-center text-xs text-gray-400">Belum ada pengeluaran hari ini</td></tr>`;
+            }).join('') || `<tr><td colspan="3" class="p-4 text-center text-xs text-gray-400">Belum ada pengeluaran</td></tr>`;
         }
 
         function quickSaveKas(username, nominal, tanggal) {
-            const tempId = 'KAS_TEMP_' + Date.now();
-            keuanganData.kas.push([tempId, tanggal + " " + new Date().toTimeString().split(' ')[0], username, nominal, 'Kas']);
-            
+            keuanganData.kas.push(['KAS_TEMP_' + Date.now(), tanggal + " " + new Date().toTimeString().split(' ')[0], username, nominal, 'Kas']);
+            renderKasUI(); renderBukuBesar(); renderTabelPerorangan();
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'saveKas', username: username, nominal: nominal, keterangan: 'Kas', tanggalKustom: tanggal }) }).catch(e=>{});
+        }
+
+        function deleteKas(username, tanggal) {
+            const index = keuanganData.kas.findLastIndex(k => k[2] === username && parseDateString(k[1]) === tanggal);
+            if(index === -1) { showToast("Belum ada data untuk dihapus", "error"); return; }
+            keuanganData.kas.splice(index, 1);
+            renderKasUI(); renderBukuBesar(); renderTabelPerorangan();
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteKas', username: username, tanggal: tanggal }) }).catch(e=>{});
+        }            
             renderKasUI();
             renderBukuBesar();
             renderTabelPerorangan();
@@ -3162,7 +3265,7 @@
 
         function renderTabunganUI() {
             const idDana = document.getElementById('selectTabungan').value;
-            if(!idDana) { document.getElementById('tableTabungan').innerHTML = '<tr><td colspan="4" class="text-center text-gray-400 p-4">Belum ada tabungan.</td></tr>'; return; }
+            if(!idDana) return;
             
             const dana = keuanganData.dana.find(d => d[0] === idDana);
             if(!dana) return;
@@ -3177,7 +3280,6 @@
             document.getElementById('tableTabungan').innerHTML = anggotaList.map(m => {
                 const trxAll = keuanganData.transaksi_dana.filter(t => t[1] === idDana && t[3] === m.username);
                 const totalTerkumpul = trxAll.reduce((sum, t) => sum + (parseInt(t[4]) || 0), 0);
-                
                 const trxHariIni = trxAll.filter(t => parseDateString(t[2]) === filterDate);
                 const saldoHariIni = trxHariIni.reduce((sum, t) => sum + (parseInt(t[4]) || 0), 0);
 
@@ -3196,8 +3298,8 @@
                         <div class="flex flex-col items-end gap-1">
                             <div class="flex gap-1">
                                 <button onclick="quickSaveTabungan('${idDana}', '${m.username}', 10000, '${filterDate}')" class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded-lg text-[9px] font-bold">10k</button>
-                                <button onclick="quickSaveTabungan('${idDana}', '${m.username}', 20000, '${filterDate}')" class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded-lg text-[9px] font-bold">20k</button>
                                 <button onclick="quickSaveTabungan('${idDana}', '${m.username}', 50000, '${filterDate}')" class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded-lg text-[9px] font-bold">50k</button>
+                                <button onclick="deleteTabungan('${idDana}', '${m.username}', '${filterDate}')" class="bg-rose-50 text-rose-600 border border-rose-200 px-2 py-1 rounded-lg text-[9px] font-bold" title="Hapus Input Terakhir"><i class="fa-solid fa-trash"></i></button>
                             </div>
                             <div class="flex gap-1 w-full max-w-[120px]">
                                 <input type="text" id="manualTab_${m.username}" onkeyup="formatInputRupiah(this)" placeholder="Nominal..." class="w-full px-2 py-1 border rounded-lg text-[10px] outline-none text-right">
@@ -3207,25 +3309,97 @@
                     </td>
                 </tr>`;
             }).join('');
+
+            // Render Pengeluaran Tabungan
+            const keluarTab = keuanganData.pengeluaran_dana ? keuanganData.pengeluaran_dana.filter(p => p[1] === idDana) : [];
+            document.getElementById('tableTabunganKeluar').innerHTML = keluarTab.slice().reverse().map(p => {
+                return `<tr>
+                    <td class="p-3 text-[10px] text-gray-600">${parseDateString(p[2]).split('-').reverse().join('/')}</td>
+                    <td class="p-3 text-xs font-bold text-gray-800">${p[4]}</td>
+                    <td class="p-3 text-xs font-bold text-rose-600 text-right">${formatRupiah(p[3])}</td>
+                </tr>`;
+            }).join('') || `<tr><td colspan="3" class="p-4 text-center text-xs text-gray-400">Belum ada pengeluaran</td></tr>`;
         }
 
         function quickSaveTabungan(idDana, username, nominal, tanggal) {
-            showToast("Menyimpan...", "info");
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ 
-                action: 'saveTransaksiDana', id_dana: idDana, username: username, nominal: nominal, tanggalKustom: tanggal
-            })}).then(r => r.json()).then(d => {
-                if(d.success) { showToast("Berhasil", "success"); loadKeuanganData(); renderTabunganUI(); } 
-                else { showToast("Gagal", "error"); }
-            });
+            keuanganData.transaksi_dana.push(['TRX_TEMP_' + Date.now(), idDana, tanggal + " " + new Date().toTimeString().split(' ')[0], username, nominal]);
+            renderTabunganUI(); renderKeuanganDashboard();
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'saveTransaksiDana', id_dana: idDana, username: username, nominal: nominal, tanggalKustom: tanggal }) }).catch(e=>{});
         }
 
-        function manualSaveTabungan(idDana, username, tanggal) {
-            const inputEl = document.getElementById(`manualTab_${username}`);
-            const val = unformatRupiah(inputEl.value);
-            if(val <= 0) { showToast("Masukkan nominal valid", "error"); return; }
-            quickSaveTabungan(idDana, username, val, tanggal);
-            inputEl.value = '';
+        function deleteTabungan(idDana, username, tanggal) {
+            const index = keuanganData.transaksi_dana.findLastIndex(t => t[1] === idDana && t[3] === username && parseDateString(t[2]) === tanggal);
+            if(index === -1) { showToast("Belum ada data untuk dihapus", "error"); return; }
+            keuanganData.transaksi_dana.splice(index, 1);
+            renderTabunganUI(); renderKeuanganDashboard();
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteTransaksiDana', idDana: idDana, username: username, tanggal: tanggal }) }).catch(e=>{});
         }
+
+        function openEditTabungan(id, target, deadline) {
+            document.getElementById('editDanaId').value = id;
+            document.getElementById('editDanaTarget').value = target.toLocaleString('id-ID');
+            document.getElementById('editDanaDeadline').value = deadline ? parseDateString(deadline) : '';
+            document.getElementById('editTabunganModal').classList.remove('hidden'); document.getElementById('editTabunganModal').classList.add('flex');
+        }
+
+        document.getElementById('formEditTabungan').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editDanaId').value;
+            const target = unformatRupiah(document.getElementById('editDanaTarget').value);
+            const deadline = document.getElementById('editDanaDeadline').value;
+            
+            const dana = keuanganData.dana.find(d => d[0] === id);
+            if(dana) { dana[3] = target; dana[4] = deadline; }
+            renderKeuanganDashboard(); renderTabunganUI();
+            document.getElementById('editTabunganModal').classList.add('hidden');
+            
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'updateDana', id: id, target_nominal: target, deadline: deadline }) }).then(r=>r.json()).then(d=>{ if(d.success) showToast("Tabungan direvisi", "success"); });
+        });
+
+        function openPengeluaranTabunganModal() { 
+            document.getElementById('formPengeluaranTabungan').reset();
+            document.getElementById('pengeluaranTabunganModal').classList.remove('hidden'); 
+            document.getElementById('pengeluaranTabunganModal').classList.add('flex'); 
+        }
+        
+        document.getElementById('formPengeluaranTabungan').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const idDana = document.getElementById('selectTabungan').value;
+            const nominal = unformatRupiah(document.getElementById('outTabNominal').value);
+            const tujuan = document.getElementById('outTabTujuan').value;
+            const peminta = document.getElementById('outTabPeminta').value;
+
+            if(!keuanganData.pengeluaran_dana) keuanganData.pengeluaran_dana = [];
+            keuanganData.pengeluaran_dana.push(['OUTDANA_TEMP_' + Date.now(), idDana, new Date().toISOString(), nominal, tujuan, peminta, state.user.nama]);
+            
+            document.getElementById('pengeluaranTabunganModal').classList.add('hidden');
+            renderTabunganUI();
+            showToast("Pengeluaran dicatat", "success");
+
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'savePengeluaranDana', id_dana: idDana, nominal: nominal, tujuan: tujuan, peminta: peminta, dicatatOleh: state.user.nama }) });
+        });
+
+        // Perbaiki Load Data agar membaca PENGELUARAN_DANA
+        const originalLoadKeuanganData = loadKeuanganData;
+        window.loadKeuanganData = function() {
+            showLoading(true, "Memuat Keuangan...");
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getKeuanganData' }) })
+            .then(r => r.json()).then(d => {
+                showLoading(false);
+                if(d.success) {
+                    keuanganData = d;
+                    if(!keuanganData.pengeluaran_dana) keuanganData.pengeluaran_dana = []; // Fallback
+                    renderKeuanganDashboard();
+                    if(!document.getElementById('rekapStartDate').value) {
+                        document.getElementById('rekapStartDate').value = getLocalToday();
+                        document.getElementById('rekapEndDate').value = getLocalToday();
+                    }
+                    if(!document.getElementById('subViewKeuanganTabungan').classList.contains('hidden')) {
+                        populateSelectTabungan();
+                    }
+                }
+            }).catch(e => { showLoading(false); showToast("Gagal memuat keuangan", "error"); });
+        };
 
         function openTabunganModal() {
             document.getElementById('formTabungan').reset();
