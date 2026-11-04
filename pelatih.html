@@ -2839,7 +2839,6 @@
                         document.getElementById('rekapStartDate').value = getLocalToday();
                         document.getElementById('rekapEndDate').value = getLocalToday();
                     }
-                    // Pastikan opsi tabungan di-load jika tab tabungan sudah terbuka
                     if(!document.getElementById('subViewKeuanganTabungan').classList.contains('hidden')) {
                         populateSelectTabungan();
                     }
@@ -2868,7 +2867,6 @@
             document.getElementById('dashTotalMasuk').textContent = formatRupiah(totalMasuk);
             document.getElementById('dashTotalKeluar').textContent = formatRupiah(totalKeluar);
 
-            // Overview Tabungan (Card)
             const container = document.getElementById('overviewTabunganContainer');
             if(keuanganData.dana.length > 0) {
                 container.innerHTML = keuanganData.dana.map(dana => {
@@ -2904,10 +2902,10 @@
             const icon = document.getElementById('iconToggleRekap');
             if(wrapper.classList.contains('hidden')) {
                 wrapper.classList.remove('hidden');
-                icon.className = 'fa-solid fa-eye';
+                icon.className = 'fa-solid fa-eye-slash';
             } else {
                 wrapper.classList.add('hidden');
-                icon.className = 'fa-solid fa-eye-slash';
+                icon.className = 'fa-solid fa-eye';
             }
         }
 
@@ -2976,21 +2974,8 @@
                 return rowHtml;
             }).join('');
             
-            // Tampilkan tabel saat dirender
             document.getElementById('rekapPeroranganWrapper').classList.remove('hidden');
             document.getElementById('iconToggleRekap').className = 'fa-solid fa-eye-slash';
-        }
-
-        function toggleRekapKas() {
-            const wrapper = document.getElementById('rekapPeroranganWrapper');
-            const icon = document.getElementById('iconToggleRekap');
-            if(wrapper.classList.contains('hidden')) {
-                wrapper.classList.remove('hidden');
-                icon.className = 'fa-solid fa-eye-slash';
-            } else {
-                wrapper.classList.add('hidden');
-                icon.className = 'fa-solid fa-eye';
-            }
         }
 
         function downloadTabelPerorangan() {
@@ -3046,7 +3031,42 @@
             }, 200);
         }
 
-            // Tabel Pengeluaran (Poin 5: Filter berdasarkan tanggal)
+        // --- 2. KAS ---
+        function renderKasUI() {
+            const minKas = keuanganData.settings.minimal || 0;
+            const freq = keuanganData.settings.frekuensi || 'Harian';
+            document.getElementById('lblMinKas').textContent = formatRupiah(minKas);
+            document.getElementById('lblFreqKas').textContent = freq;
+            
+            const filterDate = document.getElementById('kasDateFilter').value || getLocalToday();
+            const anggotaList = state.members.filter(m => m.role === 'Anggota');
+
+            document.getElementById('tableKasMasuk').innerHTML = anggotaList.map(m => {
+                const trxHariIni = keuanganData.kas.filter(k => k[2] === m.username && parseDateString(k[1]) === filterDate);
+                const totalHariIni = trxHariIni.reduce((sum, k) => sum + (parseInt(k[3]) || 0), 0);
+                
+                let inputHtml = `<div class="flex flex-col items-end gap-1">
+                    <div class="flex gap-1">
+                        <button onclick="quickSaveKas('${m.username}', 1000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">1k</button>
+                        <button onclick="quickSaveKas('${m.username}', 2000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">2k</button>
+                        <button onclick="quickSaveKas('${m.username}', 5000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">5k</button>
+                    </div>
+                    <div class="flex gap-1 w-full max-w-[120px]">
+                        <input type="text" id="manualKas_${m.username}" onkeyup="formatInputRupiah(this)" placeholder="Nominal..." class="w-full px-2 py-1 border rounded-lg text-[10px] outline-none text-right">
+                        <button onclick="manualSaveKas('${m.username}', '${filterDate}')" class="bg-blue-600 text-white px-2 py-1 rounded-lg text-[10px]"><i class="fa-solid fa-check"></i></button>
+                    </div>
+                </div>`;
+
+                return `<tr class="hover:bg-gray-50">
+                    <td class="p-3">
+                        <div class="text-xs font-bold text-gray-800">${m.nama}</div>
+                        <div class="text-[9px] text-gray-500">${m.kelas}</div>
+                    </td>
+                    <td class="p-3 text-[10px] font-bold">${totalHariIni > 0 ? `<span class="text-blue-600">${formatRupiah(totalHariIni)}</span>` : `<span class="text-gray-400">-</span>`}</td>
+                    <td class="p-3 text-right">${inputHtml}</td>
+                </tr>`;
+            }).join('');
+
             const pengeluaranHariIni = keuanganData.pengeluaran.filter(p => parseDateString(p[1]) === filterDate);
             
             document.getElementById('tableKasKeluar').innerHTML = pengeluaranHariIni.reverse().map(p => {
@@ -3059,20 +3079,17 @@
         }
 
         function quickSaveKas(username, nominal, tanggal) {
-            // Simpan ke array lokal sementara agar UI langsung update
             const tempId = 'KAS_TEMP_' + Date.now();
             keuanganData.kas.push([tempId, tanggal + " " + new Date().toTimeString().split(' ')[0], username, nominal, 'Kas']);
             
-            renderKasUI(); // Update tabel pemasukan langsung
-            renderBukuBesar(); // Update buku besar langsung
-            renderTabelPerorangan(); // Update rekap perorangan langsung
+            renderKasUI();
+            renderBukuBesar();
+            renderTabelPerorangan();
 
-            // Kirim ke server di background
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ 
                 action: 'saveKas', username: username, nominal: nominal, keterangan: 'Kas', tanggalKustom: tanggal
             })}).then(r => r.json()).then(d => {
                 if(!d.success) { showToast("Gagal sinkronisasi ke server", "error"); }
-                // Jika sukses, tidak perlu fetch ulang semua data. Cukup diamkan.
             }).catch(e => {
                 showToast("Koneksi lambat, data tersimpan lokal", "info");
             });
@@ -3084,8 +3101,9 @@
             if(val <= 0) { showToast("Masukkan nominal valid", "error"); return; }
             
             quickSaveKas(username, val, tanggal);
-            inputEl.value = ''; // Langsung bersihkan input
+            inputEl.value = '';
         }
+        
         function openSettingKasModal() {
             document.getElementById('setMinKas').value = keuanganData.settings.minimal ? keuanganData.settings.minimal.toLocaleString('id-ID') : 0;
             document.getElementById('setTipeKas').value = keuanganData.settings.frekuensi || 'Harian';
@@ -3113,13 +3131,13 @@
             document.getElementById('pengeluaranModal').classList.add('flex'); 
         }
         
-        // TAMBAHKAN FUNGSI INI (SEBELUM FORM SUBMIT)
         function closePengeluaranModal() { 
             document.getElementById('pengeluaranModal').classList.add('hidden'); 
             document.getElementById('pengeluaranModal').classList.remove('flex'); 
         }
         
-        document.getElementById('formPengeluaran').addEventListener('submit', (e) => {            e.preventDefault();
+        document.getElementById('formPengeluaran').addEventListener('submit', (e) => {
+            e.preventDefault();
             showLoading(true, "Menyimpan...");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({
                 action: 'savePengeluaran',
@@ -3157,18 +3175,15 @@
             const anggotaList = state.members.filter(m => m.role === 'Anggota');
 
             document.getElementById('tableTabungan').innerHTML = anggotaList.map(m => {
-                // Hitung total terkumpul sepanjang waktu
                 const trxAll = keuanganData.transaksi_dana.filter(t => t[1] === idDana && t[3] === m.username);
                 const totalTerkumpul = trxAll.reduce((sum, t) => sum + (parseInt(t[4]) || 0), 0);
                 
-                // Hitung setoran pada tanggal filter
                 const trxHariIni = trxAll.filter(t => parseDateString(t[2]) === filterDate);
                 const saldoHariIni = trxHariIni.reduce((sum, t) => sum + (parseInt(t[4]) || 0), 0);
 
-                // Warna total terkumpul
-                let colorClass = 'text-rose-600'; // 0
-                if(totalTerkumpul > 0) colorClass = 'text-amber-500'; // Proses
-                if(totalTerkumpul >= targetNominal) colorClass = 'text-emerald-600'; // Achieve
+                let colorClass = 'text-rose-600';
+                if(totalTerkumpul > 0) colorClass = 'text-amber-500';
+                if(totalTerkumpul >= targetNominal) colorClass = 'text-emerald-600';
 
                 return `<tr class="hover:bg-gray-50">
                     <td class="p-3">
@@ -3216,7 +3231,6 @@
             document.getElementById('formTabungan').reset();
             document.getElementById('danaCheckboxes').innerHTML = '';
             document.getElementById('danaCheckboxes').classList.add('hidden');
-            // Set default deadline ke hari ini
             document.getElementById('danaDeadline').value = getLocalToday();
             document.getElementById('tabunganModal').classList.remove('hidden'); 
             document.getElementById('tabunganModal').classList.add('flex');
