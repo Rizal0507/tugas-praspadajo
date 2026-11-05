@@ -479,6 +479,7 @@
                                 <button onclick="renderTabelPerorangan()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold">Tampilkan</button>
                                 <button onclick="toggleRekapKas()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold" title="Sembunyikan/Tampilkan"><i id="iconToggleRekap" class="fa-solid fa-eye"></i></button>
                                 <button onclick="openExportModal('rekapkas')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md"><i class="fa-solid fa-download mr-1"></i> Unduh</button>
+                            </div>
                         </div>
                         <div id="rekapPeroranganWrapper" class="overflow-x-auto overflow-y-auto max-h-72 custom-scroll p-2 bg-white hidden">
                             <table class="w-full text-left border-collapse text-[10px] min-w-max" id="tableRekapPerorangan">
@@ -2886,50 +2887,75 @@
         }
 
 function switchSubTabKeuangan(sub) {
+    const subTabs = {
+        dashboard: {
+            viewId: 'subViewKeuanganDashboard',
+            buttonId: 'subTabBtnDashboard'
+        },
+        kas: {
+            viewId: 'subViewKeuanganKas',
+            buttonId: 'subTabBtnKas'
+        },
+        tabungan: {
+            viewId: 'subViewKeuanganTabungan',
+            buttonId: 'subTabBtnTabungan'
+        }
+    };
+
+    // Tolak nama sub-tab yang tidak dikenal agar tidak mengubah tampilan lain.
+    if (!Object.prototype.hasOwnProperty.call(subTabs, sub)) {
+        console.warn('[switchSubTabKeuangan] Sub-tab tidak dikenal:', sub);
+        return;
+    }
+
+    Object.entries(subTabs).forEach(([key, config]) => {
+        const view = document.getElementById(config.viewId);
+        const button = document.getElementById(config.buttonId);
+        const isActive = key === sub;
+
+        if (view) {
+            // Gunakan inline display secara konsisten; tidak bergantung pada
+            // urutan kelas Tailwind atau penggantian seluruh className.
+            view.style.display = isActive ? 'flex' : 'none';
+        } else {
+            console.error('[switchSubTabKeuangan] View tidak ditemukan:', config.viewId);
+        }
+
+        if (button) {
+            button.classList.toggle('bg-white', isActive);
+            button.classList.toggle('text-blue-600', isActive);
+            button.classList.toggle('shadow-sm', isActive);
+
+            button.classList.toggle('text-gray-500', !isActive);
+            button.classList.toggle('hover:text-gray-800', !isActive);
+        } else {
+            console.error('[switchSubTabKeuangan] Tombol tidak ditemukan:', config.buttonId);
+        }
+    });
+
+    // Render data hanya setelah sub-view yang dipilih ditampilkan.
     try {
-        const subviews = ['dashboard', 'kas', 'tabungan'];
-        
-        // 1. Sembunyikan semua
-        subviews.forEach(t => {
-            const view = document.getElementById(`subViewKeuangan${t.charAt(0).toUpperCase() + t.slice(1)}`);
-            const btn  = document.getElementById(`subTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
-            
-            if (view) {
-                view.style.display = 'none';
-            }
-            if (btn) {
-                btn.className = "flex-1 py-2 px-3 text-gray-500 hover:text-gray-800 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap";
-            }
-        });
-
-        // 2. Tampilkan target
-        const targetView = document.getElementById(`subViewKeuangan${sub.charAt(0).toUpperCase() + sub.slice(1)}`);
-        const targetBtn  = document.getElementById(`subTabBtn${sub.charAt(0).toUpperCase() + sub.slice(1)}`);
-        
-        if (targetView) {
-            targetView.style.display = 'flex';
-            targetView.style.flexDirection = 'column';
-        }
-        if (targetBtn) {
-            targetBtn.className = "flex-1 py-2 px-3 bg-white text-blue-600 rounded-xl text-[11px] font-bold shadow-sm transition-all whitespace-nowrap";
-        }
-
-        // 3. Render isi tabel
         if (sub === 'kas') {
-            const df = document.getElementById('kasDateFilter');
-            if (df && !df.value) df.value = getLocalToday();
+            const dateFilter = document.getElementById('kasDateFilter');
+            if (dateFilter && !dateFilter.value) {
+                dateFilter.value = getLocalToday();
+            }
             renderKasUI();
         } else if (sub === 'tabungan') {
-            const df = document.getElementById('tabunganDateFilter');
-            if (df && !df.value) df.value = getLocalToday();
+            const dateFilter = document.getElementById('tabunganDateFilter');
+            if (dateFilter && !dateFilter.value) {
+                dateFilter.value = getLocalToday();
+            }
             populateSelectTabungan();
         }
     } catch (err) {
-        console.error('switchSubTabKeuangan error:', err);
-        showToast('Gagal memuat data keuangan', 'error');
+        console.error('[switchSubTabKeuangan] Gagal merender sub-tab:', sub, err);
+        if (typeof showToast === 'function') {
+            showToast('Gagal menampilkan ' + sub + ': ' + err.message, 'error');
+        }
     }
 }
-        
+
 function loadKeuanganData() {
     console.log('[loadKeuanganData] Mulai fetch...');
     showLoading(true, "Memuat Keuangan...");
