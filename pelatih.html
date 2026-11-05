@@ -495,7 +495,7 @@
                 </div>
 
                 <!-- Sub-View Kas -->
-                <div id="subViewKeuanganKas" class="hidden flex-col gap-4">
+                <div id="subViewKeuanganKas" class="hidden flex flex-col gap-4">
                     <div class="bg-white rounded-3xl border shadow-sm flex flex-col">
                         <div class="p-4 border-b flex flex-wrap justify-between items-center gap-2 bg-gray-50 rounded-t-3xl">
                             <h3 class="font-bold text-sm text-gray-800">Pemasukan Kas</h3>
@@ -535,7 +535,7 @@
                 </div>
 
                 <!-- Sub-View Tabungan -->
-                <div id="subViewKeuanganTabungan" class="hidden flex-col gap-4">
+                <div id="subViewKeuanganTabungan" class="hidden flex flex-col gap-4">
                     <div class="bg-white p-4 rounded-2xl border shadow-sm flex justify-between items-center">
                         <select id="selectTabungan" onchange="renderTabunganUI()" class="font-bold text-sm text-gray-800 outline-none bg-transparent max-w-[200px] truncate">
                             <!-- Options diisi via JS -->
@@ -2886,65 +2886,47 @@
         }
 
 function switchSubTabKeuangan(sub) {
-    console.log('[switchSubTab] Pindah ke:', sub);
     try {
-        const subs = ['dashboard', 'kas', 'tabungan'];
-
-        // Sembunyikan semua
-        subs.forEach(t => {
+        const subviews = ['dashboard', 'kas', 'tabungan'];
+        
+        // 1. Sembunyikan semua tab
+        subviews.forEach(t => {
             const view = document.getElementById(`subViewKeuangan${t.charAt(0).toUpperCase() + t.slice(1)}`);
             const btn  = document.getElementById(`subTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+            
             if (view) {
                 view.classList.add('hidden');
-                view.classList.remove('flex', 'flex-col');
-                view.style.display = 'none';
+                view.style.display = ''; // Hapus inline style agar class 'hidden' bekerja
             }
             if (btn) {
                 btn.className = "flex-1 py-2 px-3 text-gray-500 hover:text-gray-800 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap";
             }
         });
 
-        // Tampilkan target
+        // 2. Tampilkan tab yang dipilih
         const targetView = document.getElementById(`subViewKeuangan${sub.charAt(0).toUpperCase() + sub.slice(1)}`);
         const targetBtn  = document.getElementById(`subTabBtn${sub.charAt(0).toUpperCase() + sub.slice(1)}`);
-
+        
         if (targetView) {
             targetView.classList.remove('hidden');
-            targetView.classList.add('flex', 'flex-col');
-            targetView.style.display = 'flex';
-            targetView.style.flexDirection = 'column';
-            targetView.style.gap = '1rem';
-            console.log('[switchSubTab] Target:', targetView.id, '| display:', getComputedStyle(targetView).display);
-        } else {
-            console.error('[switchSubTab] Element target TIDAK DITEMUKAN untuk sub:', sub);
         }
         if (targetBtn) {
             targetBtn.className = "flex-1 py-2 px-3 bg-white text-blue-600 rounded-xl text-[11px] font-bold shadow-sm transition-all whitespace-nowrap";
         }
 
-        // Isi data
+        // 3. Render datanya
         if (sub === 'kas') {
-            try {
-                const df = document.getElementById('kasDateFilter');
-                if (df && !df.value) df.value = getLocalToday();
-                renderKasUI();
-            } catch (e) {
-                console.error('[switchSubTab] renderKasUI ERROR:', e);
-                showToast('Kas gagal render: ' + e.message, 'error');
-            }
+            const df = document.getElementById('kasDateFilter');
+            if (df && !df.value) df.value = getLocalToday();
+            renderKasUI();
         } else if (sub === 'tabungan') {
-            try {
-                const df = document.getElementById('tabunganDateFilter');
-                if (df && !df.value) df.value = getLocalToday();
-                populateSelectTabungan();
-            } catch (e) {
-                console.error('[switchSubTab] populateSelectTabungan ERROR:', e);
-                showToast('Tabungan gagal render: ' + e.message, 'error');
-            }
+            const df = document.getElementById('tabunganDateFilter');
+            if (df && !df.value) df.value = getLocalToday();
+            populateSelectTabungan();
         }
     } catch (err) {
-        console.error('[switchSubTab] FATAL:', err);
-        showToast('Gagal memuat data keuangan: ' + err.message, 'error');
+        console.error('switchSubTabKeuangan error:', err);
+        showToast('Gagal memuat data keuangan', 'error');
     }
 }
 function loadKeuanganData() {
