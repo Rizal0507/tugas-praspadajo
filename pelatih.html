@@ -431,7 +431,7 @@
                 </div>
 
                 <!-- Sub-View Dashboard -->
-                <div id="subViewKeuanganDashboard" class="flex flex-col gap-4">
+                <div id="subViewKeuanganDashboard" class="flex flex-col gap-4" style="display: flex;">
                     <div class="grid grid-cols-2 gap-3">
                         <div class="bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 text-white p-5 rounded-3xl shadow-lg col-span-2 relative overflow-hidden">
                             <div class="absolute -right-4 -top-4 text-8xl opacity-10"><i class="fa-solid fa-wallet"></i></div>
@@ -495,7 +495,7 @@
                 </div>
 
                 <!-- Sub-View Kas -->
-                <div id="subViewKeuanganKas" class="hidden flex flex-col gap-4">
+                <div id="subViewKeuanganKas" class="flex flex-col gap-4" style="display: none;">
                     <div class="bg-white rounded-3xl border shadow-sm flex flex-col">
                         <div class="p-4 border-b flex flex-wrap justify-between items-center gap-2 bg-gray-50 rounded-t-3xl">
                             <h3 class="font-bold text-sm text-gray-800">Pemasukan Kas</h3>
@@ -535,7 +535,7 @@
                 </div>
 
                 <!-- Sub-View Tabungan -->
-                <div id="subViewKeuanganTabungan" class="hidden flex flex-col gap-4">
+                <div id="subViewKeuanganTabungan" class="flex flex-col gap-4" style="display: none;">
                     <div class="bg-white p-4 rounded-2xl border shadow-sm flex justify-between items-center">
                         <select id="selectTabungan" onchange="renderTabunganUI()" class="font-bold text-sm text-gray-800 outline-none bg-transparent max-w-[200px] truncate">
                             <!-- Options diisi via JS -->
@@ -2889,26 +2889,26 @@ function switchSubTabKeuangan(sub) {
     try {
         const subviews = ['dashboard', 'kas', 'tabungan'];
         
-        // 1. Sembunyikan semua tab
+        // 1. Sembunyikan semua tab menggunakan inline style
         subviews.forEach(t => {
             const view = document.getElementById(`subViewKeuangan${t.charAt(0).toUpperCase() + t.slice(1)}`);
             const btn  = document.getElementById(`subTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
             
             if (view) {
-                view.classList.add('hidden');
-                view.style.display = ''; // Hapus inline style agar class 'hidden' bekerja
+                view.style.display = 'none'; // PAKSA SEMBUNYIKAN
             }
             if (btn) {
                 btn.className = "flex-1 py-2 px-3 text-gray-500 hover:text-gray-800 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap";
             }
         });
 
-        // 2. Tampilkan tab yang dipilih
+        // 2. Tampilkan tab yang dipilih menggunakan inline style
         const targetView = document.getElementById(`subViewKeuangan${sub.charAt(0).toUpperCase() + sub.slice(1)}`);
         const targetBtn  = document.getElementById(`subTabBtn${sub.charAt(0).toUpperCase() + sub.slice(1)}`);
         
         if (targetView) {
-            targetView.classList.remove('hidden');
+            targetView.style.display = 'flex'; // PAKSA MUNCULKAN
+            targetView.style.flexDirection = 'column'; // PASTIKAN TATA LETAK KE BAWAH
         }
         if (targetBtn) {
             targetBtn.className = "flex-1 py-2 px-3 bg-white text-blue-600 rounded-xl text-[11px] font-bold shadow-sm transition-all whitespace-nowrap";
