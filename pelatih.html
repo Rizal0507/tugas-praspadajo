@@ -881,43 +881,26 @@
             </div>
         </div>
     </div>
-    <!-- MODAL MATERI -->
+    <!-- MODAL FORM MATERI (REVISI ACCORDION) -->
     <div id="materiModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-3xl p-5 shadow-2xl flex flex-col max-h-[90vh]">
             <div class="flex justify-between items-center mb-4 border-b pb-3 flex-none">
-                <h3 class="font-bold text-gray-800 text-sm">Form Materi</h3>
+                <h3 class="font-bold text-gray-800 text-sm" id="materiModalTitle">Form Materi</h3>
                 <button onclick="closeMateriModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="overflow-y-auto custom-scroll flex-grow pr-1">
                 <form id="formMateri" class="flex flex-col gap-3">
                     <input type="hidden" id="matId" value="">
                     <div><label class="text-[10px] font-bold text-gray-600">Judul Materi</label><input type="text" id="matJudul" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></div>
-                    <div><label class="text-[10px] font-bold text-gray-600">Deskripsi Singkat</label><textarea id="matDesc" rows="2" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></textarea></div>
-                    <div><label class="text-[10px] font-bold text-gray-600">Teks Materi (Opsional)</label><textarea id="matTeks" rows="3" placeholder="Ketik materi di sini..." class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></textarea></div>
+                    <div><label class="text-[10px] font-bold text-gray-600">Uraian Singkat (Opsional)</label><textarea id="matDesc" rows="2" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></textarea></div>
                     
-                    <div class="flex items-center gap-2 bg-blue-50 p-3 rounded-xl border border-blue-100">
-                        <input type="checkbox" id="matButuhSub" onchange="toggleMateriSub()" class="w-4 h-4 accent-blue-600">
-                        <label class="text-xs font-bold text-blue-800">Butuh Sub-Materi (File/Video/PDF)?</label>
-                    </div>
-
-                    <div id="formSubMateriContainer" class="hidden flex-col gap-3 bg-gray-50 p-3 rounded-xl border">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div><label class="text-[10px] font-bold text-gray-600">Judul Sub-Materi</label><input type="text" id="subJudul" class="w-full px-3 py-1.5 bg-white border rounded-lg text-xs"></div>
-                            <div><label class="text-[10px] font-bold text-gray-600">Tipe</label>
-                                <select id="subTipe" class="w-full px-3 py-1.5 bg-white border rounded-lg text-xs">
-                                    <option value="Video">Video Link (YT/Drive)</option>
-                                    <option value="Gambar">Gambar</option>
-                                    <option value="PDF">PDF (Bisa langsung dibaca)</option>
-                                </select>
-                            </div>
+                    <div class="mt-2 border-t pt-2">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-[10px] font-bold text-gray-600">Sub-Materi (File/Video/PDF/Link)</label>
+                            <button type="button" onclick="addSubMateriForm()" class="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg text-[10px] font-bold">+ Tambah Sub</button>
                         </div>
-                        <div><label class="text-[10px] font-bold text-gray-600">Link (Jika Video/PDF external)</label><input type="text" id="subLink" placeholder="https://..." class="w-full px-3 py-1.5 bg-white border rounded-lg text-xs"></div>
-                        <div class="text-center text-[10px] text-gray-400 font-bold">- ATAU UPLOAD FILE (PDF/Gambar) -</div>
-                        <div><input type="file" id="subFile" accept="image/*,application/pdf" class="w-full text-xs"></div>
-                        <button type="button" onclick="addSubMateriToList()" class="bg-gray-200 text-gray-700 font-bold py-2 rounded-xl text-xs">Tambah ke Daftar</button>
+                        <div id="subMateriDynamicContainer" class="flex flex-col gap-2"></div>
                     </div>
-
-                    <div id="listSubMateri" class="flex flex-col gap-2 mt-2"></div>
 
                     <div class="mt-2 border-t pt-2">
                         <label class="text-[10px] font-bold text-gray-600 block mb-1">Target Materi</label>
@@ -928,8 +911,43 @@
                         <div id="matTargetCheckboxes" class="hidden max-h-32 overflow-y-auto custom-scroll grid grid-cols-2 gap-1 p-2 border rounded-xl bg-gray-50"></div>
                     </div>
 
-                    <button type="submit" class="mt-2 w-full bg-blue-600 text-white font-bold py-3 rounded-xl text-xs shadow-md">Simpan Materi</button>
+                    <button type="submit" id="btnSubmitMateri" class="mt-4 w-full bg-blue-600 text-white font-bold py-3 rounded-xl text-xs shadow-md active:scale-95">Simpan Materi</button>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL BACA MATERI (TAMPILAN ANGGOTA) -->
+    <div id="bacaMateriModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-3xl p-5 shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-start mb-4 border-b pb-3 flex-none">
+                <div>
+                    <h3 class="font-bold text-gray-800 text-lg" id="bacaMatJudul">Judul Materi</h3>
+                    <p class="text-[10px] text-gray-500 mt-1" id="bacaMatTanggal">Tanggal</p>
+                </div>
+                <button onclick="closeBacaMateriModal()" class="text-gray-400 hover:text-gray-600 bg-gray-100 p-2 rounded-full"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="overflow-y-auto custom-scroll flex-grow pr-1 flex flex-col gap-3">
+                <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
+                    <span class="text-[10px] font-bold text-blue-600 block mb-1">Uraian Singkat</span>
+                    <p class="text-xs text-gray-800" id="bacaMatDesc"></p>
+                </div>
+                <div id="bacaMatSubContainer" class="flex flex-col gap-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL KONFIRMASI KUSTOM -->
+    <div id="customConfirmModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl text-center">
+            <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+            </div>
+            <h3 class="font-bold text-gray-800 text-sm mb-2" id="confirmTitle">Konfirmasi</h3>
+            <p class="text-xs text-gray-500 mb-5" id="confirmMessage">Apakah Anda yakin?</p>
+            <div class="flex gap-2">
+                <button type="button" onclick="closeConfirm()" class="flex-1 bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
+                <button type="button" id="btnConfirmAction" class="flex-1 bg-rose-600 text-white font-bold py-2 rounded-xl text-xs shadow-md">Ya, Hapus</button>
             </div>
         </div>
     </div>
@@ -1101,23 +1119,6 @@
         </div>
     </div>    
 
-<!-- MODAL PREVIEW UNIVERSAL -->
-<div id="universalPreviewModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[200] hidden items-center justify-center p-4">
-    <div class="bg-white w-full max-w-3xl rounded-3xl p-5 shadow-2xl flex flex-col max-h-[92vh]">
-        <div class="flex justify-between items-center mb-3 border-b pb-3 flex-none">
-            <h3 class="font-bold text-gray-800 text-sm" id="universalPreviewTitle">Preview</h3>
-            <button type="button" onclick="closeUniversalPreview()" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div class="flex-grow overflow-auto custom-scroll border rounded-xl bg-gray-50 p-2">
-            <img id="universalPreviewImg" alt="Preview" class="max-w-full h-auto mx-auto">
-        </div>
-        <p class="text-[10px] text-gray-400 mt-2 text-center">Jika tombol unduh tidak bekerja, tekan lama pada gambar lalu pilih "Simpan gambar".</p>
-        <div class="mt-3 flex gap-2 justify-end flex-none">
-            <button type="button" onclick="closeUniversalPreview()" class="px-4 py-2 bg-gray-100 text-gray-600 font-bold rounded-xl text-xs">Tutup</button>
-            <button type="button" id="universalBtnDownload" class="px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs shadow-md"><i class="fa-solid fa-download mr-1"></i> Unduh Gambar</button>
-        </div>
-    </div>
-</div>
     
     <div id="loadingOverlay" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-[100] flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity">
         <div class="w-24 h-24 mb-4 flex items-center justify-center">
@@ -2017,17 +2018,29 @@
             setTimeout(() => {
                 html2canvas(clone, { 
                     scale: 2, backgroundColor: '#ffffff', useCORS: true,
-                    ignoreElements: (element) => element.tagName === 'VIDEO' // TAMBAHKAN INI
+                    ignoreElements: (element) => element.tagName === 'VIDEO'
                 }).then(canvas => {
-                    document.body.removeChild(clone);
+                    if(document.body.contains(clone)) document.body.removeChild(clone);
                     showLoading(false);
-                    showUniversalPreview(canvas.toDataURL('image/png'), 'Preview Raport', `Raport_${Date.now()}.png`);
+                    
+                    // --- LANGSUNG DOWNLOAD ---
+                    canvas.toBlob(function(blob) {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `Raport_${Date.now()}.png`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        showToast("Gambar berhasil diunduh!", "success");
+                    });
+                    // --------------------------
                 }).catch(e => {
                     if(document.body.contains(clone)) document.body.removeChild(clone);
                     showLoading(false); showToast("Gagal mengunduh gambar", "error");
                 });
             }, 100);
-        }
         // --- FITUR NILAI MASSAL ---
         function openBulkGradeModal() {
             document.getElementById('bulkGradeDate').value = getLocalToday();
@@ -2718,14 +2731,123 @@
             return 'Rp ' + rupiah;
         }
 
-        // === 2. FITUR MATERI ===
+        // === 2. FITUR MATERI (REVISI TOTAL) ===
         let tempSubMateriArray = [];
+        let currentMateriData = []; // Menyimpan data materi dari server
 
-        function toggleMateriSub() {
-            const isChecked = document.getElementById('matButuhSub').checked;
-            const container = document.getElementById('formSubMateriContainer');
-            if(isChecked) { container.classList.remove('hidden'); container.classList.add('flex'); }
-            else { container.classList.add('hidden'); container.classList.remove('flex'); }
+        // --- FUNGSI KUSTOM KONFIRMASI ---
+        let confirmActionCallback = null;
+        function showConfirm(title, message, callback) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            confirmActionCallback = callback;
+            document.getElementById('customConfirmModal').classList.remove('hidden');
+            document.getElementById('customConfirmModal').classList.add('flex');
+        }
+        function closeConfirm() {
+            document.getElementById('customConfirmModal').classList.add('hidden');
+            document.getElementById('customConfirmModal').classList.remove('flex');
+            confirmActionCallback = null;
+        }
+        document.getElementById('btnConfirmAction').addEventListener('click', () => {
+            if (confirmActionCallback) confirmActionCallback();
+            closeConfirm();
+        });
+
+        // --- LOGIKA FORM MATERI (ACCORDION) ---
+        function addSubMateriForm(data = null) {
+            const index = tempSubMateriArray.length;
+            const isEdit = data !== null;
+            
+            tempSubMateriArray.push({
+                judulSub: isEdit ? data.judulSub : '',
+                tipe: isEdit ? data.tipe : 'Gambar',
+                linkFile: isEdit ? data.linkFile : '',
+                base64Data: null, filename: null, mimeType: null
+            });
+
+            renderSubMateriForms(index);
+        }
+
+        function renderSubMateriForms(openIndex) {
+            const container = document.getElementById('subMateriDynamicContainer');
+            container.innerHTML = tempSubMateriArray.map((sub, i) => {
+                const isOpen = i === openIndex;
+                return `
+                <div class="bg-gray-50 border rounded-xl overflow-hidden transition-all duration-300">
+                    <div class="p-3 flex justify-between items-center cursor-pointer ${isOpen ? 'bg-blue-50 border-b' : ''}" onclick="toggleSubMateriForm(${i})">
+                        <div class="text-[11px] font-bold text-gray-700 truncate w-4/5">
+                            ${i + 1}. ${sub.judulSub || '(Belum ada judul)'} <span class="text-gray-400 font-normal">- ${sub.tipe}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <i class="fa-solid fa-chevron-${isOpen ? 'up' : 'down'} text-gray-400 text-xs"></i>
+                        </div>
+                    </div>
+                    <div class="p-3 flex-col gap-2 ${isOpen ? 'flex' : 'hidden'}" id="subForm_${i}">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-600">Judul Sub-Materi</label>
+                            <input type="text" oninput="updateSubMateriData(${i}, 'judulSub', this.value)" value="${sub.judulSub}" class="w-full px-2 py-1.5 bg-white border rounded-lg text-xs" placeholder="Judul Sub">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-600">Tipe Media</label>
+                            <select onchange="updateSubMateriData(${i}, 'tipe', this.value)" class="w-full px-2 py-1.5 bg-white border rounded-lg text-xs">
+                                <option value="Gambar" ${sub.tipe==='Gambar'?'selected':''}>Gambar</option>
+                                <option value="Video" ${sub.tipe==='Video'?'selected':''}>Video</option>
+                                <option value="PDF" ${sub.tipe==='PDF'?'selected':''}>PDF</option>
+                                <option value="Link" ${sub.tipe==='Link'?'selected':''}>Link External (YT/Drive)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-600">Link (Jika pakai Link External)</label>
+                            <input type="text" oninput="updateSubMateriData(${i}, 'linkFile', this.value)" value="${sub.linkFile}" class="w-full px-2 py-1.5 bg-white border rounded-lg text-xs" placeholder="https://...">
+                        </div>
+                        <div class="text-center text-[9px] text-gray-400 font-bold">- ATAU UPLOAD FILE -</div>
+                        <div>
+                            <input type="file" accept="image/*,video/*,application/pdf" onchange="handleSubFileUpload(event, ${i})" class="w-full text-xs text-gray-500">
+                        </div>
+                        <button type="button" onclick="removeSubMateriForm(${i})" class="mt-2 bg-rose-100 text-rose-600 py-1.5 rounded-lg text-[10px] font-bold"><i class="fa-solid fa-trash mr-1"></i> Hapus Sub-Materi Ini</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function toggleSubMateriForm(index) {
+            // Tutup semua form, buka yang dipilih
+            tempSubMateriArray.forEach((_, i) => {
+                document.getElementById(`subForm_${i}`).classList.add('hidden');
+                document.getElementById(`subForm_${i}`).classList.remove('flex');
+            });
+            document.getElementById(`subForm_${index}`).classList.remove('hidden');
+            document.getElementById(`subForm_${index}`).classList.add('flex');
+        }
+
+        function updateSubMateriData(index, field, value) {
+            tempSubMateriArray[index][field] = value;
+            if(field === 'judulSub' || field === 'tipe') {
+                // Update header judul form
+                const header = document.querySelectorAll('#subMateriDynamicContainer .text-gray-700')[index];
+                if(header) header.innerHTML = `${index + 1}. ${tempSubMateriArray[index].judulSub || '(Belum ada judul)'} <span class="text-gray-400 font-normal">- ${tempSubMateriArray[index].tipe}</span>`;
+            }
+        }
+
+        function handleSubFileUpload(event, index) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 20 * 1024 * 1024) { showToast("File maksimal 20MB", "error"); return; }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                tempSubMateriArray[index].base64Data = e.target.result;
+                tempSubMateriArray[index].filename = file.name;
+                tempSubMateriArray[index].mimeType = file.type;
+                showToast("File siap diunggah", "info");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeSubMateriForm(index) {
+            tempSubMateriArray.splice(index, 1);
+            renderSubMateriForms(-1); // Render ulang semua dalam keadaan tertutup
         }
 
         function toggleTargetMateri() {
@@ -2745,56 +2867,22 @@
             }
         }
 
-        function addSubMateriToList() {
-            const judul = document.getElementById('subJudul').value.trim();
-            const tipe = document.getElementById('subTipe').value;
-            const link = document.getElementById('subLink').value.trim();
-            const fileInput = document.getElementById('subFile');
-
-            if(!judul) { showToast("Judul sub-materi wajib diisi", "error"); return; }
-
-            let fileBase64 = null, fileName = null, mimeType = null;
-            if(fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                if(file.size > 25 * 1024 * 1024) { showToast("File maksimal 25MB", "error"); return; }
-                fileName = file.name;
-                mimeType = file.type;
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    tempSubMateriArray.push({ judulSub: judul, tipe: tipe, linkFile: link, base64Data: e.target.result, filename: fileName, mimeType: mimeType });
-                    renderListSubMateri();
-                    document.getElementById('subJudul').value = ''; document.getElementById('subLink').value = ''; fileInput.value = '';
-                };
-                reader.readAsDataURL(file);
-            } else if(link) {
-                tempSubMateriArray.push({ judulSub: judul, tipe: tipe, linkFile: link });
-                renderListSubMateri();
-                document.getElementById('subJudul').value = ''; document.getElementById('subLink').value = '';
-            } else {
-                showToast("Isi Link atau Upload File", "error");
-            }
-        }
-
-        function renderListSubMateri() {
-            const container = document.getElementById('listSubMateri');
-            container.innerHTML = tempSubMateriArray.map((sub, i) => `
-                <div class="flex justify-between items-center bg-blue-50 px-3 py-2 rounded-lg border border-blue-100">
-                    <div class="text-[10px] font-bold text-gray-700">${sub.tipe}: ${sub.judulSub}</div>
-                    <button type="button" onclick="tempSubMateriArray.splice(${i},1); renderListSubMateri();" class="text-rose-500"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            `).join('');
-        }
-
         function openMateriModal() {
             document.getElementById('formMateri').reset();
             document.getElementById('matId').value = '';
+            document.getElementById('materiModalTitle').textContent = 'Tambah Materi Baru';
             tempSubMateriArray = [];
-            renderListSubMateri();
-            toggleMateriSub();
+            document.getElementById('subMateriDynamicContainer').innerHTML = '';
+            addSubMateriForm(); // Buka 1 form sub materi default
+            
             toggleTargetMateri();
-            document.getElementById('materiModal').classList.remove('hidden'); document.getElementById('materiModal').classList.add('flex');
+            document.getElementById('materiModal').classList.remove('hidden'); 
+            document.getElementById('materiModal').classList.add('flex');
         }
-        function closeMateriModal() { document.getElementById('materiModal').classList.add('hidden'); document.getElementById('materiModal').classList.remove('flex'); }
+        function closeMateriModal() { 
+            document.getElementById('materiModal').classList.add('hidden'); 
+            document.getElementById('materiModal').classList.remove('flex'); 
+        }
 
         document.getElementById('formMateri').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -2806,70 +2894,189 @@
                 targetStr = checked.join(',');
             }
 
+            // Validasi sub materi wajib ada isinya
+            const validSubs = tempSubMateriArray.filter(s => s.judulSub && (s.linkFile || s.base64Data));
+            if(validSubs.length === 0) { showToast("Isi minimal 1 sub-materi (Judul & File/Link)", "error"); return; }
+
             const payload = {
                 action: 'saveMateri',
                 id: document.getElementById('matId').value || null,
                 judul: document.getElementById('matJudul').value,
                 deskripsi: document.getElementById('matDesc').value,
-                teksMateri: document.getElementById('matTeks').value,
+                teksMateri: '', // Dihilangkan dari UI
                 target: targetStr,
-                butuhSub: document.getElementById('matButuhSub').checked,
-                subMateri: tempSubMateriArray
+                butuhSub: true, // Diwajibkan karena form selalu ada
+                subMateri: validSubs
             };
 
             showLoading(true, "Menyimpan Materi...");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
             .then(r => r.json()).then(d => {
                 showLoading(false);
-                if(d.success) { showToast("Materi disimpan!", "success"); closeMateriModal(); loadMateriData(); }
-                else showToast(d.message, "error");
+                if(d.success) { 
+                    showToast("Materi berhasil disimpan!", "success"); 
+                    closeMateriModal(); 
+                    loadMateriData(); 
+                } else {
+                    showToast(d.message, "error");
+                }
             }).catch(e => { showLoading(false); showToast("Koneksi gagal", "error"); });
         });
 
+        // --- LOGIKA TAMPILAN CARD & BACA MATERI ---
         function loadMateriData() {
             showLoading(true, "Memuat Materi...");
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getMateriData', role: 'Pelatih', username: state.user.username }) })
             .then(r => r.json()).then(d => {
                 showLoading(false);
+                currentMateriData = d.success ? d.data : [];
                 const container = document.getElementById('materiListContainer');
-                if(d.success && d.data.length > 0) {
-                    container.innerHTML = d.data.map(m => `
-                        <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                            <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
-                                <div>
-                                    <h4 class="font-bold text-gray-800 text-sm">${m.judul}</h4>
-                                    <p class="text-[10px] text-gray-500">${m.deskripsi}</p>
+                
+                if(currentMateriData.length > 0) {
+                    container.innerHTML = currentMateriData.map(m => {
+                        // Format Tanggal Realtime
+                        let tglFormat = '-';
+                        if (m.tanggal) {
+                            // Menggunakan fungsi helper bawaan Anda atau parsing manual
+                            let dObj = new Date(String(m.tanggal).replace(/-/g, '/')); // Standarisasi format
+                            if(!isNaN(dObj.getTime())) {
+                                const pad = (n) => String(n).padStart(2, '0');
+                                tglFormat = `${pad(dObj.getDate())}/${pad(dObj.getMonth()+1)}/${dObj.getFullYear()} ${pad(dObj.getHours())}:${pad(dObj.getMinutes())}`;
+                            }
+                        }
+
+                        return `
+                        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 cursor-pointer hover:shadow-md transition-shadow relative group" onclick="openBacaMateri('${m.id}')">
+                            <div class="flex justify-between items-start">
+                                <div class="pr-16">
+                                    <h4 class="font-bold text-gray-800 text-sm leading-tight mb-1">${m.judul}</h4>
+                                    <p class="text-[10px] text-gray-500 mb-2 line-clamp-1">${m.deskripsi || 'Tidak ada uraian singkat.'}</p>
+                                    <span class="text-[9px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md"><i class="fa-regular fa-calendar mr-1"></i> ${tglFormat}</span>
                                 </div>
-                                <button onclick="deleteMateri('${m.id}')" class="text-rose-500 hover:bg-rose-50 p-2 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                                <!-- Tombol Aksi (Hanya muncul saat hover / di mobile selalu muncul) -->
+                                <div class="absolute top-4 right-4 flex flex-col gap-1.5 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onclick="event.stopPropagation(); triggerHapusMateri('${m.id}')" class="w-8 h-8 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 flex items-center justify-center shadow-sm"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                                    <button onclick="event.stopPropagation(); triggerEditMateri('${m.id}')" class="w-8 h-8 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 flex items-center justify-center shadow-sm"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                                </div>
                             </div>
-                            <div class="p-4 flex flex-col gap-3">
-                                ${m.teksMateri ? `<div class="text-xs text-gray-700 bg-gray-50 p-3 rounded-xl border">${m.teksMateri}</div>` : ''}
-                                ${m.subMateri.length > 0 ? m.subMateri.map(s => `
-                                    <div class="flex items-center justify-between bg-blue-50 p-2 rounded-lg border border-blue-100">
-                                        <div class="text-[10px] font-bold text-blue-800"><i class="fa-solid fa-paperclip mr-1"></i> ${s.tipe}: ${s.judulSub}</div>
-                                        <a href="${s.linkFile}" target="_blank" class="text-blue-600 text-[10px] underline font-bold">Lihat</a>
-                                    </div>
-                                `).join('') : ''}
-                            </div>
-                        </div>
-                    `).join('');
+                        </div>`;
+                    }).join('');
                 } else {
-                    container.innerHTML = `<div class="p-8 text-center text-xs text-gray-400 bg-white rounded-3xl border">Belum ada materi.</div>`;
+                    container.innerHTML = `<div class="p-8 text-center text-xs text-gray-400 bg-white rounded-3xl border">Belum ada materi. Klik "Tambah Materi" untuk membuat.</div>`;
                 }
             }).catch(e => { showLoading(false); showToast("Gagal memuat materi", "error"); });
         }
 
-        function deleteMateri(id) {
-            if(!confirm("Hapus materi ini?")) return;
-            showLoading(true, "Menghapus...");
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteMateri', id: id }) })
-            .then(r => r.json()).then(d => {
-                showLoading(false);
-                if(d.success) { showToast("Materi dihapus", "success"); loadMateriData(); }
-                else showToast(d.message, "error");
-            }).catch(e => { showLoading(false); showToast("Koneksi gagal", "error"); });
+        function triggerHapusMateri(id) {
+            showConfirm("Hapus Materi", "Apakah Anda yakin ingin menghapus materi ini beserta sub-materinya?", () => {
+                showLoading(true, "Menghapus...");
+                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteMateri', id: id }) })
+                .then(r => r.json()).then(d => {
+                    showLoading(false);
+                    if(d.success) { showToast("Materi dihapus", "success"); loadMateriData(); }
+                    else showToast(d.message, "error");
+                }).catch(e => { showLoading(false); showToast("Koneksi gagal", "error"); });
+            });
         }
 
+        function triggerEditMateri(id) {
+            const m = currentMateriData.find(x => x.id === id);
+            if(!m) return;
+
+            document.getElementById('matId').value = m.id;
+            document.getElementById('matJudul').value = m.judul;
+            document.getElementById('matDesc').value = m.deskripsi;
+            document.getElementById('materiModalTitle').textContent = 'Edit Materi';
+            
+            // Set Target
+            document.getElementById('matTargetMode').value = m.target === 'Semua' ? 'Semua' : 'Spesifik';
+            toggleTargetMateri();
+            if(m.target !== 'Semua') {
+                const arr = m.target.split(',');
+                document.querySelectorAll('.chk-mat-target').forEach(cb => {
+                    if(arr.includes(cb.value)) cb.checked = true;
+                });
+            }
+
+            // Render Sub Materi Lama
+            tempSubMateriArray = [];
+            document.getElementById('subMateriDynamicContainer').innerHTML = '';
+            if(m.subMateri && m.subMateri.length > 0) {
+                m.subMateri.forEach(sub => {
+                    tempSubMateriArray.push({
+                        judulSub: sub.judulSub,
+                        tipe: sub.tipe,
+                        linkFile: sub.linkFile,
+                        base64Data: null, filename: null, mimeType: null
+                    });
+                });
+                renderSubMateriForms(-1); // Render tertutup semua
+            } else {
+                addSubMateriForm();
+            }
+
+            document.getElementById('materiModal').classList.remove('hidden'); 
+            document.getElementById('materiModal').classList.add('flex');
+        }
+
+        // --- MODAL BACA MATERI (TAMPILAN ANGGOTA) ---
+        function openBacaMateri(id) {
+            const m = currentMateriData.find(x => x.id === id);
+            if(!m) return;
+
+            document.getElementById('bacaMatJudul').textContent = m.judul;
+            
+            let tglFormat = '-';
+            if (m.tanggal) {
+                let dObj = new Date(String(m.tanggal).replace(/-/g, '/'));
+                if(!isNaN(dObj.getTime())) {
+                    const pad = (n) => String(n).padStart(2, '0');
+                    tglFormat = `${pad(dObj.getDate())}/${pad(dObj.getMonth()+1)}/${dObj.getFullYear()} ${pad(dObj.getHours())}:${pad(dObj.getMinutes())}`;
+                }
+            }
+            document.getElementById('bacaMatTanggal').textContent = `Dibuat: ${tglFormat}`;
+            document.getElementById('bacaMatDesc').textContent = m.deskripsi || '-';
+
+            const subContainer = document.getElementById('bacaMatSubContainer');
+            if(m.subMateri && m.subMateri.length > 0) {
+                subContainer.innerHTML = m.subMateri.map(sub => {
+                    // Modifikasi Link Google Drive agar bisa di-embed
+                    let link = sub.linkFile || '';
+                    let embedUrl = link;
+                    if (link.includes('drive.google.com') && link.includes('/file/d/')) {
+                        const match = link.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+                        if (match) embedUrl = `https://drive.google.com/file/d/${match[1]}/preview`;
+                    }
+
+                    let mediaHtml = '';
+                    if (sub.tipe === 'Gambar') {
+                        mediaHtml = `<img src="${link}" class="w-full h-auto max-h-64 object-contain rounded-lg mt-2 bg-gray-100" alt="${sub.judulSub}">`;
+                    } else if (sub.tipe === 'Video') {
+                        mediaHtml = `<div class="relative w-full aspect-video mt-2 rounded-lg overflow-hidden bg-black"><iframe src="${embedUrl}" class="absolute inset-0 w-full h-full" allow="autoplay" allowfullscreen></iframe></div>`;
+                    } else if (sub.tipe === 'PDF') {
+                        mediaHtml = `<div class="relative w-full h-64 mt-2 rounded-lg overflow-hidden border"><iframe src="${embedUrl}" class="absolute inset-0 w-full h-full"></iframe></div>`;
+                    } else {
+                        mediaHtml = `<a href="${link}" target="_blank" class="inline-block mt-2 bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold"><i class="fa-solid fa-link mr-1"></i> Buka Link Media</a>`;
+                    }
+
+                    return `
+                    <div class="bg-gray-50 border rounded-xl p-3">
+                        <h5 class="text-xs font-bold text-gray-800 mb-1"><i class="fa-solid fa-paperclip text-gray-400 mr-1"></i> ${sub.judulSub}</h5>
+                        ${mediaHtml}
+                    </div>`;
+                }).join('');
+            } else {
+                subContainer.innerHTML = `<div class="text-center text-xs text-gray-400 p-4">Tidak ada file/sub-materi lampiran.</div>`;
+            }
+
+            document.getElementById('bacaMateriModal').classList.remove('hidden');
+            document.getElementById('bacaMateriModal').classList.add('flex');
+        }
+
+        function closeBacaMateriModal() {
+            document.getElementById('bacaMateriModal').classList.add('hidden');
+            document.getElementById('bacaMateriModal').classList.remove('flex');
+        }
         // === 3. FITUR KEUANGAN (REVISI FINAL) ===
         let keuanganData = { kas: [], pengeluaran: [], dana: [], transaksi_dana: [], settings: {} };
 
@@ -3145,10 +3352,21 @@ function loadKeuanganData() {
             cloneTable.querySelectorAll('th, td').forEach(cell => { cell.style.border = '1px solid #e5e7eb'; cell.style.padding = '8px 12px'; cell.style.textAlign = 'center'; });
             cloneTable.querySelectorAll('th').forEach(th => { th.style.backgroundColor = '#f3f4f6'; });
             document.body.appendChild(tempDiv);
+            
             html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
-                document.body.removeChild(tempDiv);
-                const link = document.createElement('a'); link.download = `Buku_Besar_${Date.now()}.png`; link.href = canvas.toDataURL('image/png'); link.click();
-                showToast("Gambar diunduh!", "success");
+                if(document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
+                // --- LANGSUNG DOWNLOAD ---
+                canvas.toBlob(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Buku_Besar_${Date.now()}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    showToast("Gambar diunduh!", "success");
+                });
             });
         }
 
@@ -3206,15 +3424,26 @@ function loadKeuanganData() {
                     scale: 2, backgroundColor: '#ffffff', useCORS: true, width: cloneTable.offsetWidth, height: cloneTable.offsetHeight,
                     ignoreElements: (element) => element.tagName === 'VIDEO' // TAMBAHKAN INI
                 }).then(canvas => {
-                    document.body.removeChild(tempDiv);
+                    if(document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
                     showLoading(false);
-                    showUniversalPreview(canvas.toDataURL('image/png'), 'Preview Rekap Kas', `Rekap_Kas_${Date.now()}.png`);
+                    
+                    // --- LANGSUNG DOWNLOAD ---
+                    canvas.toBlob(function(blob) {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `Rekap_Kas_${Date.now()}.png`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        showToast("Rekap Kas berhasil diunduh!", "success");
+                    });
+                    // --------------------------
                 }).catch(e => {
                     if(document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
                     showLoading(false); showToast("Gagal unduh", "error"); 
                 });
-            }, 200);
-        }
         
         function downloadCustomTable(tableId, title, subtitle) {
             const originalTable = document.getElementById(tableId);
@@ -3851,13 +4080,24 @@ let _downloadLock = false;
                 }).then(canvas => {
                     if(document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
                     showLoading(false);
-                    showUniversalPreview(canvas.toDataURL('image/png'), `Preview ${title}`, `${title.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.png`);
+                    
+                    // --- LANGSUNG DOWNLOAD ---
+                    canvas.toBlob(function(blob) {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${title.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.png`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        showToast("Gambar berhasil diunduh!", "success");
+                    });
+                    // --------------------------
                 }).catch(e => {
                     if(document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
                     showLoading(false); showToast("Gagal memproses gambar", "error"); 
                 });
-            }, 200);
-        }
 
         let _previewLock = false;
 
