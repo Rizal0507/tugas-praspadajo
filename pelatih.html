@@ -3075,10 +3075,21 @@
                 subContainer.innerHTML = m.subMateri.map(sub => {
                     let link = sub.linkFile || '';
                     let embedUrl = link;
+                    
+                    // JIKA LINK ERROR DARI DRIVE, JANGAN DITAMPILKAN SEBAGAI IFRAME
+                    if (link.includes('ERROR_DRIVE') || link.includes('GAGAL_UPLOAD')) {
+                        return `
+                        <div class="bg-rose-50 border border-rose-200 rounded-xl p-3">
+                            <h5 class="text-xs font-bold text-rose-700 mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ${sub.judulSub}</h5>
+                            <p class="text-[10px] text-rose-600">File gagal dimuat karena masalah izin Google Drive. Silakan periksa kembali koneksi atau izin akun Anda.</p>
+                        </div>`;
+                    }
+
                     if (link.includes('drive.google.com') && link.includes('/file/d/')) {
                         const match = link.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
                         if (match) embedUrl = `https://drive.google.com/file/d/${match[1]}/preview`;
                     }
+
 
                     let mediaHtml = '';
                     if (sub.tipe === 'Gambar') {
