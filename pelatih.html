@@ -2889,42 +2889,71 @@
         }
 
         document.getElementById('formMateri').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const modeTarget = document.getElementById('matTargetMode').value;
-            let targetStr = "Semua";
-            if(modeTarget === 'Spesifik') {
-                const checked = Array.from(document.querySelectorAll('.chk-mat-target:checked')).map(cb => cb.value);
-                if(checked.length === 0) { showToast("Pilih minimal 1 target", "error"); return; }
-                targetStr = checked.join(',');
-            }
+            e.preventDefault(); 
+            
+            const btnSubmit = document.getElementById('btnSubmitMateri');
+            // Cegah klik ganda
+            if (btnSubmit.disabled) return; 
 
-            // Validasi sub materi wajib ada isinya
-            const validSubs = tempSubMateriArray.filter(s => s.judulSub && (s.linkFile || s.base64Data));
-            if(validSubs.length === 0) { showToast("Isi minimal 1 sub-materi (Judul & File/Link)", "error"); return; }
-
-            const payload = {
-                action: 'saveMateri',
-                id: document.getElementById('matId').value || null,
-                judul: document.getElementById('matJudul').value,
-                deskripsi: document.getElementById('matDesc').value,
-                teksMateri: '', // Dihilangkan dari UI
-                target: targetStr,
-                butuhSub: true, // Diwajibkan karena form selalu ada
-                subMateri: validSubs
-            };
-
-            showLoading(true, "Menyimpan Materi...");
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
-            .then(r => r.json()).then(d => {
-                showLoading(false);
-                if(d.success) { 
-                    showToast("Materi berhasil disimpan!", "success"); 
-                    closeMateriModal(); 
-                    loadMateriData(); 
-                } else {
-                    showToast(d.message, "error");
+            try {
+                const modeTarget = document.getElementById('matTargetMode').value;
+                let targetStr = "Semua";
+                if(modeTarget === 'Spesifik') {
+                    const checked = Array.from(document.querySelectorAll('.chk-mat-target:checked')).map(cb => cb.value);
+                    if(checked.length === 0) { showToast("Pilih minimal 1 target", "error"); return; }
+                    targetStr = checked.join(',');
                 }
-            }).catch(e => { showLoading(false); showToast("Koneksi gagal", "error"); });
+
+                const validSubs = tempSubMateriArray.filter(s => s.judulSub && (s.linkFile || s.base64Data || s.teksMateri));
+                if(validSubs.length === 0) { showToast("Isi minimal 1 sub-materi dengan lengkap", "error"); return; }
+                
+                const isUploading = tempSubMateriArray.some(s => s.filename && !s.base64Data);
+                if (isUploading) { showToast("File sedang diproses, tunggu 2 detik lalu klik lagi.", "info"); return; }
+
+                const payload = {
+                    action: 'saveMateri',
+                    id: document.getElementById('matId').value || null,
+                    judul: document.getElementById('matJudul').value,
+                    deskripsi: document.getElementById('matDesc').value,
+                    teksMateri: '', 
+                    target: targetStr,
+                    butuhSub: true, 
+                    subMateri: validSubs
+                };
+
+                // Matikan tombol dan ubah teksnya
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Menyimpan...';
+                showLoading(true, "Mengunggah file, mohon tunggu...");
+                
+                fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+                .then(r => r.json()).then(d => {
+                    showLoading(false);
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = 'Simpan Materi';
+                    
+                    if(d.success) { 
+                        showToast("Materi berhasil disimpan!", "success"); 
+                        closeMateriModal(); 
+                        loadMateriData(); 
+                    } else {
+                        showToast(d.message || "Gagal menyimpan", "error");
+                    }
+                }).catch(err => { 
+                    showLoading(false); 
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = 'Simpan Materi';
+                    showToast("Koneksi terputus atau file terlalu besar.", "error"); 
+                });
+
+            } catch(err) {
+                showLoading(false);
+                if(btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = 'Simpan Materi';
+                }
+                showToast("Kesalahan sistem: " + err.message, "error");
+            }
         });
 
         // --- LOGIKA TAMPILAN CARD & BACA MATERI ---
