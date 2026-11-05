@@ -3021,7 +3021,6 @@
             document.getElementById('matDesc').value = m.deskripsi;
             document.getElementById('materiModalTitle').textContent = 'Edit Materi';
             
-            // Set Target
             document.getElementById('matTargetMode').value = m.target === 'Semua' ? 'Semua' : 'Spesifik';
             toggleTargetMateri();
             if(m.target !== 'Semua') {
@@ -3031,19 +3030,22 @@
                 });
             }
 
-            // Render Sub Materi Lama
             tempSubMateriArray = [];
             document.getElementById('subMateriDynamicContainer').innerHTML = '';
             if(m.subMateri && m.subMateri.length > 0) {
                 m.subMateri.forEach(sub => {
+                    // PENGAMAN: Cegah teks 'undefined' masuk
+                    let teksAman = (sub.teksMateri && sub.teksMateri !== 'undefined') ? sub.teksMateri : '';
+                    
                     tempSubMateriArray.push({
                         judulSub: sub.judulSub,
                         tipe: sub.tipe,
+                        teksMateri: teksAman,
                         linkFile: sub.linkFile,
                         base64Data: null, filename: null, mimeType: null
                     });
                 });
-                renderSubMateriForms(-1); // Render tertutup semua
+                renderSubMateriForms(-1);
             } else {
                 addSubMateriForm();
             }
@@ -3051,14 +3053,13 @@
             document.getElementById('materiModal').classList.remove('hidden'); 
             document.getElementById('materiModal').classList.add('flex');
         }
-
+        
         // --- MODAL BACA MATERI (TAMPILAN ANGGOTA) ---
         function openBacaMateri(id) {
             const m = currentMateriData.find(x => x.id === id);
             if(!m) return;
 
             document.getElementById('bacaMatJudul').textContent = m.judul;
-            
             let tglFormat = '-';
             if (m.tanggal) {
                 let dObj = new Date(String(m.tanggal).replace(/-/g, '/'));
@@ -3076,12 +3077,11 @@
                     let link = sub.linkFile || '';
                     let embedUrl = link;
                     
-                    // JIKA LINK ERROR DARI DRIVE, JANGAN DITAMPILKAN SEBAGAI IFRAME
                     if (link.includes('ERROR_DRIVE') || link.includes('GAGAL_UPLOAD')) {
                         return `
                         <div class="bg-rose-50 border border-rose-200 rounded-xl p-3">
                             <h5 class="text-xs font-bold text-rose-700 mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ${sub.judulSub}</h5>
-                            <p class="text-[10px] text-rose-600">File gagal dimuat karena masalah izin Google Drive. Silakan periksa kembali koneksi atau izin akun Anda.</p>
+                            <p class="text-[10px] text-rose-600">File gagal dimuat atau belum diizinkan untuk diakses publik.</p>
                         </div>`;
                     }
 
@@ -3090,22 +3090,21 @@
                         if (match) embedUrl = `https://drive.google.com/file/d/${match[1]}/preview`;
                     }
 
-
                     let mediaHtml = '';
-                    if (sub.tipe === 'Gambar') {
-                        mediaHtml = `<img src="${link}" class="w-full h-auto max-h-64 object-contain rounded-lg mt-2 bg-gray-100" alt="${sub.judulSub}">`;
-                    } else if (sub.tipe === 'Video') {
+                    if (sub.tipe === 'Gambar' && link) {
+                        mediaHtml = `<img src="${link}" class="w-full h-auto max-h-64 object-contain rounded-lg mt-2 bg-gray-100">`;
+                    } else if (sub.tipe === 'Video' && link) {
                         mediaHtml = `<div class="relative w-full aspect-video mt-2 rounded-lg overflow-hidden bg-black"><iframe src="${embedUrl}" class="absolute inset-0 w-full h-full" allow="autoplay" allowfullscreen></iframe></div>`;
-                    } else if (sub.tipe === 'PDF') {
+                    } else if (sub.tipe === 'PDF' && link) {
                         mediaHtml = `<div class="relative w-full h-64 mt-2 rounded-lg overflow-hidden border"><iframe src="${embedUrl}" class="absolute inset-0 w-full h-full"></iframe></div>`;
                     } else if (link) {
                         mediaHtml = `<a href="${link}" target="_blank" class="inline-block mt-2 bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold"><i class="fa-solid fa-link mr-1"></i> Buka Link Media</a>`;
                     }
 
-                    // TAMPILKAN TEKS MATERI
+                    // PENGAMAN: Cegah teks 'undefined'
                     let teksHtml = '';
-                    if (sub.teksMateri || sub.deskripsiSub) {
-                        teksHtml = `<div class="mt-2 text-xs text-gray-700 whitespace-pre-wrap">${sub.teksMateri || sub.deskripsiSub}</div>`;
+                    if (sub.teksMateri && sub.teksMateri !== 'undefined') {
+                        teksHtml = `<div class="mt-2 text-xs text-gray-700 whitespace-pre-wrap">${sub.teksMateri}</div>`;
                     }
 
                     return `
@@ -3122,7 +3121,7 @@
             document.getElementById('bacaMateriModal').classList.remove('hidden');
             document.getElementById('bacaMateriModal').classList.add('flex');
         }
-
+        
         function closeBacaMateriModal() {
             document.getElementById('bacaMateriModal').classList.add('hidden');
             document.getElementById('bacaMateriModal').classList.remove('flex');
