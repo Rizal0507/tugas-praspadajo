@@ -2023,7 +2023,6 @@
                     if(document.body.contains(clone)) document.body.removeChild(clone);
                     showLoading(false);
                     
-                    // --- LANGSUNG DOWNLOAD ---
                     canvas.toBlob(function(blob) {
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
@@ -2035,12 +2034,12 @@
                         URL.revokeObjectURL(url);
                         showToast("Gambar berhasil diunduh!", "success");
                     });
-                    // --------------------------
                 }).catch(e => {
                     if(document.body.contains(clone)) document.body.removeChild(clone);
                     showLoading(false); showToast("Gagal mengunduh gambar", "error");
                 });
             }, 100);
+        } // <--- PASTIKAN KURUNG INI ADA
         // --- FITUR NILAI MASSAL ---
         function openBulkGradeModal() {
             document.getElementById('bulkGradeDate').value = getLocalToday();
@@ -3355,7 +3354,6 @@ function loadKeuanganData() {
             
             html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
                 if(document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
-                // --- LANGSUNG DOWNLOAD ---
                 canvas.toBlob(function(blob) {
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -3365,11 +3363,11 @@ function loadKeuanganData() {
                     a.click();
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
-                    showToast("Gambar diunduh!", "success");
+                    showToast("Buku Besar berhasil diunduh!", "success");
                 });
             });
-        }
-
+        } // <--- PASTIKAN KURUNG INI ADA
+        
         function renderTabelPerorangan() {
             const start = document.getElementById('rekapStartDate').value;
             const end = document.getElementById('rekapEndDate').value;
@@ -3419,15 +3417,15 @@ function loadKeuanganData() {
             cloneTable.querySelectorAll('th').forEach(th => { th.style.backgroundColor = '#f3f4f6'; th.style.fontWeight = 'bold'; });
             document.body.appendChild(tempDiv);
             showLoading(true, "Menyiapkan gambar...");
+            
             setTimeout(() => {
                 html2canvas(tempDiv, { 
                     scale: 2, backgroundColor: '#ffffff', useCORS: true, width: cloneTable.offsetWidth, height: cloneTable.offsetHeight,
-                    ignoreElements: (element) => element.tagName === 'VIDEO' // TAMBAHKAN INI
+                    ignoreElements: (element) => element.tagName === 'VIDEO'
                 }).then(canvas => {
                     if(document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
                     showLoading(false);
                     
-                    // --- LANGSUNG DOWNLOAD ---
                     canvas.toBlob(function(blob) {
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
@@ -3439,11 +3437,12 @@ function loadKeuanganData() {
                         URL.revokeObjectURL(url);
                         showToast("Rekap Kas berhasil diunduh!", "success");
                     });
-                    // --------------------------
                 }).catch(e => {
                     if(document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
                     showLoading(false); showToast("Gagal unduh", "error"); 
                 });
+            }, 200);
+        } // <--- PASTIKAN KURUNG INI ADA
         
         function downloadCustomTable(tableId, title, subtitle) {
             const originalTable = document.getElementById(tableId);
@@ -4051,7 +4050,7 @@ function fullCanvasOptions(el) {
 let _downloadLock = false;
 
         function downloadExportImage() {
-            if (_downloadLock) return; // KUNCI ANTI DOUBLE KLIK
+            if (_downloadLock) return;
             _downloadLock = true;
             setTimeout(() => { _downloadLock = false; }, 1500);
 
@@ -4081,7 +4080,6 @@ let _downloadLock = false;
                     if(document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
                     showLoading(false);
                     
-                    // --- LANGSUNG DOWNLOAD ---
                     canvas.toBlob(function(blob) {
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
@@ -4093,62 +4091,14 @@ let _downloadLock = false;
                         URL.revokeObjectURL(url);
                         showToast("Gambar berhasil diunduh!", "success");
                     });
-                    // --------------------------
                 }).catch(e => {
                     if(document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
                     showLoading(false); showToast("Gagal memproses gambar", "error"); 
                 });
+            }, 200);
+        } // <--- PASTIKAN KURUNG INI ADA
 
         let _previewLock = false;
-
-        function closeUniversalPreview() {
-            const m = document.getElementById('universalPreviewModal');
-            m.classList.add('hidden'); m.classList.remove('flex');
-        }
-
-        function showUniversalPreview(base64Img, title, filename) {
-            if (_previewLock) return; // KUNCI ANTI DOUBLE POPUP
-            _previewLock = true;
-            setTimeout(() => { _previewLock = false; }, 1000);
-
-            // Tutup SEMUA modal yang mungkin masih terbuka
-            ['exportModal', 'raportModal', 'modalUnduhBukuBesar', 'bulkGradeModal',
-             'materiModal', 'profileModal', 'metroModal', 'viewVideoModal',
-             'errorLogModal', 'pengeluaranTabunganModal', 'editTabunganModal'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) { el.classList.add('hidden'); el.classList.remove('flex'); }
-            });
-
-            document.getElementById('universalPreviewTitle').textContent = title;
-            document.getElementById('universalPreviewImg').src = base64Img;
-
-            const oldBtn = document.getElementById('universalBtnDownload');
-            const newBtn = oldBtn.cloneNode(true);
-            oldBtn.parentNode.replaceChild(newBtn, oldBtn);
-
-            newBtn.addEventListener('click', () => {
-                try {
-                    const byteString = atob(base64Img.split(',')[1]);
-                    const arr = new Uint8Array(byteString.length);
-                    for (let i = 0; i < byteString.length; i++) arr[i] = byteString.charCodeAt(i);
-                    const blob = new Blob([arr], { type: 'image/png' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url; a.download = filename; a.style.display = 'none';
-                    document.body.appendChild(a);
-                    a.click();
-                    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1500);
-                    showToast("Gambar berhasil diunduh!", "success");
-                } catch (e) {
-                    console.error(e);
-                    showToast("Gagal mengunduh, tekan lama gambar untuk menyimpan", "error");
-                }
-            });
-
-            const modal = document.getElementById('universalPreviewModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
         
     </script>
 </body>
