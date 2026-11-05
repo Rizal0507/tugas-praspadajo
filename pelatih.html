@@ -2885,70 +2885,109 @@
             return parseInt(String(str).replace(/\./g, '')) || 0;
         }
 
-        function switchSubTabKeuangan(sub) {
+function switchSubTabKeuangan(sub) {
+    console.log('[switchSubTab] Pindah ke:', sub);
+    try {
+        const subs = ['dashboard', 'kas', 'tabungan'];
+
+        // Sembunyikan semua
+        subs.forEach(t => {
+            const view = document.getElementById(`subViewKeuangan${t.charAt(0).toUpperCase() + t.slice(1)}`);
+            const btn  = document.getElementById(`subTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+            if (view) {
+                view.classList.add('hidden');
+                view.classList.remove('flex', 'flex-col');
+                view.style.display = 'none';
+            }
+            if (btn) {
+                btn.className = "flex-1 py-2 px-3 text-gray-500 hover:text-gray-800 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap";
+            }
+        });
+
+        // Tampilkan target
+        const targetView = document.getElementById(`subViewKeuangan${sub.charAt(0).toUpperCase() + sub.slice(1)}`);
+        const targetBtn  = document.getElementById(`subTabBtn${sub.charAt(0).toUpperCase() + sub.slice(1)}`);
+
+        if (targetView) {
+            targetView.classList.remove('hidden');
+            targetView.classList.add('flex', 'flex-col');
+            targetView.style.display = 'flex';
+            targetView.style.flexDirection = 'column';
+            targetView.style.gap = '1rem';
+            console.log('[switchSubTab] Target:', targetView.id, '| display:', getComputedStyle(targetView).display);
+        } else {
+            console.error('[switchSubTab] Element target TIDAK DITEMUKAN untuk sub:', sub);
+        }
+        if (targetBtn) {
+            targetBtn.className = "flex-1 py-2 px-3 bg-white text-blue-600 rounded-xl text-[11px] font-bold shadow-sm transition-all whitespace-nowrap";
+        }
+
+        // Isi data
+        if (sub === 'kas') {
             try {
-                const subviews = ['dashboard', 'kas', 'tabungan'];
-                
-                subviews.forEach(t => {
-                    const view = document.getElementById(`subViewKeuangan${t.charAt(0).toUpperCase() + t.slice(1)}`);
-                    const btn  = document.getElementById(`subTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
-                    if (view) {
-                        view.classList.add('hidden');
-                        view.classList.remove('flex');
-                        view.style.display = 'none'; // PAKSA SEMBUNYIKAN
-                    }
-                    if (btn) {
-                        btn.className = "flex-1 py-2 px-3 text-gray-500 hover:text-gray-800 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap";
-                    }
-                });
-
-                const targetView = document.getElementById(`subViewKeuangan${sub.charAt(0).toUpperCase() + sub.slice(1)}`);
-                const targetBtn  = document.getElementById(`subTabBtn${sub.charAt(0).toUpperCase() + sub.slice(1)}`);
-                
-                if (targetView) {
-                    targetView.classList.remove('hidden');
-                    targetView.classList.add('flex');
-                    targetView.style.display = 'flex'; // PAKSA MUNCULKAN
-                    targetView.style.flexDirection = 'column'; // PASTIKAN TATA LETAK KE BAWAH
-                }
-                if (targetBtn) {
-                    targetBtn.className = "flex-1 py-2 px-3 bg-white text-blue-600 rounded-xl text-[11px] font-bold shadow-sm transition-all whitespace-nowrap";
-                }
-
-                if (sub === 'kas') {
-                    const df = document.getElementById('kasDateFilter');
-                    if (df && !df.value) df.value = getLocalToday();
-                    renderKasUI();
-                } else if (sub === 'tabungan') {
-                    const df = document.getElementById('tabunganDateFilter');
-                    if (df && !df.value) df.value = getLocalToday();
-                    populateSelectTabungan();
-                }
-            } catch (err) {
-                console.error('switchSubTabKeuangan error:', err);
-                showToast('Gagal memuat data keuangan', 'error');
+                const df = document.getElementById('kasDateFilter');
+                if (df && !df.value) df.value = getLocalToday();
+                renderKasUI();
+            } catch (e) {
+                console.error('[switchSubTab] renderKasUI ERROR:', e);
+                showToast('Kas gagal render: ' + e.message, 'error');
+            }
+        } else if (sub === 'tabungan') {
+            try {
+                const df = document.getElementById('tabunganDateFilter');
+                if (df && !df.value) df.value = getLocalToday();
+                populateSelectTabungan();
+            } catch (e) {
+                console.error('[switchSubTab] populateSelectTabungan ERROR:', e);
+                showToast('Tabungan gagal render: ' + e.message, 'error');
             }
         }
+    } catch (err) {
+        console.error('[switchSubTab] FATAL:', err);
+        showToast('Gagal memuat data keuangan: ' + err.message, 'error');
+    }
+}
+function loadKeuanganData() {
+    console.log('[loadKeuanganData] Mulai fetch...');
+    showLoading(true, "Memuat Keuangan...");
+    fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getKeuanganData' }) })
+    .then(r => r.json())
+    .then(d => {
+        showLoading(false);
+        console.log('[loadKeuanganData] Response:', d);
+        if (d && d.success) {
+            keuanganData = {
+                kas:              Array.isArray(d.kas)              ? d.kas              : [],
+                pengeluaran:      Array.isArray(d.pengeluaran)      ? d.pengeluaran      : [],
+                dana:             Array.isArray(d.dana)             ? d.dana             : [],
+                transaksi_dana:   Array.isArray(d.transaksi_dana)   ? d.transaksi_dana   : [],
+                pengeluaran_dana: Array.isArray(d.pengeluaran_dana) ? d.pengeluaran_dana : [],
+                settings:         d.settings || {}
+            };
+            console.log('[loadKeuanganData] Data valid. kas:', keuanganData.kas.length, 'pengeluaran:', keuanganData.pengeluaran.length, 'dana:', keuanganData.dana.length);
 
-        function loadKeuanganData() {
-            showLoading(true, "Memuat Keuangan...");
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getKeuanganData' }) })
-            .then(r => r.json()).then(d => {
-                showLoading(false);
-                if(d.success) {
-                    keuanganData = d;
-                    renderKeuanganDashboard();
-                    if(!document.getElementById('rekapStartDate').value) {
-                        document.getElementById('rekapStartDate').value = getLocalToday();
-                        document.getElementById('rekapEndDate').value = getLocalToday();
-                    }
-                    if(!document.getElementById('subViewKeuanganTabungan').classList.contains('hidden')) {
-                        populateSelectTabungan();
-                    }
-                }
-            }).catch(e => { showLoading(false); showToast("Gagal memuat keuangan", "error"); });
+            try { renderKeuanganDashboard(); } catch (e) { console.error('renderKeuanganDashboard error:', e); }
+
+            if (!document.getElementById('rekapStartDate').value) {
+                document.getElementById('rekapStartDate').value = getLocalToday();
+                document.getElementById('rekapEndDate').value = getLocalToday();
+            }
+
+            // Kalau user sedang di sub Kas/Tabungan, render ulang
+            const kasView = document.getElementById('subViewKeuanganKas');
+            const tabView = document.getElementById('subViewKeuanganTabungan');
+            if (kasView && kasView.style.display === 'flex') { try { renderKasUI(); } catch(e){} }
+            if (tabView && tabView.style.display === 'flex') { try { populateSelectTabungan(); } catch(e){} }
+        } else {
+            console.warn('[loadKeuanganData] Backend tidak mengembalikan success=true:', d);
+            showToast(d && d.message ? d.message : 'Data keuangan kosong dari server', 'error');
         }
-
+    }).catch(e => {
+        showLoading(false);
+        console.error('[loadKeuanganData] FATAL:', e);
+        showToast("Gagal memuat keuangan: " + e.message, "error");
+    });
+}
         function parseDateString(dateStr) {
             if (!dateStr) return '';
             if (String(dateStr).includes('T')) {
@@ -3335,11 +3374,24 @@ function renderKasUI() {
         });
 
         // --- 3. TABUNGAN ---
-        function populateSelectTabungan() {
-            const sel = document.getElementById('selectTabungan');
-            sel.innerHTML = keuanganData.dana.map(d => `<option value="${d[0]}">${d[1]}</option>`).join('');
-            renderTabunganUI();
+function populateSelectTabungan() {
+    try {
+        const sel = document.getElementById('selectTabungan');
+        if (!sel) { console.warn('[populateSelectTabungan] Elemen selectTabungan tidak ada'); return; }
+        const danaList = keuanganData.dana || [];
+        if (danaList.length === 0) {
+            sel.innerHTML = '<option value="">(Belum ada tabungan)</option>';
+            document.getElementById('tableTabungan').innerHTML =
+                `<tr><td colspan="4" class="p-4 text-center text-xs text-gray-400">Belum ada tabungan. Klik "+ Tambah Tabungan".</td></tr>`;
+            return;
         }
+        sel.innerHTML = danaList.map(d => `<option value="${d[0]}">${d[1]}</option>`).join('');
+        renderTabunganUI();
+    } catch (e) {
+        console.error('[populateSelectTabungan] Error:', e);
+        showToast('Gagal memuat tabungan: ' + e.message, 'error');
+    }
+}
 
 function renderTabunganUI() {
     try {
