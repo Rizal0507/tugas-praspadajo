@@ -2929,6 +2929,7 @@ function switchSubTabKeuangan(sub) {
         showToast('Gagal memuat data keuangan', 'error');
     }
 }
+        
 function loadKeuanganData() {
     console.log('[loadKeuanganData] Mulai fetch...');
     showLoading(true, "Memuat Keuangan...");
@@ -3277,6 +3278,22 @@ function renderKasUI() {
             }).join('');
         }
 
+        // Render Pengeluaran
+        document.getElementById('tableKasKeluar').innerHTML =
+            (keuanganData.pengeluaran && keuanganData.pengeluaran.length)
+                ? keuanganData.pengeluaran.slice().reverse().map(p => `
+                    <tr class="border-b">
+                        <td class="p-3 text-[10px] text-gray-600">${parseDateString(p[1]).split('-').reverse().join('/')}</td>
+                        <td class="p-3 text-xs font-bold text-gray-800">${p[3]}</td>
+                        <td class="p-3 text-xs font-bold text-rose-600 text-right">${formatRupiah(p[2])}</td>
+                    </tr>`).join('')
+                : `<tr><td colspan="3" class="p-4 text-center text-xs text-gray-400">Belum ada pengeluaran</td></tr>`;
+                
+    } catch (err) {
+        console.error('renderKasUI error:', err);
+        showToast('Gagal merender Kas', 'error');
+    }
+}
         // Render Pengeluaran
         document.getElementById('tableKasKeluar').innerHTML =
             (keuanganData.pengeluaran && keuanganData.pengeluaran.length)
