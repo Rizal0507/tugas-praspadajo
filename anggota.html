@@ -683,6 +683,7 @@
     <!-- PENGELUARAN TABUNGAN -->
     <div id="pengeluaranTabunganModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
             <!-- MODAL EXPORT UNIVERSAL (Bendahara) -->
+    <!-- MODAL EXPORT UNIVERSAL (Tambahkan ini jika belum ada) -->
     <div id="exportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-3xl p-5 shadow-2xl flex flex-col max-h-[90vh]">
             <div class="flex justify-between items-center mb-4 border-b pb-3 flex-none">
@@ -703,7 +704,9 @@
             
             <button type="button" onclick="generateExportTable()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-xl text-xs mb-4 flex-none"><i class="fa-solid fa-magnifying-glass mr-1"></i> Tampilkan Data</button>
             
-            <div id="exportTableContainer" class="border rounded-xl overflow-auto custom-scroll flex-grow bg-white p-2 hidden"></div>
+            <div id="exportTableContainer" class="border rounded-xl overflow-auto custom-scroll flex-grow bg-white p-2 hidden">
+                <!-- Table will be injected here -->
+            </div>
 
             <div class="mt-4 flex gap-2 justify-end flex-none">
                 <button type="button" onclick="document.getElementById('exportModal').classList.add('hidden')" class="px-4 py-2 bg-gray-100 text-gray-600 font-bold rounded-xl text-xs">Tutup</button>
@@ -2969,8 +2972,12 @@
             }
         }
 
-        // --- FUNGSI KEUANGAN BENDAHARA (COPY PASTE DARI PELATIH) ---
         // --- FUNGSI KEUANGAN BENDAHARA (SAMA PERSIS DENGAN PELATIH) ---
+        
+        // PENTING: Pindahkan deklarasi variabel ini ke paling atas agar tidak error
+        let currentExportType = ''; 
+        let currentExportDanaId = '';
+
         function formatInputRupiah(el) {
             let val = el.value.replace(/[^0-9]/g, '');
             if(val) { el.value = parseInt(val).toLocaleString('id-ID'); } else { el.value = ''; }
@@ -3032,17 +3039,21 @@
             keuanganData.pengeluaran.forEach(p => { totalKeluar += parseInt(p[2]) || 0; });
             
             let saldo = totalMasuk - totalKeluar;
-            document.getElementById('dashTotalKas').textContent = formatRupiah(saldo);
-            document.getElementById('dashTotalMasuk').textContent = formatRupiah(totalMasuk);
-            document.getElementById('dashTotalKeluar').textContent = formatRupiah(totalKeluar);
+            const dashKas = document.getElementById('dashTotalKas');
+            if(dashKas) {
+                dashKas.textContent = formatRupiah(saldo);
+                document.getElementById('dashTotalMasuk').textContent = formatRupiah(totalMasuk);
+                document.getElementById('dashTotalKeluar').textContent = formatRupiah(totalKeluar);
+            }
 
             renderBukuBesar();
 
-            // Render Ringkasan Tabungan
             const anggotaList = (window.__allMembers || []).filter(m => m.role === 'Anggota');
             const container = document.getElementById('overviewTabunganContainer');
+            if(!container) return;
             
             if(keuanganData.dana.length > 0) {
+                // ... (Sama seperti kode sebelumnya, bagian render tabungan)
                 container.innerHTML = keuanganData.dana.map(dana => {
                     const idDana = dana[0];
                     const judul = dana[1];
@@ -3187,13 +3198,20 @@
             if(document.getElementById('lblMinKas')) document.getElementById('lblMinKas').textContent = formatRupiah(minKas);
             if(document.getElementById('lblFreqKas')) document.getElementById('lblFreqKas').textContent = freqKas;
 
-            document.getElementById('tableKasMasuk').innerHTML = anggotaList.map(m => {
-                const trxHariIni = (keuanganData.kas || []).filter(k => k[2] === m.username && parseDateString(k[1]) === filterDate);
-                const totalHariIni = trxHariIni.reduce((sum, k) => sum + (parseInt(k[3]) || 0), 0);
-                const inputHtml = `<div class="flex flex-col items-end gap-1"><div class="flex gap-1"><button onclick="quickSaveKas('${m.username}', 1000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">1K</button><button onclick="quickSaveKas('${m.username}', 2000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">2K</button><button onclick="deleteKas('${m.username}', '${filterDate}')" class="bg-rose-50 text-rose-600 border border-rose-200 px-2 py-1 rounded-lg text-[9px] font-bold"><i class="fa-solid fa-trash"></i></button></div><div class="flex gap-1 w-full max-w-[120px]"><input type="text" id="manualKas_${m.username}" onkeyup="formatInputRupiah(this)" placeholder="Nominal..." class="w-full px-2 py-1 border rounded-lg text-[10px] outline-none text-right"><button onclick="manualSaveKas('${m.username}', '${filterDate}')" class="bg-blue-600 text-white px-2 py-1 rounded-lg text-[10px]"><i class="fa-solid fa-check"></i></button></div></div>`;
-                return `<tr class="hover:bg-gray-50 border-b"><td class="p-3"><div class="text-xs font-bold text-gray-800">${m.nama}</div><div class="text-[9px] text-gray-500">${m.kelas}</div></td><td class="p-3 text-[10px] font-bold">${totalHariIni > 0 ? `<span class="text-blue-600">${formatRupiah(totalHariIni)}</span>` : `<span class="text-gray-400">-</span>`}</td><td class="p-3 text-right">${inputHtml}</td></tr>`;
-            }).join('');
-            document.getElementById('tableKasKeluar').innerHTML = (keuanganData.pengeluaran && keuanganData.pengeluaran.length) ? keuanganData.pengeluaran.slice().reverse().map(p => `<tr class="border-b"><td class="p-3 text-[10px] text-gray-600">${parseDateString(p[1]).split('-').reverse().join('/')}</td><td class="p-3 text-xs font-bold text-gray-800">${p[3]}</td><td class="p-3 text-xs font-bold text-rose-600 text-right">${formatRupiah(p[2])}</td></tr>`).join('') : `<tr><td colspan="3" class="p-4 text-center text-xs text-gray-400">Belum ada pengeluaran</td></tr>`;
+            const tbodyMasuk = document.getElementById('tableKasMasuk');
+            if(tbodyMasuk) {
+                tbodyMasuk.innerHTML = anggotaList.map(m => {
+                    const trxHariIni = (keuanganData.kas || []).filter(k => k[2] === m.username && parseDateString(k[1]) === filterDate);
+                    const totalHariIni = trxHariIni.reduce((sum, k) => sum + (parseInt(k[3]) || 0), 0);
+                    const inputHtml = `<div class="flex flex-col items-end gap-1"><div class="flex gap-1"><button onclick="quickSaveKas('${m.username}', 1000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">1K</button><button onclick="quickSaveKas('${m.username}', 2000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">2K</button><button onclick="deleteKas('${m.username}', '${filterDate}')" class="bg-rose-50 text-rose-600 border border-rose-200 px-2 py-1 rounded-lg text-[9px] font-bold"><i class="fa-solid fa-trash"></i></button></div><div class="flex gap-1 w-full max-w-[120px]"><input type="text" id="manualKas_${m.username}" onkeyup="formatInputRupiah(this)" placeholder="Nominal..." class="w-full px-2 py-1 border rounded-lg text-[10px] outline-none text-right"><button onclick="manualSaveKas('${m.username}', '${filterDate}')" class="bg-blue-600 text-white px-2 py-1 rounded-lg text-[10px]"><i class="fa-solid fa-check"></i></button></div></div>`;
+                    return `<tr class="hover:bg-gray-50 border-b"><td class="p-3"><div class="text-xs font-bold text-gray-800">${m.nama}</div><div class="text-[9px] text-gray-500">${m.kelas}</div></td><td class="p-3 text-[10px] font-bold">${totalHariIni > 0 ? `<span class="text-blue-600">${formatRupiah(totalHariIni)}</span>` : `<span class="text-gray-400">-</span>`}</td><td class="p-3 text-right">${inputHtml}</td></tr>`;
+                }).join('');
+            }
+
+            const tbodyKeluar = document.getElementById('tableKasKeluar');
+            if(tbodyKeluar) {
+                tbodyKeluar.innerHTML = (keuanganData.pengeluaran && keuanganData.pengeluaran.length) ? keuanganData.pengeluaran.slice().reverse().map(p => `<tr class="border-b"><td class="p-3 text-[10px] text-gray-600">${parseDateString(p[1]).split('-').reverse().join('/')}</td><td class="p-3 text-xs font-bold text-gray-800">${p[3]}</td><td class="p-3 text-xs font-bold text-rose-600 text-right">${formatRupiah(p[2])}</td></tr>`).join('') : `<tr><td colspan="3" class="p-4 text-center text-xs text-gray-400">Belum ada pengeluaran</td></tr>`;
+            }
         }
 
         function manualSaveKas(username, tanggal) { const inputEl = document.getElementById(`manualKas_${username}`); const val = unformatRupiah(inputEl.value); if(val <= 0) return; quickSaveKas(username, val, tanggal); inputEl.value = ''; }
@@ -3213,28 +3231,34 @@
         }
 
         function openSettingKasModal() {
-            document.getElementById('setMinKas').value = keuanganData.settings.minimal ? keuanganData.settings.minimal.toLocaleString('id-ID') : 0;
-            document.getElementById('setTipeKas').value = keuanganData.settings.frekuensi || 'Harian';
+            if(document.getElementById('setMinKas')) {
+                document.getElementById('setMinKas').value = keuanganData.settings.minimal ? keuanganData.settings.minimal.toLocaleString('id-ID') : 0;
+                document.getElementById('setTipeKas').value = keuanganData.settings.frekuensi || 'Harian';
+            }
             document.getElementById('settingKasModal').classList.remove('hidden'); document.getElementById('settingKasModal').classList.add('flex');
         }
         function closeSettingKasModal() { document.getElementById('settingKasModal').classList.add('hidden'); document.getElementById('settingKasModal').classList.remove('flex'); }
 
-        document.getElementById('formSettingKas').addEventListener('submit', (e) => {
-            e.preventDefault();
-            showLoading(true, "Menyimpan...");
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({
-                action: 'updateSettingKas',
-                settings: { minimal: unformatRupiah(document.getElementById('setMinKas').value), frekuensi: document.getElementById('setTipeKas').value }
-            })}).then(r=>r.json()).then(d => {
-                showLoading(false);
-                if(d.success) { showToast("Tersimpan", "success"); closeSettingKasModal(); loadKeuanganAnggota(); }
-                else showToast(d.message, "error");
+        // FIX: Tambahkan pengecekan null sebelum addEventListener
+        const formSettingKas = document.getElementById('formSettingKas');
+        if (formSettingKas) {
+            formSettingKas.addEventListener('submit', (e) => {
+                e.preventDefault();
+                showLoading(true, "Menyimpan...");
+                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({
+                    action: 'updateSettingKas',
+                    settings: { minimal: unformatRupiah(document.getElementById('setMinKas').value), frekuensi: document.getElementById('setTipeKas').value }
+                })}).then(r=>r.json()).then(d => {
+                    showLoading(false);
+                    if(d.success) { showToast("Tersimpan", "success"); closeSettingKasModal(); loadKeuanganAnggota(); }
+                    else showToast(d.message, "error");
+                });
             });
-        });
+        }
 
         function openPengeluaranModal() { 
-            document.getElementById('formPengeluaran').reset();
-            document.getElementById('outTanggal').value = getLocalToday();
+            if(document.getElementById('formPengeluaran')) document.getElementById('formPengeluaran').reset();
+            if(document.getElementById('outTanggal')) document.getElementById('outTanggal').value = getLocalToday();
             document.getElementById('pengeluaranModal').classList.remove('hidden'); 
             document.getElementById('pengeluaranModal').classList.add('flex'); 
         }
@@ -3242,25 +3266,31 @@
             document.getElementById('pengeluaranModal').classList.add('hidden'); 
             document.getElementById('pengeluaranModal').classList.remove('flex'); 
         }
-        document.getElementById('formPengeluaran').addEventListener('submit', (e) => {
-            e.preventDefault();
-            showLoading(true, "Menyimpan...");
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({
-                action: 'savePengeluaran',
-                nominal: unformatRupiah(document.getElementById('outNominal').value),
-                tujuan: document.getElementById('outTujuan').value,
-                peminta: document.getElementById('outPeminta').value,
-                dicatatOleh: user.nama,
-                tanggalKustom: document.getElementById('outTanggal').value
-            })}).then(r=>r.json()).then(d => {
-                showLoading(false);
-                if(d.success) { showToast("Pengeluaran dicatat", "success"); closePengeluaranModal(); loadKeuanganAnggota(); }
-                else showToast(d.message, "error");
+        
+        // FIX: Tambahkan pengecekan null sebelum addEventListener
+        const formPengeluaran = document.getElementById('formPengeluaran');
+        if (formPengeluaran) {
+            formPengeluaran.addEventListener('submit', (e) => {
+                e.preventDefault();
+                showLoading(true, "Menyimpan...");
+                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({
+                    action: 'savePengeluaran',
+                    nominal: unformatRupiah(document.getElementById('outNominal').value),
+                    tujuan: document.getElementById('outTujuan').value,
+                    peminta: document.getElementById('outPeminta').value,
+                    dicatatOleh: user.nama,
+                    tanggalKustom: document.getElementById('outTanggal').value
+                })}).then(r=>r.json()).then(d => {
+                    showLoading(false);
+                    if(d.success) { showToast("Pengeluaran dicatat", "success"); closePengeluaranModal(); loadKeuanganAnggota(); }
+                    else showToast(d.message, "error");
+                });
             });
-        });
+        }
 
         function populateSelectTabungan() {
             const sel = document.getElementById('selectTabungan');
+            if(!sel) return;
             const danaList = keuanganData.dana || [];
             if (danaList.length === 0) {
                 sel.innerHTML = '<option value="">(Belum ada tabungan)</option>';
@@ -3281,7 +3311,9 @@
             if (!dana) return;
             const targetNominal = parseInt(dana[3]) || 0;
             const deadline = dana[4] ? parseDateString(dana[4]) : '-';
-            document.getElementById('lblDeadlineTabungan').textContent = `Target: ${formatRupiah(targetNominal)} • Deadline: ${deadline}`;
+            const lblDeadline = document.getElementById('lblDeadlineTabungan');
+            if(lblDeadline) lblDeadline.textContent = `Target: ${formatRupiah(targetNominal)} • Deadline: ${deadline}`;
+
             const filterDate = document.getElementById('tabunganDateFilter').value || getLocalToday();
             const anggotaList = (window.__allMembers || []).filter(m => m.role === 'Anggota');
 
@@ -3313,27 +3345,6 @@
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteTransaksiDana', idDana: idDana, username: username, tanggal: tanggal }) }).catch(e=>{});
         }
 
-        function openEditTabungan(id, target, deadline) {
-            document.getElementById('editDanaId').value = id;
-            document.getElementById('editDanaTarget').value = target.toLocaleString('id-ID');
-            document.getElementById('editDanaDeadline').value = deadline ? parseDateString(deadline) : '';
-            document.getElementById('editTabunganModal').classList.remove('hidden'); document.getElementById('editTabunganModal').classList.add('flex');
-        }
-
-        document.getElementById('formEditTabungan').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const id = document.getElementById('editDanaId').value;
-            const target = unformatRupiah(document.getElementById('editDanaTarget').value);
-            const deadline = document.getElementById('editDanaDeadline').value;
-            
-            const dana = keuanganData.dana.find(d => d[0] === id);
-            if(dana) { dana[3] = target; dana[4] = deadline; }
-            renderKeuanganDashboard(); renderTabunganUI();
-            document.getElementById('editTabunganModal').classList.add('hidden');
-            
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'updateDana', id: id, target_nominal: target, deadline: deadline }) }).then(r=>r.json()).then(d=>{ if(d.success) showToast("Tabungan direvisi", "success"); });
-        });
-
         function openPengeluaranTabunganModal() { 
             const idDana = document.getElementById('selectTabungan').value;
             const dana = keuanganData.dana.find(d => d[0] === idDana);
@@ -3345,43 +3356,48 @@
             const totalKeluar = out.reduce((sum, p) => sum + (parseInt(p[3]) || 0), 0);
             const saldo = totalMasuk - totalKeluar;
 
-            document.getElementById('formPengeluaranTabungan').reset();
+            if(document.getElementById('formPengeluaranTabungan')) document.getElementById('formPengeluaranTabungan').reset();
             document.getElementById('lblMaxDana').textContent = `Maks: ${formatRupiah(saldo)}`;
             document.getElementById('outTabNominal').setAttribute('max', saldo);
             document.getElementById('pengeluaranTabunganModal').classList.remove('hidden'); 
             document.getElementById('pengeluaranTabunganModal').classList.add('flex'); 
         }
         
-        document.getElementById('formPengeluaranTabungan').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const idDana = document.getElementById('selectTabungan').value;
-            const nominal = unformatRupiah(document.getElementById('outTabNominal').value);
-            const maxSaldo = parseInt(document.getElementById('outTabNominal').getAttribute('max')) || 0;
+        const formPengeluaranTabungan = document.getElementById('formPengeluaranTabungan');
+        if (formPengeluaranTabungan) {
+            formPengeluaranTabungan.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const idDana = document.getElementById('selectTabungan').value;
+                const nominal = unformatRupiah(document.getElementById('outTabNominal').value);
+                const maxSaldo = parseInt(document.getElementById('outTabNominal').getAttribute('max')) || 0;
 
-            if(nominal > maxSaldo) {
-                showToast(`Nominal melebihi saldo tersedia (${formatRupiah(maxSaldo)})`, "error");
-                return;
-            }
+                if(nominal > maxSaldo) {
+                    showToast(`Nominal melebihi saldo tersedia (${formatRupiah(maxSaldo)})`, "error");
+                    return;
+                }
 
-            const tujuan = document.getElementById('outTabTujuan').value;
-            const peminta = document.getElementById('outTabPeminta').value;
+                const tujuan = document.getElementById('outTabTujuan').value;
+                const peminta = document.getElementById('outTabPeminta').value;
 
-            if(!keuanganData.pengeluaran_dana) keuanganData.pengeluaran_dana = [];
-            keuanganData.pengeluaran_dana.push(['OUTDANA_TEMP_' + Date.now(), idDana, new Date().toISOString(), nominal, tujuan, peminta, user.nama]);
-            
-            document.getElementById('pengeluaranTabunganModal').classList.add('hidden');
-            renderTabunganUI();
-            renderKeuanganDashboard();
-            showToast("Pengeluaran dicatat", "success");
+                if(!keuanganData.pengeluaran_dana) keuanganData.pengeluaran_dana = [];
+                keuanganData.pengeluaran_dana.push(['OUTDANA_TEMP_' + Date.now(), idDana, new Date().toISOString(), nominal, tujuan, peminta, user.nama]);
+                
+                document.getElementById('pengeluaranTabunganModal').classList.add('hidden');
+                renderTabunganUI();
+                renderKeuanganDashboard();
+                showToast("Pengeluaran dicatat", "success");
 
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'savePengeluaranDana', id_dana: idDana, nominal: nominal, tujuan: tujuan, peminta: peminta, dicatatOleh: user.nama }) });
-        });
+                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'savePengeluaranDana', id_dana: idDana, nominal: nominal, tujuan: tujuan, peminta: peminta, dicatatOleh: user.nama }) });
+            });
+        }
 
         function openTabunganModal() {
-            document.getElementById('formTabungan').reset();
-            document.getElementById('danaCheckboxes').innerHTML = '';
-            document.getElementById('danaCheckboxes').classList.add('hidden');
-            document.getElementById('danaDeadline').value = getLocalToday();
+            if(document.getElementById('formTabungan')) document.getElementById('formTabungan').reset();
+            if(document.getElementById('danaCheckboxes')) {
+                document.getElementById('danaCheckboxes').innerHTML = '';
+                document.getElementById('danaCheckboxes').classList.add('hidden');
+            }
+            if(document.getElementById('danaDeadline')) document.getElementById('danaDeadline').value = getLocalToday();
             document.getElementById('tabunganModal').classList.remove('hidden'); 
             document.getElementById('tabunganModal').classList.add('flex');
         }
@@ -3404,33 +3420,35 @@
             }
         }
 
-        document.getElementById('formTabungan').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const mode = document.getElementById('danaTargetUser').value;
-            let targetStr = "Semua";
-            if(mode === 'Spesifik') {
-                const checked = Array.from(document.querySelectorAll('.chk-dana-target:checked')).map(cb => cb.value);
-                if(checked.length === 0) { showToast("Pilih minimal 1 target", "error"); return; }
-                targetStr = checked.join(',');
-            }
+        const formTabungan = document.getElementById('formTabungan');
+        if (formTabungan) {
+            formTabungan.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const mode = document.getElementById('danaTargetUser').value;
+                let targetStr = "Semua";
+                if(mode === 'Spesifik') {
+                    const checked = Array.from(document.querySelectorAll('.chk-dana-target:checked')).map(cb => cb.value);
+                    if(checked.length === 0) { showToast("Pilih minimal 1 target", "error"); return; }
+                    targetStr = checked.join(',');
+                }
 
-            showLoading(true, "Menyimpan...");
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ 
-                action: 'saveDana', 
-                judul: document.getElementById('danaJudul').value, 
-                target_nominal: unformatRupiah(document.getElementById('danaTarget').value), 
-                deadline: document.getElementById('danaDeadline').value,
-                target_user: targetStr,
-                tujuan: '-'
-            })}).then(r=>r.json()).then(d => {
-                showLoading(false);
-                if(d.success) { showToast("Tabungan dibuat", "success"); closeTabunganModal(); loadKeuanganAnggota(); populateSelectTabungan(); }
-                else showToast(d.message, "error");
+                showLoading(true, "Menyimpan...");
+                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ 
+                    action: 'saveDana', 
+                    judul: document.getElementById('danaJudul').value, 
+                    target_nominal: unformatRupiah(document.getElementById('danaTarget').value), 
+                    deadline: document.getElementById('danaDeadline').value,
+                    target_user: targetStr,
+                    tujuan: '-'
+                })}).then(r=>r.json()).then(d => {
+                    showLoading(false);
+                    if(d.success) { showToast("Tabungan dibuat", "success"); closeTabunganModal(); loadKeuanganAnggota(); populateSelectTabungan(); }
+                    else showToast(d.message, "error");
+                });
             });
-        });
+        }
 
         // EXPORT FUNCTIONS
-        let currentExportType = ''; let currentExportDanaId = '';
         function openExportModal(type, idDana = '') {
             currentExportType = type; currentExportDanaId = idDana;
             document.getElementById('exportModal').classList.remove('hidden'); document.getElementById('exportModal').classList.add('flex');
@@ -3440,6 +3458,7 @@
             else if (type === 'rekapkas') { titleEl.textContent = 'Export Rekap Kas'; dateFilter.classList.remove('hidden'); }
             else if (type === 'tabungan') { titleEl.textContent = 'Export Tabungan'; dateFilter.classList.add('hidden'); }
         }
+
         function generateExportTable() {
             const container = document.getElementById('exportTableContainer'); container.innerHTML = ''; container.classList.remove('hidden');
             if (currentExportType === 'bukubesar') {
@@ -3474,6 +3493,7 @@
             }
             document.getElementById('btnDownloadExport').classList.remove('hidden');
         }
+        
         function downloadExportImage() {
             const container = document.getElementById('exportTableContainer'); const title = document.getElementById('exportModalTitle').textContent;
             showLoading(true, "Menyiapkan gambar...");
