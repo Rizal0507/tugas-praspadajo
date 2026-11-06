@@ -663,6 +663,35 @@
 
     <!-- PENGELUARAN TABUNGAN -->
     <div id="pengeluaranTabunganModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
+            <!-- MODAL EXPORT UNIVERSAL (Bendahara) -->
+    <div id="exportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-3xl p-5 shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4 border-b pb-3 flex-none">
+                <h3 class="font-bold text-gray-800 text-sm" id="exportModalTitle">Export Data</h3>
+                <button onclick="document.getElementById('exportModal').classList.add('hidden')" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div id="exportDateFilterContainer" class="grid grid-cols-2 gap-3 mb-4 flex-none hidden">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-600 block mb-1">Dari Tanggal</label>
+                    <input type="date" id="exportStartDate" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs font-bold outline-none">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-600 block mb-1">Sampai Tanggal</label>
+                    <input type="date" id="exportEndDate" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs font-bold outline-none">
+                </div>
+            </div>
+            
+            <button type="button" onclick="generateExportTable()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-xl text-xs mb-4 flex-none"><i class="fa-solid fa-magnifying-glass mr-1"></i> Tampilkan Data</button>
+            
+            <div id="exportTableContainer" class="border rounded-xl overflow-auto custom-scroll flex-grow bg-white p-2 hidden"></div>
+
+            <div class="mt-4 flex gap-2 justify-end flex-none">
+                <button type="button" onclick="document.getElementById('exportModal').classList.add('hidden')" class="px-4 py-2 bg-gray-100 text-gray-600 font-bold rounded-xl text-xs">Tutup</button>
+                <button type="button" id="btnDownloadExport" onclick="downloadExportImage()" class="hidden px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs shadow-md"><i class="fa-solid fa-download mr-1"></i> Unduh Gambar</button>
+            </div>
+        </div>
+    </div>
         <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl">
             <h3 class="font-bold text-gray-800 text-sm mb-4 border-b pb-3">Tarik Dana Tabungan</h3>
             <form id="formPengeluaranTabungan" class="flex flex-col gap-3">
@@ -1025,23 +1054,29 @@
             const container = document.getElementById('sidebarMenuContainer');
             let html = '';
             
-            // Cek Tugas Khusus
             const isPetugasAbsen = (user.tugasKhusus || '').includes('Petugas Absen');
             const isBendahara = (user.tugasKhusus || '').includes('Bendahara');
 
-            // Menu Absen khusus Petugas Absen
+            // --- MENU ATAS (KHUSUS) ---
             if(isPetugasAbsen) {
                 html += `<button onclick="openAbsenModal()" class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-600 hover:bg-emerald-100 flex items-center gap-2 transition-colors border border-emerald-200 mb-2"><i class="fa-solid fa-clipboard-user w-4 text-center"></i> <span>Input Absensi Harian</span></button>`;
             }
             
+            if(isBendahara) {
+                html += `<button onclick="switchTab('keuangan')" id="tabBtnKeuangan" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold bg-indigo-50 text-indigo-600 hover:bg-indigo-100 flex items-center gap-2 transition-colors border border-indigo-200 mb-2"><i class="fa-solid fa-money-bill-wave w-4 text-center"></i> <span>Keuangan</span></button>`;
+            }
+
+            // --- MENU BAWAH (BIASA) ---
             html += `<button onclick="switchTab('dataAnggota')" id="tabBtnDataAnggota" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors"><i class="fa-solid fa-id-card w-4 text-center"></i> <span>Data Anggota</span></button>`;
             html += `<button onclick="switchTab('dashboard')" id="tabBtnDashboard" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold bg-blue-600 text-white flex items-center gap-2 transition-colors"><i class="fa-solid fa-list-check w-4 text-center"></i> <span>Tugas Hari Ini</span><span id="badgeTugasCount" class="hidden ml-auto bg-rose-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">0</span></button>`;
             html += `<button onclick="switchTab('riwayatTugas')" id="tabBtnRiwayatTugas" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors relative"><i class="fa-solid fa-medal w-4 text-center"></i> <span>Riwayat Tugas</span><span id="badgeRiwayatDot" class="hidden absolute right-3 w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span></button>`;
             html += `<button onclick="switchTab('riwayatLatihan')" id="tabBtnRiwayatLatihan" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors"><i class="fa-solid fa-chart-line w-4 text-center"></i> <span>Riwayat Latihan</span></button>`;
             html += `<button onclick="switchTab('materi')" id="tabBtnMateri" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors"><i class="fa-solid fa-book-open w-4 text-center"></i> <span>Materi</span></button>`;
             
-            // Menu Keuangan Muncul untuk SEMUA anggota
-            html += `<button onclick="switchTab('keuangan')" id="tabBtnKeuangan" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors"><i class="fa-solid fa-wallet w-4 text-center"></i> <span>Keuangan</span></button>`;
+            // Menu Kas dan Tabungan (Hanya untuk Non-Bendahara)
+            if(!isBendahara) {
+                html += `<button onclick="switchTab('keuangan')" id="tabBtnKeuangan" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 flex items-center gap-2 transition-colors"><i class="fa-solid fa-wallet w-4 text-center"></i> <span>Kas dan Tabungan</span></button>`;
+            }
 
             container.innerHTML = html;
         }
@@ -1131,6 +1166,15 @@
                 document.getElementById('sidebarRoleBadge').textContent = "Petugas Absen";
                 document.getElementById('sidebarRoleBadge').className = "bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-emerald-300 shadow-sm";
                 document.getElementById('absensiDate').value = getLocalToday();
+
+                        // --- RENDER BADGES --- (Letakkan di sini)
+            const badgesHtml = [];
+            if ((user.tugasKhusus || '').includes('Bendahara')) badgesHtml.push(`<span class="bg-amber-100 text-amber-700 border border-amber-300 px-2 py-0.5 rounded text-[9px] font-bold shadow-sm"><i class="fa-solid fa-coins mr-1"></i>Bendahara</span>`);
+            if ((user.tugasKhusus || '').includes('Petugas Absen')) badgesHtml.push(`<span class="bg-emerald-100 text-emerald-700 border border-emerald-300 px-2 py-0.5 rounded text-[9px] font-bold shadow-sm"><i class="fa-solid fa-clipboard-user mr-1"></i>Absen</span>`);
+            
+            document.getElementById('sidebarBadges').innerHTML = badgesHtml.join('');
+            document.getElementById('mobileBadges').innerHTML = badgesHtml.join('');
+
             }
             renderMenu();
             fetchConfigAndTasks();
@@ -1162,6 +1206,7 @@
                     btn.classList.add('bg-blue-600', 'text-white');
                     btn.classList.remove('text-gray-600', 'hover:bg-gray-100');
                     view.classList.remove('hidden'); view.classList.add('flex');
+                    
                     if (t === 'riwayatTugas') document.getElementById('badgeRiwayatDot').classList.add('hidden');
                     if (t === 'materi') loadMateriData();
                     if (t === 'keuangan') loadKeuanganAnggota();
@@ -2946,33 +2991,23 @@
             }
         }
 
+        // --- FUNGSI KEUANGAN BENDAHARA (LENGKAP) ---
         function renderKeuanganDashboard() {
             let totalMasuk = 0, totalKeluar = 0;
             keuanganData.kas.forEach(k => { totalMasuk += parseInt(k[3]) || 0; });
             keuanganData.pengeluaran.forEach(p => { totalKeluar += parseInt(p[2]) || 0; });
-            
             document.getElementById('dashTotalKas').textContent = formatRupiah(totalMasuk - totalKeluar);
             document.getElementById('dashTotalMasuk').textContent = formatRupiah(totalMasuk);
             document.getElementById('dashTotalKeluar').textContent = formatRupiah(totalKeluar);
             
             // Buku Besar
             let grouped = {};
-            keuanganData.kas.forEach(k => {
-                const tgl = parseDateString(k[1]);
-                if(!grouped[tgl]) grouped[tgl] = { masuk: 0, keluar: 0 };
-                grouped[tgl].masuk += parseInt(k[3]) || 0;
-            });
-            keuanganData.pengeluaran.forEach(p => {
-                const tgl = parseDateString(p[1]);
-                if(!grouped[tgl]) grouped[tgl] = { masuk: 0, keluar: 0 };
-                grouped[tgl].keluar += parseInt(p[2]) || 0;
-            });
+            keuanganData.kas.forEach(k => { const tgl = parseDateString(k[1]); if(!grouped[tgl]) grouped[tgl] = { masuk: 0, keluar: 0 }; grouped[tgl].masuk += parseInt(k[3]) || 0; });
+            keuanganData.pengeluaran.forEach(p => { const tgl = parseDateString(p[1]); if(!grouped[tgl]) grouped[tgl] = { masuk: 0, keluar: 0 }; grouped[tgl].keluar += parseInt(p[2]) || 0; });
             const sortedDates = Object.keys(grouped).sort((a,b) => new Date(b) - new Date(a));
             let saldoBerjalan = 0;
             document.getElementById('tableBukuBesar').innerHTML = sortedDates.map(tgl => {
-                const m = grouped[tgl].masuk; const k = grouped[tgl].keluar;
-                saldoBerjalan += (m - k);
-                const [y, mo, d] = tgl.split('-');
+                const m = grouped[tgl].masuk; const k = grouped[tgl].keluar; saldoBerjalan += (m - k); const [y, mo, d] = tgl.split('-');
                 return `<tr><td class="p-3 text-[10px] font-bold text-gray-700">${d}/${mo}/${y}</td><td class="p-3 text-[10px] text-emerald-600 font-bold">${m ? formatRupiah(m) : '-'}</td><td class="p-3 text-[10px] text-rose-600 font-bold">${k ? formatRupiah(k) : '-'}</td><td class="p-3 text-[10px] font-bold text-gray-800 text-right">${formatRupiah(saldoBerjalan)}</td></tr>`;
             }).join('') || `<tr><td colspan="4" class="p-4 text-center text-xs text-gray-400">Belum ada transaksi</td></tr>`;
 
@@ -2984,27 +3019,50 @@
                     return `<div class="bg-white rounded-3xl border shadow-sm flex flex-col"><div class="p-4 border-b bg-gray-50 rounded-t-3xl relative"><h3 class="font-bold text-base text-gray-800">${judul}</h3><div class="text-[10px] text-gray-600 mt-1"><span>Target: ${formatRupiah(targetNominal)} • Deadline: ${deadline}</span></div></div></div>`;
                 }).join('');
             } else { container.innerHTML = `<div class="p-8 text-center text-xs text-gray-400 bg-white rounded-3xl border">Belum ada tabungan.</div>`; }
+            
+            renderTabelPerorangan();
+        }
+
+        function renderTabelPerorangan() {
+            const start = document.getElementById('rekapStartDate').value; const end = document.getElementById('rekapEndDate').value;
+            if(!start || !end) return;
+            let dateList = []; let curr = new Date(start); let endDate = new Date(end);
+            while (curr <= endDate) { dateList.push(curr.toISOString().split('T')[0]); curr.setDate(curr.getDate() + 1); }
+            let theadHtml = `<tr><th class="p-2 border-r sticky left-0 bg-gray-100 z-10">Nama Anggota</th>`;
+            dateList.forEach(d => { const [y, mo, day] = d.split('-'); theadHtml += `<th class="p-2 text-center border-r">${day}/${mo}</th>`; });
+            theadHtml += `<th class="p-2 text-center text-blue-700">Total</th></tr>`;
+            document.getElementById('theadRekapPerorangan').innerHTML = theadHtml;
+            const anggotaList = (window.__allMembers || []).filter(m => m.role === 'Anggota');
+            document.getElementById('tbodyRekapPerorangan').innerHTML = anggotaList.map(m => {
+                let rowHtml = `<tr><td class="p-2 font-bold border-r sticky left-0 bg-white">${m.nama}</td>`; let totalMingguan = 0;
+                dateList.forEach(d => {
+                    const trx = keuanganData.kas.filter(k => k[2] === m.username && parseDateString(k[1]) === d);
+                    const totalHari = trx.reduce((sum, k) => sum + (parseInt(k[3]) || 0), 0); totalMingguan += totalHari;
+                    rowHtml += `<td class="p-2 text-center border-r text-[10px] ${totalHari ? 'text-blue-600 font-bold' : 'text-gray-300'}">${totalHari ? formatRupiah(totalHari) : '-'}</td>`;
+                });
+                rowHtml += `<td class="p-2 text-center font-black text-blue-700 bg-blue-50">${formatRupiah(totalMingguan)}</td></tr>`; return rowHtml;
+            }).join('');
+            document.getElementById('rekapPeroranganWrapper').classList.remove('hidden'); document.getElementById('iconToggleRekap').className = 'fa-solid fa-eye-slash';
         }
 
         function renderKasUI() {
             const filterDate = document.getElementById('kasDateFilter').value || getLocalToday();
             const anggotaList = (window.__allMembers || []).filter(m => m.role === 'Anggota');
+            const minKas  = (keuanganData.settings && keuanganData.settings.minimal) ? keuanganData.settings.minimal : 0;
+            const freqKas = (keuanganData.settings && keuanganData.settings.frekuensi) ? keuanganData.settings.frekuensi : 'Harian';
+            if(document.getElementById('lblMinKas')) document.getElementById('lblMinKas').textContent = formatRupiah(minKas);
+            if(document.getElementById('lblFreqKas')) document.getElementById('lblFreqKas').textContent = freqKas;
+
             document.getElementById('tableKasMasuk').innerHTML = anggotaList.map(m => {
                 const trxHariIni = (keuanganData.kas || []).filter(k => k[2] === m.username && parseDateString(k[1]) === filterDate);
                 const totalHariIni = trxHariIni.reduce((sum, k) => sum + (parseInt(k[3]) || 0), 0);
-                return `<tr class="hover:bg-gray-50 border-b"><td class="p-3"><div class="text-xs font-bold text-gray-800">${m.nama}</div></td><td class="p-3 text-[10px] font-bold">${totalHariIni > 0 ? `<span class="text-blue-600">${formatRupiah(totalHariIni)}</span>` : `<span class="text-gray-400">-</span>`}</td><td class="p-3 text-right"><button onclick="quickSaveKas('${m.username}', 2000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">2K</button><button onclick="deleteKas('${m.username}', '${filterDate}')" class="bg-rose-50 text-rose-600 border border-rose-200 px-2 py-1 rounded-lg text-[9px] font-bold ml-1"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                const inputHtml = `<div class="flex flex-col items-end gap-1"><div class="flex gap-1"><button onclick="quickSaveKas('${m.username}', 1000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">1K</button><button onclick="quickSaveKas('${m.username}', 2000, '${filterDate}')" class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[9px] font-bold">2K</button><button onclick="deleteKas('${m.username}', '${filterDate}')" class="bg-rose-50 text-rose-600 border border-rose-200 px-2 py-1 rounded-lg text-[9px] font-bold"><i class="fa-solid fa-trash"></i></button></div><div class="flex gap-1 w-full max-w-[120px]"><input type="text" id="manualKas_${m.username}" onkeyup="formatInputRupiah(this)" placeholder="Nominal..." class="w-full px-2 py-1 border rounded-lg text-[10px] outline-none text-right"><button onclick="manualSaveKas('${m.username}', '${filterDate}')" class="bg-blue-600 text-white px-2 py-1 rounded-lg text-[10px]"><i class="fa-solid fa-check"></i></button></div></div>`;
+                return `<tr class="hover:bg-gray-50 border-b"><td class="p-3"><div class="text-xs font-bold text-gray-800">${m.nama}</div><div class="text-[9px] text-gray-500">${m.kelas}</div></td><td class="p-3 text-[10px] font-bold">${totalHariIni > 0 ? `<span class="text-blue-600">${formatRupiah(totalHariIni)}</span>` : `<span class="text-gray-400">-</span>`}</td><td class="p-3 text-right">${inputHtml}</td></tr>`;
             }).join('');
             document.getElementById('tableKasKeluar').innerHTML = (keuanganData.pengeluaran && keuanganData.pengeluaran.length) ? keuanganData.pengeluaran.slice().reverse().map(p => `<tr class="border-b"><td class="p-3 text-[10px] text-gray-600">${parseDateString(p[1]).split('-').reverse().join('/')}</td><td class="p-3 text-xs font-bold text-gray-800">${p[3]}</td><td class="p-3 text-xs font-bold text-rose-600 text-right">${formatRupiah(p[2])}</td></tr>`).join('') : `<tr><td colspan="3" class="p-4 text-center text-xs text-gray-400">Belum ada pengeluaran</td></tr>`;
         }
-        
-        function quickSaveKas(username, nominal, tanggal) { keuanganData.kas.push(['KAS_TEMP_' + Date.now(), tanggal + " " + new Date().toTimeString().split(' ')[0], username, nominal, 'Kas']); renderKasUI(); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'saveKas', username: username, nominal: nominal, keterangan: 'Kas', tanggalKustom: tanggal }) }).catch(e=>{}); }
-        function deleteKas(username, tanggal) { const index = keuanganData.kas.findLastIndex(k => k[2] === username && parseDateString(k[1]) === tanggal); if(index !== -1) { keuanganData.kas.splice(index, 1); renderKasUI(); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteKas', username: username, tanggal: tanggal }) }).catch(e=>{}); } }
 
-        function populateSelectTabungan() {
-            const sel = document.getElementById('selectTabungan');
-            sel.innerHTML = (keuanganData.dana || []).map(d => `<option value="${d[0]}">${d[1]}</option>`).join('');
-            renderTabunganUI();
-        }
+        function manualSaveKas(username, tanggal) { const inputEl = document.getElementById(`manualKas_${username}`); const val = unformatRupiah(inputEl.value); if(val <= 0) return; quickSaveKas(username, val, tanggal); inputEl.value = ''; }
 
         function renderTabunganUI() {
             const idDana = document.getElementById('selectTabungan').value;
@@ -3013,27 +3071,70 @@
             const targetNominal = parseInt(dana[3]) || 0;
             const filterDate = document.getElementById('tabunganDateFilter').value || getLocalToday();
             const anggotaList = (window.__allMembers || []).filter(m => m.role === 'Anggota');
+            document.getElementById('lblDeadlineTabungan').textContent = `Target: ${formatRupiah(targetNominal)} • Deadline: ${dana[4] ? parseDateString(dana[4]) : '-'}`;
 
             document.getElementById('tableTabungan').innerHTML = anggotaList.map(m => {
                 const trxAll = (keuanganData.transaksi_dana || []).filter(t => t[1] === idDana && t[3] === m.username);
                 const totalTerkumpul = trxAll.reduce((sum, t) => sum + (parseInt(t[4]) || 0), 0);
-                return `<tr class="hover:bg-gray-50"><td class="p-3"><div class="text-xs font-bold text-gray-800">${m.nama}</div></td><td class="p-3 text-center text-[11px] font-black">${formatRupiah(totalTerkumpul)}</td><td class="p-3 text-right"><button onclick="quickSaveTabungan('${idDana}', '${m.username}', 10000, '${filterDate}')" class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded-lg text-[9px] font-bold">10K</button></td></tr>`;
+                const saldoHariIni = trxAll.filter(t => parseDateString(t[2]) === filterDate).reduce((sum, t) => sum + (parseInt(t[4]) || 0), 0);
+                let colorClass = 'text-rose-600'; if (totalTerkumpul > 0) colorClass = 'text-amber-500'; if (totalTerkumpul >= targetNominal) colorClass = 'text-emerald-600';
+                return `<tr class="hover:bg-gray-50"><td class="p-3"><div class="text-xs font-bold text-gray-800">${m.nama}</div><div class="text-[9px] text-gray-500">${m.kelas}</div></td><td class="p-3 text-center text-[11px] font-black ${colorClass}">${formatRupiah(totalTerkumpul)}</td><td class="p-3 text-center text-[10px] font-bold text-blue-600">${saldoHariIni > 0 ? formatRupiah(saldoHariIni) : '-'}</td><td class="p-3 text-right"><div class="flex flex-col items-end gap-1"><div class="flex gap-1"><button onclick="quickSaveTabungan('${idDana}', '${m.username}', 10000, '${filterDate}')" class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded-lg text-[9px] font-bold">10K</button><button onclick="quickSaveTabungan('${idDana}', '${m.username}', 50000, '${filterDate}')" class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded-lg text-[9px] font-bold">50K</button><button onclick="deleteTabungan('${idDana}', '${m.username}', '${filterDate}')" class="bg-rose-50 text-rose-600 border border-rose-200 px-2 py-1 rounded-lg text-[9px] font-bold"><i class="fa-solid fa-trash"></i></button></div><div class="flex gap-1 w-full max-w-[120px]"><input type="text" id="manualTab_${m.username}" onkeyup="formatInputRupiah(this)" placeholder="Nominal..." class="w-full px-2 py-1 border rounded-lg text-[10px] outline-none text-right"><button onclick="manualSaveTabungan('${idDana}', '${m.username}', '${filterDate}')" class="bg-emerald-600 text-white px-2 py-1 rounded-lg text-[10px]"><i class="fa-solid fa-check"></i></button></div></div></td></tr>`;
             }).join('');
-            document.getElementById('tableTabunganKeluar').innerHTML = `<tr><td colspan="3" class="p-4 text-center text-xs text-gray-400">-</td></tr>`;
+
+            const keluarTab = (keuanganData.pengeluaran_dana || []).filter(p => p[1] === idDana);
+            document.getElementById('tableTabunganKeluar').innerHTML = keluarTab.length ? keluarTab.slice().reverse().map(p => `<tr><td class="p-3 text-[10px] text-gray-600">${parseDateString(p[2]).split('-').reverse().join('/')}</td><td class="p-3 text-xs font-bold text-gray-800">${p[4]}</td><td class="p-3 text-xs font-bold text-rose-600 text-right">${formatRupiah(p[3])}</td></tr>`).join('') : `<tr><td colspan="3" class="p-4 text-center text-xs text-gray-400">Belum ada pengeluaran</td></tr>`;
         }
 
-        function quickSaveTabungan(idDana, username, nominal, tanggal) { keuanganData.transaksi_dana.push(['TRX_TEMP_' + Date.now(), idDana, tanggal + " " + new Date().toTimeString().split(' ')[0], username, nominal]); renderTabunganUI(); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'saveTransaksiDana', id_dana: idDana, username: username, nominal: nominal, tanggalKustom: tanggal }) }).catch(e=>{}); }
+        function manualSaveTabungan(idDana, username, tanggal) { const inputEl = document.getElementById(`manualTab_${username}`); const val = unformatRupiah(inputEl.value); if(val <= 0) return; quickSaveTabungan(idDana, username, val, tanggal); inputEl.value = ''; }
 
-        // FUNGSI MODAL KEUANGAN BENDAHARA
-        function openSettingKasModal() { document.getElementById('settingKasModal').classList.remove('hidden'); document.getElementById('settingKasModal').classList.add('flex'); }
-        function closeSettingKasModal() { document.getElementById('settingKasModal').classList.add('hidden'); document.getElementById('settingKasModal').classList.remove('flex'); }
-        function openPengeluaranModal() { document.getElementById('pengeluaranModal').classList.remove('hidden'); document.getElementById('pengeluaranModal').classList.add('flex'); }
-        function closePengeluaranModal() { document.getElementById('pengeluaranModal').classList.add('hidden'); document.getElementById('pengeluaranModal').classList.remove('flex'); }
-        function openTabunganModal() { document.getElementById('tabunganModal').classList.remove('hidden'); document.getElementById('tabunganModal').classList.add('flex'); }
-        function closeTabunganModal() { document.getElementById('tabunganModal').classList.add('hidden'); document.getElementById('tabunganModal').classList.remove('flex'); }
-        function openPengeluaranTabunganModal() { document.getElementById('pengeluaranTabunganModal').classList.remove('hidden'); document.getElementById('pengeluaranTabunganModal').classList.add('flex'); }
-        
-        document.getElementById('formSettingKas').addEventListener('submit', (e) => { e.preventDefault(); showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'updateSettingKas', settings: { minimal: unformatRupiah(document.getElementById('setMinKas').value), frekuensi: document.getElementById('setTipeKas').value } })}).then(r=>r.json()).then(d => { showLoading(false); if(d.success) { showToast("Tersimpan", "success"); closeSettingKasModal(); loadKeuanganAnggota(); } else showToast(d.message, "error"); }); });
-        document.getElementById('formPengeluaran').addEventListener('submit', (e) => { e.preventDefault(); showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'savePengeluaran', nominal: unformatRupiah(document.getElementById('outNominal').value), tujuan: document.getElementById('outTujuan').value, peminta: document.getElementById('outPeminta').value, dicatatOleh: user.nama, tanggalKustom: document.getElementById('outTanggal').value })}).then(r=>r.json()).then(d => { showLoading(false); if(d.success) { showToast("Pengeluaran dicatat", "success"); closePengeluaranModal(); loadKeuanganAnggota(); } else showToast(d.message, "error"); }); });
-        document.getElementById('formTabungan').addEventListener('submit', (e) => { e.preventDefault(); showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'saveDana', judul: document.getElementById('danaJudul').value, target_nominal: unformatRupiah(document.getElementById('danaTarget').value), deadline: document.getElementById('danaDeadline').value, target_user: 'Semua', tujuan: '-' })}).then(r=>r.json()).then(d => { showLoading(false); if(d.success) { showToast("Tabungan dibuat", "success"); closeTabunganModal(); loadKeuanganAnggota(); } else showToast(d.message, "error"); }); });
+        // EXPORT FUNCTIONS
+        let currentExportType = ''; let currentExportDanaId = '';
+        function openExportModal(type, idDana = '') {
+            currentExportType = type; currentExportDanaId = idDana;
+            document.getElementById('exportModal').classList.remove('hidden'); document.getElementById('exportModal').classList.add('flex');
+            document.getElementById('exportTableContainer').classList.add('hidden'); document.getElementById('btnDownloadExport').classList.add('hidden');
+            const titleEl = document.getElementById('exportModalTitle'); const dateFilter = document.getElementById('exportDateFilterContainer');
+            if (type === 'bukubesar') { titleEl.textContent = 'Export Buku Besar Kas'; dateFilter.classList.remove('hidden'); }
+            else if (type === 'rekapkas') { titleEl.textContent = 'Export Rekap Kas'; dateFilter.classList.remove('hidden'); }
+        }
+        function generateExportTable() {
+            const container = document.getElementById('exportTableContainer'); container.innerHTML = ''; container.classList.remove('hidden');
+            if (currentExportType === 'bukubesar') {
+                const start = document.getElementById('exportStartDate').value; const end = document.getElementById('exportEndDate').value;
+                let grouped = {}; keuanganData.kas.forEach(k => { const tgl = parseDateString(k[1]); if(start && end && (tgl < start || tgl > end)) return; if(!grouped[tgl]) grouped[tgl] = { masuk: 0, keluar: 0 }; grouped[tgl].masuk += parseInt(k[3]) || 0; });
+                keuanganData.pengeluaran.forEach(p => { const tgl = parseDateString(p[1]); if(start && end && (tgl < start || tgl > end)) return; if(!grouped[tgl]) grouped[tgl] = { masuk: 0, keluar: 0 }; grouped[tgl].keluar += parseInt(p[2]) || 0; });
+                const sortedDates = Object.keys(grouped).sort((a,b) => new Date(b) - new Date(a)); let saldoBerjalan = 0;
+                const rowsHtml = sortedDates.map(tgl => { const m = grouped[tgl].masuk; const k = grouped[tgl].keluar; saldoBerjalan += (m - k); const [y, mo, d] = tgl.split('-'); return `<tr><td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${d}/${mo}/${y}</td><td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${m ? formatRupiah(m) : '-'}</td><td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${k ? formatRupiah(k) : '-'}</td><td style="padding: 8px; border: 1px solid #ddd; text-align: center; font-weight:bold;">${formatRupiah(saldoBerjalan)}</td></tr>`; }).join('');
+                container.innerHTML = `<table class="w-full text-left text-xs" id="tempExportTable"><thead class="bg-gray-100"><tr><th class="p-3 border">Tanggal</th><th class="p-3 border">Masuk</th><th class="p-3 border">Keluar</th><th class="p-3 border">Saldo</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
+            } else if (currentExportType === 'rekapkas') {
+                const start = document.getElementById('exportStartDate').value; const end = document.getElementById('exportEndDate').value;
+                if(!start || !end) { showToast("Pilih rentang tanggal", "error"); return; }
+                let dateList = []; let curr = new Date(start); let endDate = new Date(end);
+                while (curr <= endDate) { dateList.push(curr.toISOString().split('T')[0]); curr.setDate(curr.getDate() + 1); }
+                let theadHtml = `<tr><th class="p-2 border-r bg-gray-100">Nama Anggota</th>`;
+                dateList.forEach(d => { const [y, mo, day] = d.split('-'); theadHtml += `<th class="p-2 text-center border-r bg-gray-100">${day}/${mo}</th>`; });
+                theadHtml += `<th class="p-2 text-center text-blue-700 bg-gray-100">Total</th></tr>`;
+                const anggotaList = (window.__allMembers || []).filter(m => m.role === 'Anggota');
+                let tbodyHtml = anggotaList.map(m => { let rowHtml = `<tr><td class="p-2 font-bold border-r">${m.nama}</td>`; let totalMingguan = 0; dateList.forEach(d => { const trx = keuanganData.kas.filter(k => k[2] === m.username && parseDateString(k[1]) === d); const totalHari = trx.reduce((sum, k) => sum + (parseInt(k[3]) || 0), 0); totalMingguan += totalHari; rowHtml += `<td class="p-2 text-center border-r text-[10px]">${totalHari ? formatRupiah(totalHari) : '-'}</td>`; }); rowHtml += `<td class="p-2 text-center font-black text-blue-700 bg-blue-50">${formatRupiah(totalMingguan)}</td></tr>`; return rowHtml; }).join('');
+                container.innerHTML = `<table class="w-full text-left border-collapse text-[10px] min-w-max" id="tempExportTable"><thead>${theadHtml}</thead><tbody>${tbodyHtml}</tbody></table>`;
+            }
+            document.getElementById('btnDownloadExport').classList.remove('hidden');
+        }
+        function downloadExportImage() {
+            const container = document.getElementById('exportTableContainer'); const title = document.getElementById('exportModalTitle').textContent;
+            showLoading(true, "Menyiapkan gambar...");
+            const tempDiv = document.createElement('div'); tempDiv.style.position = 'absolute'; tempDiv.style.left = '-9999px'; tempDiv.style.backgroundColor = '#ffffff'; tempDiv.style.padding = '30px';
+            tempDiv.innerHTML = `<div style="text-align: center; margin-bottom: 20px;"><h1 style="font-weight: bold; font-size: 24px; margin: 0; color: #1f2937;">PRASPADAJO APP</h1><p style="font-size: 14px; color: #4b5563; margin-top: 5px;">${title}</p></div>`;
+            const cloneTable = container.querySelector('table').cloneNode(true);
+            cloneTable.style.width = '100%'; cloneTable.style.borderCollapse = 'collapse';
+            cloneTable.querySelectorAll('th, td').forEach(cell => { cell.style.border = '1px solid #e5e7eb'; cell.style.padding = '8px 12px'; cell.style.textAlign = 'center'; cell.style.fontSize = '12px'; cell.style.color = '#374151'; cell.style.whiteSpace = 'nowrap'; });
+            cloneTable.querySelectorAll('th').forEach(th => { th.style.backgroundColor = '#f3f4f6'; th.style.fontWeight = 'bold'; });
+            tempDiv.appendChild(cloneTable); document.body.appendChild(tempDiv);
+            setTimeout(() => {
+                html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff', useCORS: true, ignoreElements: (element) => element.tagName === 'VIDEO' }).then(canvas => {
+                    if(document.body.contains(tempDiv)) document.body.removeChild(tempDiv); showLoading(false);
+                    canvas.toBlob(function(blob) { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${title.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.png`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); showToast("Gambar berhasil diunduh!", "success"); });
+                }).catch(e => { if(document.body.contains(tempDiv)) document.body.removeChild(tempDiv); showLoading(false); showToast("Gagal memproses gambar", "error"); });
+            }, 200);
+        }
     </script>
