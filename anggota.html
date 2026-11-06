@@ -682,8 +682,27 @@
 
     <!-- PENGELUARAN TABUNGAN -->
     <div id="pengeluaranTabunganModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[130] hidden items-center justify-center p-4">
-            <!-- MODAL EXPORT UNIVERSAL (Bendahara) -->
-    <!-- MODAL EXPORT UNIVERSAL (Tambahkan ini jika belum ada) -->
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+            <h3 class="font-bold text-gray-800 text-sm mb-4 border-b pb-3">Tarik Dana Tabungan</h3>
+            <form id="formPengeluaranTabungan" class="flex flex-col gap-3">
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-[10px] font-bold text-gray-600">Nominal (Rp)</label>
+                        <span id="lblMaxDana" class="text-[10px] font-bold text-rose-600">Maks: Rp 0</span>
+                    </div>
+                    <input type="text" id="outTabNominal" onkeyup="formatInputRupiah(this)" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold">
+                </div>
+                <div><label class="text-[10px] font-bold text-gray-600">Tujuan</label><input type="text" id="outTabTujuan" required placeholder="Beli kaos, dll" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></div>
+                <div><label class="text-[10px] font-bold text-gray-600">Nama Peminta</label><input type="text" id="outTabPeminta" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></div>
+                <div class="flex gap-2 mt-2">
+                    <button type="button" onclick="document.getElementById('pengeluaranTabunganModal').classList.add('hidden')" class="flex-1 bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
+                    <button type="submit" class="flex-1 bg-rose-600 text-white font-bold py-2 rounded-xl text-xs shadow-md">Konfirmasi Tarik</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL EXPORT UNIVERSAL (BENDAHARA) - Sekarang berdiri sendiri, bukan di dalam modal lain -->
     <div id="exportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-3xl p-5 shadow-2xl flex flex-col max-h-[90vh]">
             <div class="flex justify-between items-center mb-4 border-b pb-3 flex-none">
@@ -712,25 +731,6 @@
                 <button type="button" onclick="document.getElementById('exportModal').classList.add('hidden')" class="px-4 py-2 bg-gray-100 text-gray-600 font-bold rounded-xl text-xs">Tutup</button>
                 <button type="button" id="btnDownloadExport" onclick="downloadExportImage()" class="hidden px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs shadow-md"><i class="fa-solid fa-download mr-1"></i> Unduh Gambar</button>
             </div>
-        </div>
-    </div>
-        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl">
-            <h3 class="font-bold text-gray-800 text-sm mb-4 border-b pb-3">Tarik Dana Tabungan</h3>
-            <form id="formPengeluaranTabungan" class="flex flex-col gap-3">
-                <div>
-                    <div class="flex justify-between items-center mb-1">
-                        <label class="text-[10px] font-bold text-gray-600">Nominal (Rp)</label>
-                        <span id="lblMaxDana" class="text-[10px] font-bold text-rose-600">Maks: Rp 0</span>
-                    </div>
-                    <input type="text" id="outTabNominal" onkeyup="formatInputRupiah(this)" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm font-bold">
-                </div>
-                <div><label class="text-[10px] font-bold text-gray-600">Tujuan</label><input type="text" id="outTabTujuan" required placeholder="Beli kaos, dll" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></div>
-                <div><label class="text-[10px] font-bold text-gray-600">Nama Peminta</label><input type="text" id="outTabPeminta" required class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></div>
-                <div class="flex gap-2 mt-2">
-                    <button type="button" onclick="document.getElementById('pengeluaranTabunganModal').classList.add('hidden')" class="flex-1 bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-xs">Batal</button>
-                    <button type="submit" class="flex-1 bg-rose-600 text-white font-bold py-2 rounded-xl text-xs shadow-md">Konfirmasi Tarik</button>
-                </div>
-            </form>
         </div>
     </div>
     
@@ -909,6 +909,10 @@
 <!-- ============================================================= -->
     <script>
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbwYTFRirtCpDT1vXJ0hSeFtElQR44rdoMPKskHgRPO3OlCr5_D_cXvLQOFzkDt4lY_IYw/exec';
+                // PENTING: Pindahkan deklarasi variabel ini ke paling atas agar tidak error
+        let currentExportType = ''; 
+        let currentExportDanaId = '';
+
         // ===== KONSTANTA UPLOAD (hardcoded, tidak dari config) =====
         const MAX_RETRY_UPLOAD = 3;
         const UPLOAD_TIMEOUT_MS = 300000; // 5 menit
@@ -2974,9 +2978,6 @@
 
         // --- FUNGSI KEUANGAN BENDAHARA (SAMA PERSIS DENGAN PELATIH) ---
         
-        // PENTING: Pindahkan deklarasi variabel ini ke paling atas agar tidak error
-        let currentExportType = ''; 
-        let currentExportDanaId = '';
 
         function formatInputRupiah(el) {
             let val = el.value.replace(/[^0-9]/g, '');
@@ -3451,12 +3452,25 @@
         // EXPORT FUNCTIONS
         function openExportModal(type, idDana = '') {
             currentExportType = type; currentExportDanaId = idDana;
-            document.getElementById('exportModal').classList.remove('hidden'); document.getElementById('exportModal').classList.add('flex');
-            document.getElementById('exportTableContainer').classList.add('hidden'); document.getElementById('btnDownloadExport').classList.add('hidden');
-            const titleEl = document.getElementById('exportModalTitle'); const dateFilter = document.getElementById('exportDateFilterContainer');
-            if (type === 'bukubesar') { titleEl.textContent = 'Export Buku Besar Kas'; dateFilter.classList.remove('hidden'); }
-            else if (type === 'rekapkas') { titleEl.textContent = 'Export Rekap Kas'; dateFilter.classList.remove('hidden'); }
-            else if (type === 'tabungan') { titleEl.textContent = 'Export Tabungan'; dateFilter.classList.add('hidden'); }
+            document.getElementById('exportModal').classList.remove('hidden'); 
+            document.getElementById('exportModal').classList.add('flex');
+            
+            document.getElementById('exportTableContainer').classList.add('hidden'); 
+            document.getElementById('btnDownloadExport').classList.add('hidden');
+            
+            const titleEl = document.getElementById('exportModalTitle'); 
+            const dateFilter = document.getElementById('exportDateFilterContainer');
+            
+            if (type === 'bukubesar') { 
+                titleEl.textContent = 'Export Buku Besar Kas'; 
+                dateFilter.classList.remove('hidden'); 
+            } else if (type === 'rekapkas') { 
+                titleEl.textContent = 'Export Rekap Kas'; 
+                dateFilter.classList.remove('hidden'); 
+            } else if (type === 'tabungan') { 
+                titleEl.textContent = 'Export Tabungan'; 
+                dateFilter.classList.add('hidden'); 
+            }
         }
 
         function generateExportTable() {
