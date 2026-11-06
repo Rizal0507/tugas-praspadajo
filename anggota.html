@@ -250,12 +250,17 @@
                                 <h3 class="text-lg font-bold text-gray-800" id="dashTotalKeluar">Rp 0</h3>
                             </div>
                         </div>
+
+                        <!-- Buku Besar Kas -->
                         <div class="bg-white rounded-3xl border shadow-sm flex flex-col mt-2">
-                            <div class="p-4 border-b flex justify-between items-center">
+                            <div class="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                 <h3 class="font-bold text-sm text-gray-800">Buku Besar Kas</h3>
+                                <div class="flex flex-wrap gap-2 items-center w-full sm:w-auto">
+                                    <button onclick="openExportModal('bukubesar')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md"><i class="fa-solid fa-download mr-1"></i> Unduh</button>
+                                </div>
                             </div>
-                            <div class="overflow-x-auto max-h-64 custom-scroll p-2 bg-white">
-                                <table class="w-full text-left text-xs">
+                            <div id="bukuBesarWrapper" class="overflow-x-auto max-h-64 custom-scroll p-2 bg-white">
+                                <table class="w-full text-left text-xs" id="tableBukuBesarRaw">
                                     <thead class="bg-gray-50 text-gray-500 font-bold sticky top-0">
                                         <tr><th class="p-3">Tanggal</th><th class="p-3">Masuk</th><th class="p-3">Keluar</th><th class="p-3 text-right">Saldo</th></tr>
                                     </thead>
@@ -263,20 +268,33 @@
                                 </table>
                             </div>
                         </div>
+
+                        <!-- Rekap Perorangan Kas -->
                         <div class="bg-white rounded-3xl border shadow-sm flex flex-col mt-2">
-                            <div class="p-4 border-b flex justify-between items-center">
+                            <div class="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                 <h3 class="font-bold text-sm text-gray-800">Rekap Perorangan Kas</h3>
+                                <div class="flex flex-wrap gap-2 items-center w-full sm:w-auto">
+                                    <input type="date" id="rekapStartDate" class="px-2 py-1.5 border rounded-lg text-[10px] outline-none">
+                                    <span class="text-xs text-gray-400">-</span>
+                                    <input type="date" id="rekapEndDate" class="px-2 py-1.5 border rounded-lg text-[10px] outline-none">
+                                    <button onclick="renderTabelPerorangan()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold">Tampilkan</button>
+                                    <button onclick="toggleRekapKas()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold" title="Sembunyikan/Tampilkan"><i id="iconToggleRekap" class="fa-solid fa-eye"></i></button>
+                                    <button onclick="openExportModal('rekapkas')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md"><i class="fa-solid fa-download mr-1"></i> Unduh</button>
+                                </div>
                             </div>
-                            <div id="rekapPeroranganWrapper" class="overflow-x-auto overflow-y-auto max-h-72 custom-scroll p-2 bg-white">
+                            <div id="rekapPeroranganWrapper" class="overflow-x-auto overflow-y-auto max-h-72 custom-scroll p-2 bg-white hidden">
                                 <table class="w-full text-left border-collapse text-[10px] min-w-max" id="tableRekapPerorangan">
                                     <thead class="bg-gray-100 text-gray-700 font-bold" id="theadRekapPerorangan"></thead>
                                     <tbody id="tbodyRekapPerorangan" class="divide-y divide-gray-200"></tbody>
                                 </table>
                             </div>
                         </div>
-                        <div id="overviewTabunganContainer" class="flex flex-col gap-4 mt-2"></div>
-                    </div>
 
+                        <!-- Ringkasan Tabungan -->
+                        <div class="flex flex-col mt-2 mb-4">
+                            <div id="overviewTabunganContainer" class="flex flex-col gap-4"></div>
+                        </div>
+                    </div>
                     <!-- Sub-View Kas Bendahara -->
                     <div id="subViewKeuanganKas" class="flex flex-col gap-4" style="display: none;">
                         <div class="bg-white rounded-3xl border shadow-sm flex flex-col">
@@ -2826,7 +2844,14 @@
             .then(r => r.json()).then(d => {
                 showLoading(false);
                 if (d && d.success) {
-                    keuanganData = d;
+                    keuanganData = {
+                        kas:              Array.isArray(d.kas)              ? d.kas              : [],
+                        pengeluaran:      Array.isArray(d.pengeluaran)      ? d.pengeluaran      : [],
+                        dana:             Array.isArray(d.dana)             ? d.dana             : [],
+                        transaksi_dana:   Array.isArray(d.transaksi_dana)   ? d.transaksi_dana   : [],
+                        pengeluaran_dana: Array.isArray(d.pengeluaran_dana) ? d.pengeluaran_dana : [],
+                        settings:         d.settings || {}
+                    };
                     
                     const isBendahara = (user.tugasKhusus || '').includes('Bendahara');
                     if (isBendahara) {
@@ -2834,6 +2859,14 @@
                         document.getElementById('keuanganBendaharaArea').classList.add('flex');
                         document.getElementById('keuanganAnggotaArea').classList.add('hidden');
                         document.getElementById('keuanganAnggotaArea').classList.remove('flex');
+                        
+                        // --- TAMBAHKAN INI UNTUK MENGISI TANGGAL DEFAULT ---
+                        if (!document.getElementById('rekapStartDate').value) {
+                            document.getElementById('rekapStartDate').value = getLocalToday();
+                            document.getElementById('rekapEndDate').value = getLocalToday();
+                        }
+                        // ----------------------------------------------------
+
                         // Init bendahara UI
                         renderKeuanganDashboard(); 
                         switchSubTabKeuangan('dashboard');
@@ -2991,36 +3024,126 @@
             }
         }
 
-        // --- FUNGSI KEUANGAN BENDAHARA (LENGKAP) ---
         function renderKeuanganDashboard() {
             let totalMasuk = 0, totalKeluar = 0;
             keuanganData.kas.forEach(k => { totalMasuk += parseInt(k[3]) || 0; });
             keuanganData.pengeluaran.forEach(p => { totalKeluar += parseInt(p[2]) || 0; });
-            document.getElementById('dashTotalKas').textContent = formatRupiah(totalMasuk - totalKeluar);
+            
+            let saldo = totalMasuk - totalKeluar;
+            document.getElementById('dashTotalKas').textContent = formatRupiah(saldo);
             document.getElementById('dashTotalMasuk').textContent = formatRupiah(totalMasuk);
             document.getElementById('dashTotalKeluar').textContent = formatRupiah(totalKeluar);
-            
-            // Buku Besar
-            let grouped = {};
-            keuanganData.kas.forEach(k => { const tgl = parseDateString(k[1]); if(!grouped[tgl]) grouped[tgl] = { masuk: 0, keluar: 0 }; grouped[tgl].masuk += parseInt(k[3]) || 0; });
-            keuanganData.pengeluaran.forEach(p => { const tgl = parseDateString(p[1]); if(!grouped[tgl]) grouped[tgl] = { masuk: 0, keluar: 0 }; grouped[tgl].keluar += parseInt(p[2]) || 0; });
-            const sortedDates = Object.keys(grouped).sort((a,b) => new Date(b) - new Date(a));
-            let saldoBerjalan = 0;
-            document.getElementById('tableBukuBesar').innerHTML = sortedDates.map(tgl => {
-                const m = grouped[tgl].masuk; const k = grouped[tgl].keluar; saldoBerjalan += (m - k); const [y, mo, d] = tgl.split('-');
-                return `<tr><td class="p-3 text-[10px] font-bold text-gray-700">${d}/${mo}/${y}</td><td class="p-3 text-[10px] text-emerald-600 font-bold">${m ? formatRupiah(m) : '-'}</td><td class="p-3 text-[10px] text-rose-600 font-bold">${k ? formatRupiah(k) : '-'}</td><td class="p-3 text-[10px] font-bold text-gray-800 text-right">${formatRupiah(saldoBerjalan)}</td></tr>`;
-            }).join('') || `<tr><td colspan="4" class="p-4 text-center text-xs text-gray-400">Belum ada transaksi</td></tr>`;
 
-            // Overview Tabungan
+            // Render Buku Besar Kas
+            renderBukuBesar();
+
+            // Render Ringkasan Tabungan (Masing-masing Tabungan)
+            const anggotaList = (window.__allMembers || []).filter(m => m.role === 'Anggota');
             const container = document.getElementById('overviewTabunganContainer');
+            
             if(keuanganData.dana.length > 0) {
                 container.innerHTML = keuanganData.dana.map(dana => {
-                    const idDana = dana[0]; const judul = dana[1]; const targetNominal = parseInt(dana[3]) || 0; const deadline = dana[4] ? parseDateString(dana[4]) : '-';
-                    return `<div class="bg-white rounded-3xl border shadow-sm flex flex-col"><div class="p-4 border-b bg-gray-50 rounded-t-3xl relative"><h3 class="font-bold text-base text-gray-800">${judul}</h3><div class="text-[10px] text-gray-600 mt-1"><span>Target: ${formatRupiah(targetNominal)} • Deadline: ${deadline}</span></div></div></div>`;
+                    const idDana = dana[0];
+                    const judul = dana[1];
+                    const targetNominal = parseInt(dana[3]) || 0;
+                    const deadline = dana[4] ? parseDateString(dana[4]) : '-';
+                    const targetUser = dana[5] || 'Semua';
+                    
+                    let jumlahTarget = anggotaList.length;
+                    if(targetUser !== 'Semua') jumlahTarget = targetUser.split(',').length;
+                    const targetAkumulatif = targetNominal * jumlahTarget;
+
+                    // Hitung Buku Besar Tabungan
+                    let grouped = {};
+                    keuanganData.transaksi_dana.filter(t => t[1] === idDana).forEach(t => {
+                        const tgl = parseDateString(t[2]);
+                        if(!grouped[tgl]) grouped[tgl] = { masuk: 0, keluar: 0 };
+                        grouped[tgl].masuk += parseInt(t[4]) || 0;
+                    });
+                    if(keuanganData.pengeluaran_dana) {
+                        keuanganData.pengeluaran_dana.filter(p => p[1] === idDana).forEach(p => {
+                            const tgl = parseDateString(p[2]);
+                            if(!grouped[tgl]) grouped[tgl] = { masuk: 0, keluar: 0 };
+                            grouped[tgl].keluar += parseInt(p[3]) || 0;
+                        });
+                    }
+
+                    const sortedDates = Object.keys(grouped).sort((a,b) => new Date(b) - new Date(a));
+                    let saldoBerjalan = 0;
+                    const rowsHtml = sortedDates.map(tgl => {
+                        const m = grouped[tgl].masuk;
+                        const k = grouped[tgl].keluar;
+                        saldoBerjalan += (m - k);
+                        const [y, mo, d] = tgl.split('-');
+                        return `<tr>
+                            <td class="p-3 text-[10px] font-bold text-gray-700">${d}/${mo}/${y}</td>
+                            <td class="p-3 text-[10px] text-emerald-600 font-bold">${m ? formatRupiah(m) : '-'}</td>
+                            <td class="p-3 text-[10px] text-rose-600 font-bold">${k ? formatRupiah(k) : '-'}</td>
+                            <td class="p-3 text-[10px] font-bold text-gray-800 text-right">${formatRupiah(saldoBerjalan)}</td>
+                        </tr>`;
+                    }).join('');
+
+                    return `
+                        <div class="bg-white rounded-3xl border shadow-sm flex flex-col">
+                            <div class="p-4 border-b bg-gray-50 rounded-t-3xl relative">
+                                <button onclick="openExportModal('tabungan', '${idDana}')" class="absolute top-4 right-4 bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md"><i class="fa-solid fa-download mr-1"></i> Unduh</button>
+                                <h3 class="font-bold text-base text-gray-800">${judul}</h3>
+                                <div class="text-[10px] text-gray-600 mt-1 flex flex-col gap-0.5">
+                                    <span>Deadline : ${deadline}</span>
+                                    <span>Target Perorangan : ${formatRupiah(targetNominal)}</span>
+                                    <span>Target Akumulatif : ${formatRupiah(targetAkumulatif)}</span>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto max-h-64 custom-scroll p-2">
+                                <table class="w-full text-left text-xs" id="tbl_sum_${idDana}">
+                                    <thead class="bg-gray-50 text-gray-500 font-bold sticky top-0">
+                                        <tr><th class="p-3">Tanggal</th><th class="p-3">Masuk</th><th class="p-3">Keluar</th><th class="p-3 text-right">Saldo</th></tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        ${rowsHtml || `<tr><td colspan="4" class="p-4 text-center text-xs text-gray-400">Belum ada transaksi</td></tr>`}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
                 }).join('');
-            } else { container.innerHTML = `<div class="p-8 text-center text-xs text-gray-400 bg-white rounded-3xl border">Belum ada tabungan.</div>`; }
+            } else {
+                container.innerHTML = `<div class="p-8 text-center text-xs text-gray-400 bg-white rounded-3xl border">Belum ada tabungan.</div>`;
+            }
             
             renderTabelPerorangan();
+        }
+
+        function renderBukuBesar() {
+            let grouped = {};
+            keuanganData.kas.forEach(k => {
+                const tgl = parseDateString(k[1]);
+                if(!grouped[tgl]) grouped[tgl] = { masuk: 0, keluar: 0 };
+                grouped[tgl].masuk += parseInt(k[3]) || 0;
+            });
+            keuanganData.pengeluaran.forEach(p => {
+                const tgl = parseDateString(p[1]);
+                if(!grouped[tgl]) grouped[tgl] = { masuk: 0, keluar: 0 };
+                grouped[tgl].keluar += parseInt(p[2]) || 0;
+            });
+
+            const sortedDates = Object.keys(grouped).sort((a,b) => new Date(b) - new Date(a));
+            let saldoBerjalan = 0;
+            const rowsHtml = sortedDates.map(tgl => {
+                const m = grouped[tgl].masuk;
+                const k = grouped[tgl].keluar;
+                saldoBerjalan += (m - k);
+                const [y, mo, d] = tgl.split('-');
+                return `<tr>
+                    <td class="p-3 text-[10px] font-bold text-gray-700">${d}/${mo}/${y}</td>
+                    <td class="p-3 text-[10px] text-emerald-600 font-bold">${m ? formatRupiah(m) : '-'}</td>
+                    <td class="p-3 text-[10px] text-rose-600 font-bold">${k ? formatRupiah(k) : '-'}</td>
+                    <td class="p-3 text-[10px] font-bold text-gray-800 text-right">${formatRupiah(saldoBerjalan)}</td>
+                </tr>`;
+            }).join('');
+            
+            const el = document.getElementById('tableBukuBesar');
+            if(el) el.innerHTML = rowsHtml || `<tr><td colspan="4" class="p-4 text-center text-xs text-gray-400">Belum ada transaksi</td></tr>`;
         }
 
         function renderTabelPerorangan() {
