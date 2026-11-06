@@ -173,7 +173,7 @@
                     <div class="flex items-center gap-2 w-full sm:w-auto">
                         <!-- Tambahan Filter Tanggal -->
                         <input type="date" id="filterRiwayatDate" onchange="filterRiwayatTugas()" class="flex-1 sm:flex-none px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-700 outline-none">
-                        <button onclick="fetchRiwayatSemua()" class="text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 active:scale-95 hover:bg-blue-100 shrink-0"><i class="fa-solid fa-rotate text-[10px]"></i> Refresh</button>
+                        <button onclick="fetchRiwayatTugas()" class="text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 active:scale-95 hover:bg-blue-100 shrink-0"><i class="fa-solid fa-rotate text-[10px]"></i> Refresh</button>
                     </div>
                 </div>
                 <div id="riwayatNilaiContainer" class="flex flex-col gap-3">
@@ -185,7 +185,7 @@
             <section id="viewRiwayatLatihan" class="tab-view hidden flex-col gap-4 w-full">
                 <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
                     <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2"><i class="fa-solid fa-chart-pie text-blue-500"></i> Statistik Kehadiran</h3>
-                    <button onclick="fetchRiwayatSemua()" class="text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 active:scale-95"><i class="fa-solid fa-rotate text-[10px]"></i> Refresh</button>
+                    <button onclick="fetchRiwayatLatihan()" class="text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 active:scale-95"><i class="fa-solid fa-rotate text-[10px]"></i> Refresh</button>
                 </div>
                 <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3">
                     <div class="flex justify-between text-[10px] font-bold text-gray-500 text-center mt-1">
@@ -922,8 +922,19 @@
         window.__allMembers = [];
         if (!user) { window.location.href = 'index.html'; }
         let activeTasks = [], userSubs = {};
+        let taskSubmissionRecords = [];
         let globalUserSubs = [];
         let selectedTask = null, currentSubTugas = "Utama", selectedDay = "1";
+
+        // Status cache riwayat dimuat hanya ketika menu terkait dibuka.
+        let riwayatTugasLoaded = false;
+        let riwayatTugasDirty = true;
+        let riwayatTugasPromise = null;
+        let riwayatLatihanLoaded = false;
+        let riwayatLatihanDirty = true;
+        let riwayatLatihanPromise = null;
+        let financeMembersLoaded = false;
+        let financeMembersPromise = null;
 
         // State Rekam (Dinamis)
         let currentMinSec = 60, currentMaxSec = 300;
@@ -1024,8 +1035,9 @@
             const cleanSub = alnum(subName);
             const targetDate = toYMD(tanggal);
             
-            // 1. Cari di globalUserSubs (data dari server / Google Sheets)
-            const dbSubs = (globalUserSubs || []).filter(s => {
+            // 1. Cari di data submission milik anggota yang dikirim bersama getTasks.
+            // Riwayat nilai tidak lagi menjadi prasyarat untuk menentukan tugas selesai.
+            const dbSubs = (taskSubmissionRecords || []).filter(s => {
                 if (String(s.taskId).trim() !== String(taskId).trim()) return false;
                 const dates = [toYMD(s.tanggal), toYMD(s.hariKe)].filter(Boolean);
                 if (dates.length === 0) dates.push(toYMD(s.waktuKumpul));
@@ -1206,7 +1218,7 @@
             }
             renderMenu();
             fetchConfigAndTasks();
-            fetchRiwayatSemua();
+            // Riwayat tugas/latihan ditunda sampai menu terkait benar-benar dibuka.
             fetchBirthdays();
                         // === FITUR STATUS ONLINE (Heartbeat) ===
             sendHeartbeat(); // Kirim saat pertama kali buka
@@ -1254,9 +1266,24 @@
                     
                     view.classList.remove('hidden'); view.classList.add('flex');
                     
-                    if (t === 'riwayatTugas') document.getElementById('badgeRiwayatDot').classList.add('hidden');
+                    if (t === 'riwayatTugas') {
+                        document.getElementById('badgeRiwayatDot').classList.add('hidden');
+                        ensureRiwayatTugasLoaded();
+                    }
+                    if (t === 'riwayatLatihan') ensureRiwayatLatihanLoaded();
                     if (t === 'materi') loadMateriData();
-                    if (t === 'keuangan') loadKeuanganAnggota();
+                    if (t === 'keuangan') {
+                        if (isBendahara) {
+                            ensureFinanceMembersLoaded()
+                                .then(() => loadKeuanganAnggota())
+                                .catch(error => {
+                                    console.error('Gagal memuat daftar anggota keuangan:', error);
+                                    showToast('Gagal memuat daftar anggota keuangan.', 'error');
+                                });
+                        } else {
+                            loadKeuanganAnggota();
+                        }
+                    }
                 } else {
                     // 3. STATE NON-AKTIF (Saat Menu Tidak Dipilih)
                     if (t === 'keuangan' && isBendahara) {
@@ -1284,6 +1311,9 @@
             document.getElementById('absenModal').classList.remove('hidden');
             document.getElementById('absenModal').classList.add('flex');
             if (document.getElementById('tableAbsensiBody').children.length <= 1) loadAbsensiData();
+            // Status absensi tetap harus tersedia saat modal petugas dibuka,
+            // meskipun riwayat tidak lagi dimuat pada startup halaman.
+            ensureRiwayatLatihanLoaded();
             checkTodayAbsensiStatus();
         }
         function closeAbsenModal() {
@@ -1335,8 +1365,11 @@
                     globalConfig = { ...globalConfig, ...dConfig.config };
                 }
                 if (dTasks.success) {
-                    activeTasks = dTasks.tasks;
-                    userSubs = Object.assign({}, dTasks.userSubs, window.__localDoneSubs);
+                    activeTasks = Array.isArray(dTasks.tasks) ? dTasks.tasks : [];
+                    userSubs = Object.assign({}, dTasks.userSubs || {}, window.__localDoneSubs);
+                    if (Array.isArray(dTasks.userSubmissions)) {
+                        taskSubmissionRecords = dTasks.userSubmissions;
+                    }
                     renderTasks(activeTasks);
                 }
             }).catch(e => {
@@ -2278,39 +2311,108 @@
             }
         }
 
-        function fetchRiwayatSemua() {
-            showLoading(true, "Memperbarui riwayat...");
-            let req1 = fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAbsensiHistory' }) }).then(r=>r.json());
-            let req2 = fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getDashboardData' }) }).then(r=>r.json());
-            
-            Promise.all([req1, req2]).then(([dAbsen, dDash]) => {
+        function ensureRiwayatTugasLoaded() {
+            if (riwayatTugasLoaded && !riwayatTugasDirty) return Promise.resolve();
+            return fetchRiwayatTugas();
+        }
+
+        function ensureRiwayatLatihanLoaded() {
+            if (riwayatLatihanLoaded && !riwayatLatihanDirty) return Promise.resolve();
+            return fetchRiwayatLatihan();
+        }
+
+        function fetchRiwayatTugas() {
+            if (riwayatTugasPromise) return riwayatTugasPromise;
+
+            showLoading(true, "Memuat riwayat tugas...");
+            riwayatTugasPromise = fetch(GAS_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'getMemberHistoryData',
+                    username: user.username,
+                    nama: user.nama
+                })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("HTTP " + response.status);
+                return response.json();
+            })
+            .then(data => {
+                if (!data || !data.success) throw new Error(data && data.message ? data.message : "Gagal memuat riwayat tugas.");
+
+                globalUserSubs = Array.isArray(data.submissions) ? data.submissions : [];
+                window.__allTasksCache = Array.isArray(data.tasks) ? data.tasks : [];
+                filterRiwayatTugas();
+
+                riwayatTugasLoaded = true;
+                riwayatTugasDirty = false;
+            })
+            .catch(error => {
+                console.error("Gagal memuat riwayat tugas:", error);
+                const container = document.getElementById('riwayatNilaiContainer');
+                if (container) {
+                    container.innerHTML = `<div class="p-8 text-center text-xs text-rose-500 bg-white rounded-3xl border">Gagal memuat riwayat tugas. Silakan tekan Refresh.</div>`;
+                }
+            })
+            .finally(() => {
                 showLoading(false);
-                if(dAbsen.success && dAbsen.data.length > 0) {
-                    stateAbsensiHistory = dAbsen.data;
-                    renderRiwayatAbsen(dAbsen.data);
-                }
-            if(dDash.success) {
-                const mySubs = dDash.submissions.filter(s => s.namaAnggota.trim().toLowerCase() === user.nama.trim().toLowerCase());
-                globalUserSubs = mySubs;
-                window.__allTasksCache = dDash.tasks; // Simpan tasks ke cache untuk filter
-
-                // --- TAMBAHKAN 3 BARIS INI ---
-                if (dDash.members) {
-                    window.__allMembers = dDash.members;
-                }
-                // -----------------------------
-
-                filterRiwayatTugas(); // Panggil fungsi filter (bukan langsung render)
-                
-                if (activeTasks.length > 0) renderTasks(activeTasks); 
-                const vs = document.getElementById('viewSetup');
-                if (selectedTask && vs && !vs.classList.contains('hidden')) renderSubTasks();
-                }
-                if (!document.getElementById('absenModal').classList.contains('hidden')) checkTodayAbsensiStatus();
-            }).catch(e => { 
-                showLoading(false); 
-                console.error("Gagal load riwayat"); 
+                riwayatTugasPromise = null;
             });
+
+            return riwayatTugasPromise;
+        }
+
+        function fetchRiwayatLatihan() {
+            if (riwayatLatihanPromise) return riwayatLatihanPromise;
+
+            showLoading(true, "Memuat riwayat latihan...");
+            riwayatLatihanPromise = fetch(GAS_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'getAbsensiHistory' })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("HTTP " + response.status);
+                return response.json();
+            })
+            .then(data => {
+                if (!data || !data.success) throw new Error(data && data.message ? data.message : "Gagal memuat riwayat latihan.");
+
+                stateAbsensiHistory = Array.isArray(data.data) ? data.data : [];
+                if (stateAbsensiHistory.length > 0) renderRiwayatAbsen(stateAbsensiHistory);
+                if (!document.getElementById('absenModal').classList.contains('hidden')) checkTodayAbsensiStatus();
+
+                riwayatLatihanLoaded = true;
+                riwayatLatihanDirty = false;
+            })
+            .catch(error => {
+                console.error("Gagal memuat riwayat latihan:", error);
+                const container = document.getElementById('riwayatListContainer');
+                if (container) {
+                    container.innerHTML = `<div class="p-8 text-center text-xs text-rose-500">Gagal memuat riwayat latihan. Silakan tekan Refresh.</div>`;
+                }
+            })
+            .finally(() => {
+                showLoading(false);
+                riwayatLatihanPromise = null;
+            });
+
+            return riwayatLatihanPromise;
+        }
+
+        // Kompatibilitas untuk pemanggil lama: hanya refresh data bila tab terkait sedang terbuka.
+        // Jika tidak sedang dibuka, tandai kotor agar dimuat saat pengguna masuk ke menu tersebut.
+        function fetchRiwayatSemua() {
+            const viewTugas = document.getElementById('viewRiwayatTugas');
+            const viewLatihan = document.getElementById('viewRiwayatLatihan');
+            const tugasVisible = viewTugas && !viewTugas.classList.contains('hidden');
+            const latihanVisible = viewLatihan && !viewLatihan.classList.contains('hidden');
+
+            if (tugasVisible) return fetchRiwayatTugas();
+            if (latihanVisible) return fetchRiwayatLatihan();
+
+            riwayatTugasDirty = true;
+            riwayatLatihanDirty = true;
+            return Promise.resolve();
         }
 
         // --- FUNGSI BARU UNTUK FILTER TANGGAL ---
@@ -2873,6 +2975,33 @@
         // FITUR KEUANGAN (BENDAHARA & ANGGOTA BIASA)
         // ==========================================
         let keuanganData = { kas: [], pengeluaran: [], dana: [], transaksi_dana: [], pengeluaran_dana: [], settings: {} };
+
+        function ensureFinanceMembersLoaded() {
+            if (financeMembersLoaded) return Promise.resolve(true);
+            if (financeMembersPromise) return financeMembersPromise;
+
+            financeMembersPromise = fetch(GAS_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'getFinanceMemberList' })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("HTTP " + response.status);
+                return response.json();
+            })
+            .then(data => {
+                if (!data || !data.success || !Array.isArray(data.members)) {
+                    throw new Error(data && data.message ? data.message : "Daftar anggota tidak tersedia.");
+                }
+                window.__allMembers = data.members;
+                financeMembersLoaded = true;
+                return true;
+            })
+            .finally(() => {
+                financeMembersPromise = null;
+            });
+
+            return financeMembersPromise;
+        }
 
         function loadKeuanganAnggota() {
             showLoading(true, "Memuat data keuangan...");
